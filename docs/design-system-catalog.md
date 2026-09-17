@@ -48,7 +48,7 @@ fac-símiles impressos permanecem no HaisFaturamento.
 | Seleção avançada | `Combobox`, `MultiSelect` | Busca, chips com contador, multiseleção |
 | Assinatura | `SignatureField` | Específico de documentos, mas reutilizável |
 | Tabelas | `DataTable*` | Cabeçalho, células, linha vazia e alternativa em cards no mobile |
-| Paginação | `Pagination*` | — |
+| Paginação | `Pagination*`, `TablePagination` | `TablePagination` é o rodapé padrão de listagens (contagem + itens por página + navegação), sempre sobre o total já filtrado |
 | Cards | `SurfaceCard` (padrão), `SectionCard` (etapas/colapsável), `FilterCard` (grade de filtros), `Card` (primitivo) | Todos em `rounded-2xl` + `shadow-xs` |
 | Cabeçalho de página | `PageHeader` | H1 + descrição + ações |
 | Tags e badges | `Badge` (semântico estático), `Chip` (seleção interativa), `StatusPill` (progresso) | Escolher pelo comportamento, não pela aparência |
