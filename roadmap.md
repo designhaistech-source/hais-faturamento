@@ -5,5 +5,8 @@
 - [x] Navegação, rodapé e página inicial neutros do HaisFaturamento
 - [x] Manter design system compartilhado (tokens, componentes, padrões) e a página `/design-system`
 
+## Funcionalidades
+- [x] Contratos: listagem (empresa, CNPJ, validade, contrato, ações), cadastro com upload e ações visualizar/baixar
+
 ## Próximos passos (aguardando definição do usuário)
-- [ ] Primeira funcionalidade de faturamento (escopo ainda não definido)
+- [ ] Próxima funcionalidade de faturamento (escopo ainda não definido)
