@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/data-state";
 import { SurfaceCard } from "@/components/surface-card";
 
@@ -30,7 +29,7 @@ export function EmptyStateCard({
     <SurfaceCard padding="md" className={className}>
       <EmptyState
         size="lg"
-        className={cn("py-8")}
+        className="py-8"
         icon={icon}
         title={title}
         description={description}
