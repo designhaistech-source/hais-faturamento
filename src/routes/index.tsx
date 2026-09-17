@@ -57,7 +57,6 @@ function HomePage() {
               <FeatureCard key={item.to} {...item} />
             ))}
           </div>
-
         </main>
         <SiteFooter />
       </div>
@@ -88,4 +87,3 @@ function FeatureCard({ icon: Icon, title, description, to, action }: (typeof FEA
     </SurfaceCard>
   );
 }
-
