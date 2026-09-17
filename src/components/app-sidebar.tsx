@@ -32,6 +32,7 @@ import { RenderProfiler } from "@/lib/render-profiler";
 import { useTheme } from "@/lib/theme";
 import brandLogo from "@/assets/haisfaturamento-logo.png.asset.json";
 import brandLogoDark from "@/assets/haisfaturamento-logo-dark.png.asset.json";
+import brandMark from "@/assets/haisfaturamento-mark.svg.asset.json";
 
 /** Marca oficial do produto: logo HaisFaturamento (variante clara/escura). */
 function BrandLogo({ className }: { className?: string }) {
