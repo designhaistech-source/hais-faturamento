@@ -147,7 +147,6 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
               if (inputRef.current) inputRef.current.value = "";
             }}
           >
-
             <input
               ref={inputRef}
               id="contract-file"
@@ -166,7 +165,6 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
                   dragActive && "border-primary bg-primary-muted",
                 )}
               >
-
                 <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                 <TooltipProvider delayDuration={150}>
                   <Tooltip>
