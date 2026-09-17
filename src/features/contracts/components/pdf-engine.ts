@@ -29,7 +29,7 @@ export function loadPdfjs(): Promise<PdfjsModule> {
 export function getPdfWorker(): Promise<PdfWorker> {
   workerPromise ??= (async () => {
     const pdfjs = await loadPdfjs();
-    const worker = new pdfjs.PDFWorker({ name: "hais-pdf-worker" });
+    const worker = new pdfjs.PDFWorker();
     await worker.promise;
     return worker;
   })().catch((cause: unknown) => {
