@@ -116,7 +116,7 @@ export function ContractsPage() {
                             {contract.cnpj || "—"}
                           </DataTableCell>
                           <DataTableCell>{formatIsoToBr(contract.validUntil) || "—"}</DataTableCell>
-                          <DataTableCell className="max-w-[18rem]">
+                          <DataTableCell className="max-w-72">
                             <span className="block truncate" title={contract.file.name}>
                               {contract.file.name}
                             </span>
