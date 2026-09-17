@@ -90,7 +90,6 @@ export function ContractPreviewModal({
     };
   }, [open, contract, previewable]);
 
-
   return (
     <AppModal
       open={open}
@@ -142,7 +141,6 @@ export function ContractPreviewModal({
       ) : (
         <LoadingState title="Carregando pré-visualização…" />
       )}
-
     </AppModal>
   );
 }
