@@ -144,20 +144,22 @@ export function AppSidebar({ activeKey }: { activeKey: ItemKey }) {
           }`}
         >
           <div
-            className={`flex border-b border-sidebar-border min-w-0 py-5 ${
-              collapsed
-                ? "flex-col items-center gap-3 px-2"
-                : "items-center justify-between gap-2 px-4"
+            className={`flex min-w-0 items-center border-b border-sidebar-border py-5 ${
+              collapsed ? "justify-center px-2" : "px-4"
             }`}
           >
-            {collapsed ? <BrandMark /> : <BrandLogo />}
-            <button /* ds-allow: colapsar/expandir sidebar */
+            {/* A própria marca é o controle de recolher/expandir: no hover o símbolo dá lugar ao ícone de menu. */}
+            <button /* ds-allow: colapsar/expandir sidebar pela área da marca */
               type="button"
               onClick={() => setCollapsed((v) => !v)}
               aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
-              className="shrink-0 p-1.5 rounded-md text-sidebar-muted hover:text-sidebar-accent-foreground hover:bg-sidebar-accent transition-colors"
+              aria-expanded={!collapsed}
+              className="group/brand relative flex min-w-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <PanelLeft className="h-4 w-4" />
+              {collapsed ? <BrandMark /> : <BrandLogo />}
+              <span className="absolute left-0 top-0 grid size-6 place-items-center rounded-md bg-sidebar text-sidebar-muted opacity-0 transition-opacity group-hover/brand:opacity-100">
+                <PanelLeft className="h-4 w-4" aria-hidden="true" />
+              </span>
             </button>
           </div>
 
