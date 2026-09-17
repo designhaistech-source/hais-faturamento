@@ -28,6 +28,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
   const [validUntil, setValidUntil] = useState("");
   const [fileTouched, setFileTouched] = useState(false);
   const [companyTouched, setCompanyTouched] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
 
   const canSubmit = Boolean(file) && company.trim().length > 0;
   const fileError = fileTouched && !file ? "Selecione o arquivo do contrato." : undefined;
