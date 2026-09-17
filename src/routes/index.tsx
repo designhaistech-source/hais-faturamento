@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { FileText } from "lucide-react";
+import { ArrowRight, FileText } from "lucide-react";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteFooter } from "@/components/site-footer";
@@ -52,29 +52,38 @@ function HomePage() {
             description="Antecipe inconsistências no faturamento antes do envio à operadora."
           />
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {FEATURES.map((item) => (
-              <SurfaceCard key={item.to} className="flex flex-col gap-3 p-5">
-                <span className="flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
-                  <item.icon className="size-5" aria-hidden="true" />
-                </span>
-                <div className="space-y-1">
-                  <h2 className="font-display text-base font-semibold text-foreground">
-                    {item.title}
-                  </h2>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    {item.description}
-                  </p>
-                </div>
-                <Button variant="outline" className="mt-auto self-start" asChild>
-                  <Link to={item.to}>{item.action}</Link>
-                </Button>
-              </SurfaceCard>
+              <FeatureCard key={item.to} {...item} />
             ))}
           </div>
         </main>
         <SiteFooter />
       </div>
     </div>
+  );
+}
+
+/** Card de acesso a uma funcionalidade; reutilizado por cada item de FEATURES. */
+function FeatureCard({ icon: Icon, title, description, to, action }: (typeof FEATURES)[number]) {
+  return (
+    <SurfaceCard
+      padding="sm"
+      className="group flex flex-col gap-3 transition-colors hover:border-primary/40 hover:shadow-sm"
+      icon={<Icon className="size-4.5" aria-hidden="true" />}
+      title={title}
+      description={description}
+      headerClassName="mb-0"
+    >
+      <Button variant="link" size="sm" className="h-auto px-0" asChild>
+        <Link to={to}>
+          {action}
+          <ArrowRight
+            className="transition-transform group-hover:translate-x-0.5"
+            aria-hidden="true"
+          />
+        </Link>
+      </Button>
+    </SurfaceCard>
   );
 }
