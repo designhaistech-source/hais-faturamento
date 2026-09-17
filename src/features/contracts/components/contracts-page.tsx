@@ -47,7 +47,6 @@ import {
   prefetchContractFile,
 } from "../data/contracts-service";
 
-
 const COLUMNS = ["Empresa", "CNPJ", "Validade", "Contrato", "Ações"] as const;
 
 async function downloadContractFile(contract: Contract) {
@@ -147,7 +146,6 @@ export function ContractsPage() {
       toast.error("Não foi possível limpar os contratos cadastrados.");
     },
   });
-
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -389,7 +387,6 @@ export function ContractsPage() {
         onConfirm={() => clearMutation.mutate()}
       />
     </TooltipProvider>
-
   );
 }
 

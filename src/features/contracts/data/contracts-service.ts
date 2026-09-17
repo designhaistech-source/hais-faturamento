@@ -121,4 +121,3 @@ export async function deleteAllContracts(): Promise<void> {
     if (error) throw error;
   }
 }
-
