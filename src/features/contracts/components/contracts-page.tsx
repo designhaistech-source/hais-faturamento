@@ -326,7 +326,25 @@ export function ContractsPage() {
                 )}
               </>
             )}
+
+            {/* Ferramenta provisória de testes: não faz parte do produto. */}
+            {contracts.length > 0 && (
+              <div className="flex justify-end border-t border-dashed border-border pt-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground hover:text-destructive"
+                  disabled={clearMutation.isPending}
+                  onClick={() => setClearOpen(true)}
+                >
+                  <Trash2 className="size-3.5" aria-hidden="true" />
+                  Limpar contratos cadastrados · Temporário
+                </Button>
+              </div>
+            )}
           </main>
+
           <SiteFooter />
         </div>
       </div>
