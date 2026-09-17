@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { LoadingState } from "@/components/data-state";
+import { loadPdfjs } from "./pdf-engine";
 
 interface PdfPreviewProps {
   /** Bytes completos do PDF já recuperados do armazenamento. */
@@ -22,9 +23,7 @@ export function PdfPreview({ data, onError }: PdfPreviewProps) {
     setRendering(true);
 
     const render = async () => {
-      const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-      const workerUrl = (await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url")).default;
-      pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+      const pdfjs = await loadPdfjs();
 
       // pdf.js consome (e neutraliza) o buffer recebido: usar uma cópia.
       const pdf = await pdfjs.getDocument({ data: data.slice(0) }).promise;
@@ -56,6 +55,9 @@ export function PdfPreview({ data, onError }: PdfPreviewProps) {
         container.append(canvas);
         await page.render({ canvasContext: context, viewport }).promise;
         if (cancelled) return;
+
+        // A primeira página já é suficiente para encerrar o estado de carregamento.
+        if (pageNumber === 1) setRendering(false);
       }
 
       setRendering(false);

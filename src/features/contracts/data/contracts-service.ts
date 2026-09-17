@@ -27,11 +27,33 @@ export async function createContractFileUrl(path: string, downloadAs?: string): 
   return data.signedUrl;
 }
 
+/**
+ * Cache em memória (por sessão) dos arquivos já recuperados do storage. Evita
+ * baixar novamente o mesmo contrato ao reabrir a pré-visualização.
+ */
+const contractBlobCache = new Map<string, Promise<Blob>>();
+
 /** Baixa o arquivo do storage como blob, para pré-visualização dentro do produto. */
 export async function downloadContractBlob(path: string): Promise<Blob> {
-  const { data, error } = await supabase.storage.from(BUCKET).download(path);
-  if (error || !data) throw error ?? new Error("Não foi possível carregar o arquivo do contrato.");
-  return data;
+  const cached = contractBlobCache.get(path);
+  if (cached) return cached;
+
+  const request = supabase.storage
+    .from(BUCKET)
+    .download(path)
+    .then(({ data, error }) => {
+      if (error || !data) {
+        throw error ?? new Error("Não foi possível carregar o arquivo do contrato.");
+      }
+      return data;
+    })
+    .catch((cause: unknown) => {
+      contractBlobCache.delete(path);
+      throw cause;
+    });
+
+  contractBlobCache.set(path, request);
+  return request;
 }
 
 export async function listContracts(): Promise<Contract[]> {
