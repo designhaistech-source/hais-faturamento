@@ -3,8 +3,8 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutGrid,
   FileText,
-  Palette,
-  Shapes,
+  HelpCircle,
+
   HelpCircle,
   CircleUser,
   LogOut,
