@@ -183,7 +183,7 @@ export function ContractsPage() {
                   activeCount={activeCount}
                   onClear={handleClearFilters}
                   clearDisabled={!hasFilters}
-                  barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_10rem_10rem_auto] lg:gap-4"
+                  barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_21rem_auto] lg:gap-4"
                 >
                   <SearchField
                     id="contracts-search"
@@ -200,28 +200,35 @@ export function ContractsPage() {
                       setPage(1);
                     }}
                   />
-                  <Field id="contracts-valid-from" label="De">
-                    <Input
-                      type="date"
-                      value={validFrom}
-                      max={validTo || undefined}
-                      onChange={(event) => {
-                        setValidFrom(event.target.value);
-                        setPage(1);
-                      }}
-                    />
-                  </Field>
-                  <Field id="contracts-valid-to" label="Até">
-                    <Input
-                      type="date"
-                      value={validTo}
-                      min={validFrom || undefined}
-                      onChange={(event) => {
-                        setValidTo(event.target.value);
-                        setPage(1);
-                      }}
-                    />
-                  </Field>
+                  <fieldset className="min-w-0 space-y-1.5 sm:space-y-2">
+                    <legend className="text-xs font-medium leading-snug text-muted-foreground">
+                      Validade
+                    </legend>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Field id="contracts-valid-from" label="De">
+                        <Input
+                          type="date"
+                          value={validFrom}
+                          max={validTo || undefined}
+                          onChange={(event) => {
+                            setValidFrom(event.target.value);
+                            setPage(1);
+                          }}
+                        />
+                      </Field>
+                      <Field id="contracts-valid-to" label="Até">
+                        <Input
+                          type="date"
+                          value={validTo}
+                          min={validFrom || undefined}
+                          onChange={(event) => {
+                            setValidTo(event.target.value);
+                            setPage(1);
+                          }}
+                        />
+                      </Field>
+                    </div>
+                  </fieldset>
                 </FilterCard>
 
                 {filteredContracts.length === 0 ? (
