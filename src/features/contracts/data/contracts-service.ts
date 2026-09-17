@@ -94,3 +94,8 @@ export async function createContract(input: NewContractInput): Promise<void> {
   });
   if (error) throw error;
 }
+
+/** Antecipa o download do arquivo (hover/foco) para a pré-visualização abrir imediata. */
+export function prefetchContractFile(path: string): void {
+  void downloadContractBlob(path).catch(() => undefined);
+}

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { LoadingState } from "@/components/data-state";
-import { loadPdfjs } from "./pdf-engine";
+import { getPdfWorker, loadPdfjs } from "./pdf-engine";
 
 interface PdfPreviewProps {
   /** Bytes completos do PDF já recuperados do armazenamento. */
@@ -23,10 +23,10 @@ export function PdfPreview({ data, onError }: PdfPreviewProps) {
     setRendering(true);
 
     const render = async () => {
-      const pdfjs = await loadPdfjs();
+      const [pdfjs, worker] = await Promise.all([loadPdfjs(), getPdfWorker()]);
 
       // pdf.js consome (e neutraliza) o buffer recebido: usar uma cópia.
-      const pdf = await pdfjs.getDocument({ data: data.slice(0) }).promise;
+      const pdf = await pdfjs.getDocument({ data: data.slice(0), worker }).promise;
       if (cancelled) return;
 
       const container = containerRef.current;
