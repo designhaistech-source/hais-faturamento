@@ -12,7 +12,6 @@ import { createContractId, maskCnpj, type Contract } from "../data/contracts";
 const ACCEPTED_EXTENSIONS = [".pdf", ".doc", ".docx"] as const;
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
-
 interface NewContractModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -34,8 +33,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
 
   const canSubmit = Boolean(file) && company.trim().length > 0;
   const fileError =
-    invalidFileMessage ??
-    (fileTouched && !file ? "Selecione o arquivo do contrato." : undefined);
+    invalidFileMessage ?? (fileTouched && !file ? "Selecione o arquivo do contrato." : undefined);
   const companyError =
     companyTouched && company.trim().length === 0 ? "Informe o nome da empresa." : undefined;
 
@@ -68,6 +66,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
     setValidUntil("");
     setFileTouched(false);
     setCompanyTouched(false);
+    setInvalidFileMessage(null);
     if (inputRef.current) inputRef.current.value = "";
   }
 
@@ -182,8 +181,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
                     size="sm"
                     className="text-destructive hover:text-destructive"
                     onClick={() => {
-                      setFileTouched(true);
-                      setFile(null);
+                      handleSelectedFile(null);
                       if (inputRef.current) inputRef.current.value = "";
                     }}
                   >
