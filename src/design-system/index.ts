@@ -72,7 +72,7 @@ export {
   type FormActionStep,
 } from "@/components/form-action-bar";
 export { SavedIndicator, formatSavedTime } from "@/components/saved-indicator";
-export { SignatureField } from "@/components/signature-field";
+
 
 /* ---------------- Estrutura e superfícies ---------------- */
 
