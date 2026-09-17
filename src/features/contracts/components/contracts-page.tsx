@@ -206,6 +206,7 @@ export function ContractsPage() {
                   <SearchField
                     id="contracts-search"
                     label="Buscar"
+                    fieldClassName="sm:col-span-2 lg:col-span-1"
                     placeholder="Buscar por empresa ou CNPJ"
                     value={search}
                     clearable
@@ -218,11 +219,11 @@ export function ContractsPage() {
                       setPage(1);
                     }}
                   />
-                  <fieldset className="min-w-0 space-y-1.5 sm:space-y-2">
+                  <fieldset className="min-w-0 space-y-1.5 sm:col-span-2 sm:space-y-2 lg:col-span-1">
                     <legend className="text-xs font-medium leading-snug text-muted-foreground">
                       Validade
                     </legend>
-                    <div className="flex min-w-0 items-center gap-2">
+                    <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
                       <span className="shrink-0 text-xs text-muted-foreground">De</span>
                       <Input
                         id="contracts-valid-from"
