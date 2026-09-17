@@ -78,10 +78,12 @@ export function ContractsPage() {
             />
 
             {contracts.length === 0 ? (
-              <SurfaceCard padding="lg">
+              <SurfaceCard padding="md">
                 <EmptyState
                   size="lg"
+                  className="py-8"
                   icon={<FileText className="size-10" aria-hidden="true" />}
+
                   title="Nenhum contrato cadastrado"
                   description="Cadastre um contrato para começar."
                   action={
