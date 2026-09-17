@@ -192,28 +192,8 @@ function SidebarNav({
           onNavigate={onNavigate}
         />
       </SidebarGroup>
-
-      <SidebarGroup label="Design system" collapsed={collapsed}>
-        <SidebarItem
-          icon={Palette}
-          label="Fundamentos"
-          to="/design-system"
-          active={activeKey === "design-system"}
-          hint="Cores, tipografia, componentes e padrões de página disponíveis."
-          collapsed={collapsed}
-          onNavigate={onNavigate}
-        />
-        <SidebarItem
-          icon={Shapes}
-          label="Ícones"
-          to="/design-system-icones"
-          active={activeKey === "icones"}
-          hint="Matriz de referência para validar o alinhamento de ícones e textos."
-          collapsed={collapsed}
-          onNavigate={onNavigate}
-        />
-      </SidebarGroup>
     </nav>
+
   );
 }
 
