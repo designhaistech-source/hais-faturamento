@@ -21,7 +21,7 @@ recriar tokens nem componentes.
 3. Copiar `src/lib/theme.ts` para a preferência de tema (claro/escuro/sistema) e
    `src/lib/utils.ts` (`cn`).
 4. Remover, se não fizer sentido no novo produto, apenas os tokens específicos
-   do HaisGuias: `quality-*` e `guide-type-*`.
+   do HaisFaturamento: `quality-*` e `guide-type-*`.
 
 ## 3. Componentes
 
@@ -36,7 +36,7 @@ Copiar, nesta ordem:
 
 Não copiar: `src/features/**`, `AppSidebar`, `SiteFooter`, `ScaledGuideSheet`,
 `kits-modal`, `procedure-code-modal`, `signature-field` e os fac-símiles
-impressos — todos dependem da marca, das rotas ou do domínio do HaisGuias.
+impressos — todos dependem da marca, das rotas ou do domínio do HaisFaturamento.
 
 `AppSidebar` e `SiteFooter` servem como referência de anatomia: recriar com a
 marca do novo produto, mantendo os tokens `sidebar-*`.

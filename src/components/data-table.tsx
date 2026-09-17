@@ -7,17 +7,10 @@ import { cn } from "@/lib/utils";
  * listagens do sistema.
  */
 
-export function DataTable({
-  className,
-  children,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+export function DataTable({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn(
-        "overflow-hidden rounded-xl border border-border bg-card",
-        className,
-      )}
+      className={cn("overflow-hidden rounded-xl border border-border bg-card", className)}
       {...props}
     >
       <div className="w-full overflow-x-auto">{children}</div>
@@ -25,13 +18,8 @@ export function DataTable({
   );
 }
 
-export function DataTableRoot({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLTableElement>) {
-  return (
-    <table className={cn("w-full text-sm", className)} {...props} />
-  );
+export function DataTableRoot({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) {
+  return <table className={cn("w-full text-sm", className)} {...props} />;
 }
 
 export function DataTableHeader({
@@ -56,16 +44,8 @@ export function DataTableBody({
   return <tbody className={cn("divide-y divide-border", className)} {...props} />;
 }
 
-export function DataTableRow({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLTableRowElement>) {
-  return (
-    <tr
-      className={cn("transition-colors hover:bg-muted/40", className)}
-      {...props}
-    />
-  );
+export function DataTableRow({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) {
+  return <tr className={cn("transition-colors hover:bg-muted/40", className)} {...props} />;
 }
 
 export function DataTableHead({
@@ -74,10 +54,7 @@ export function DataTableHead({
 }: React.ThHTMLAttributes<HTMLTableCellElement>) {
   return (
     <th
-      className={cn(
-        "px-4 py-3 text-left font-medium first:pl-6 last:pr-6",
-        className,
-      )}
+      className={cn("px-4 py-3 text-left font-medium first:pl-6 last:pr-6", className)}
       {...props}
     />
   );
@@ -89,10 +66,7 @@ export function DataTableCell({
 }: React.TdHTMLAttributes<HTMLTableCellElement>) {
   return (
     <td
-      className={cn(
-        "px-4 py-3 align-middle text-foreground first:pl-6 last:pr-6",
-        className,
-      )}
+      className={cn("px-4 py-3 align-middle text-foreground first:pl-6 last:pr-6", className)}
       {...props}
     />
   );
@@ -189,18 +163,11 @@ interface CardHeaderProps {
   className?: string;
 }
 
-export function DataTableCardHeader({
-  title,
-  subtitle,
-  trailing,
-  className,
-}: CardHeaderProps) {
+export function DataTableCardHeader({ title, subtitle, trailing, className }: CardHeaderProps) {
   return (
     <div className={cn("flex min-w-0 items-start justify-between gap-3", className)}>
       <div className="min-w-0">
-        <div className="flex min-w-0 items-center gap-2 text-sm font-medium">
-          {title}
-        </div>
+        <div className="flex min-w-0 items-center gap-2 text-sm font-medium">{title}</div>
         {subtitle ? (
           <p className="mt-0.5 text-sm break-words text-muted-foreground">{subtitle}</p>
         ) : null}
@@ -225,11 +192,7 @@ interface CardFieldsProps {
   className?: string;
 }
 
-export function DataTableCardFields({
-  fields,
-  columns = 2,
-  className,
-}: CardFieldsProps) {
+export function DataTableCardFields({ fields, columns = 2, className }: CardFieldsProps) {
   return (
     <dl
       className={cn(
@@ -240,12 +203,8 @@ export function DataTableCardFields({
     >
       {fields.map((field) => (
         <div key={field.label} className="min-w-0">
-          <dt className={field.hideLabel ? "sr-only" : "font-medium"}>
-            {field.label}
-          </dt>
-          <dd className={cn("min-w-0 break-words", !field.hideLabel && "mt-0.5")}>
-            {field.value}
-          </dd>
+          <dt className={field.hideLabel ? "sr-only" : "font-medium"}>{field.label}</dt>
+          <dd className={cn("min-w-0 break-words", !field.hideLabel && "mt-0.5")}>{field.value}</dd>
         </div>
       ))}
     </dl>
@@ -256,12 +215,7 @@ export function DataTableCardActions({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn("flex items-center justify-between gap-3", className)}
-      {...props}
-    />
-  );
+  return <div className={cn("flex items-center justify-between gap-3", className)} {...props} />;
 }
 
 interface DesktopProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -270,16 +224,8 @@ interface DesktopProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 /** Container da tabela, visível só a partir do breakpoint informado. */
-export function DataTableDesktop({
-  className,
-  breakpoint = "lg",
-  ...props
-}: DesktopProps) {
+export function DataTableDesktop({ className, breakpoint = "lg", ...props }: DesktopProps) {
   return (
-    <div
-      className={cn(SHOW_FROM[breakpoint], "w-full overflow-x-auto", className)}
-      {...props}
-    />
+    <div className={cn(SHOW_FROM[breakpoint], "w-full overflow-x-auto", className)} {...props} />
   );
 }
-

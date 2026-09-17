@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Visual regression para as telas do HaisGuias.
+"""Visual regression para as telas do HaisFaturamento.
 
 Uso:
   python3 scripts/visual/visual-regression.py            # compara com os baselines

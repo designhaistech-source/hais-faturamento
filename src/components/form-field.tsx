@@ -1,7 +1,6 @@
 import * as React from "react";
 import { AlertCircle, Loader2, Search as SearchLucide, X } from "lucide-react";
 
-
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 
 /* ---------------- Field ---------------- */
 
@@ -55,15 +53,19 @@ export function Field({
   const messageId = id ? `${id}-msg` : undefined;
 
   // Injeta id + aria-describedby + aria-invalid no primeiro filho quando possível.
-  const child = injectChildProps && React.isValidElement(children)
-    ? React.cloneElement(children as React.ReactElement<any>, {
-        id: (children as React.ReactElement<any>).props.id ?? id,
-        "aria-invalid":
-          (children as React.ReactElement<any>).props["aria-invalid"] ?? Boolean(error),
-        "aria-describedby":
-          (children as React.ReactElement<any>).props["aria-describedby"] ?? messageId,
-      })
-    : children;
+  type InjectedProps = {
+    id?: string;
+    "aria-invalid"?: boolean | "true" | "false";
+    "aria-describedby"?: string;
+  };
+  const child =
+    injectChildProps && React.isValidElement<InjectedProps>(children)
+      ? React.cloneElement(children, {
+          id: children.props.id ?? id,
+          "aria-invalid": children.props["aria-invalid"] ?? Boolean(error),
+          "aria-describedby": children.props["aria-describedby"] ?? messageId,
+        })
+      : children;
 
   return (
     <div className={cn("min-w-0 space-y-1.5 sm:space-y-2", className)}>
@@ -118,8 +120,7 @@ export function Field({
 
 /* ---------------- SearchInput ---------------- */
 
-interface SearchInputProps
-  extends Omit<React.ComponentProps<typeof Input>, "type"> {
+interface SearchInputProps extends Omit<React.ComponentProps<typeof Input>, "type"> {
   leftIcon?: React.ReactNode;
   /** Ações renderizadas à direita (kbd hint, botão limpar custom, etc.). */
   rightSlot?: React.ReactNode;
@@ -207,17 +208,7 @@ interface SearchFieldProps extends SearchInputProps {
  */
 export const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
   (
-    {
-      id,
-      label,
-      required,
-      optional,
-      hint,
-      error,
-      fieldClassName,
-      labelClassName,
-      ...inputProps
-    },
+    { id, label, required, optional, hint, error, fieldClassName, labelClassName, ...inputProps },
     ref,
   ) => {
     return (
@@ -301,8 +292,7 @@ export function SelectField({
 
   if (readOnly) {
     const selected = options?.find((o) => o.value === value);
-    const text =
-      typeof selected?.label === "string" ? selected.label : value ?? "";
+    const text = typeof selected?.label === "string" ? selected.label : (value ?? "");
     return (
       <Field
         id={id}
@@ -366,5 +356,3 @@ export function SelectField({
     </Field>
   );
 }
-
-

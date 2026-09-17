@@ -16,7 +16,11 @@ export function PatternsSection() {
         <SurfaceCard
           title="Materiais solicitados"
           description="Adicione os itens que serão enviados à operadora."
-          actions={<Button size="sm" variant="secondary">Adicionar material</Button>}
+          actions={
+            <Button size="sm" variant="secondary">
+              Adicionar material
+            </Button>
+          }
           padding="lg"
         >
           <p className="text-sm text-muted-foreground">Conteúdo da seção.</p>
@@ -38,7 +42,9 @@ export function PatternsSection() {
                 <CircleDashed className="size-3.5" /> Materiais
               </span>
             </div>
-            <Button size="sm" className="shrink-0">Enviar solicitação</Button>
+            <Button size="sm" className="shrink-0">
+              Enviar solicitação
+            </Button>
           </div>
         </SurfaceCard>
       </div>
@@ -60,20 +66,23 @@ export function PatternsSection() {
           <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card p-6 text-center">
             <Inbox className="size-6 text-muted-foreground" />
             <p className="text-sm font-medium text-foreground">Nenhuma guia processada</p>
-            <p className="text-xs text-muted-foreground">
-              Importe um arquivo para começar.
-            </p>
+            <p className="text-xs text-muted-foreground">Importe um arquivo para começar.</p>
           </div>
           <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
             <AlertTriangle className="size-6 text-destructive" />
             <p className="text-sm font-medium text-foreground">Erro ao carregar</p>
-            <Button size="sm" variant="outline">Tentar novamente</Button>
+            <Button size="sm" variant="outline">
+              Tentar novamente
+            </Button>
           </div>
         </div>
       </div>
 
       <div className="space-y-3">
-        <DsSubhead title="Tabela" hint="Cabeçalho em maiúsculas discretas, status como badge suave." />
+        <DsSubhead
+          title="Tabela"
+          hint="Cabeçalho em maiúsculas discretas, status como badge suave."
+        />
         <div className="overflow-hidden rounded-xl border border-border">
           <table className="w-full text-sm">
             <thead className="bg-surface-subtle">

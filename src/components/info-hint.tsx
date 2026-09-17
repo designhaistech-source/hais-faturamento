@@ -2,12 +2,7 @@ import * as React from "react";
 import { Info } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface InfoHintProps {
   /** Texto de ajuda exibido no tooltip (também usado como rótulo acessível). */

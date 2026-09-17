@@ -1,5 +1,5 @@
 {
-  "name": "tanstack_start_ts",
+  "name": "haisfaturamento",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -16,19 +16,7 @@
     "ds:tokens": "node scripts/visual/check-design-tokens.mjs",
     "ds:visual": "python3 scripts/visual/visual-regression.py",
     "ds:visual:update": "python3 scripts/visual/visual-regression.py --update",
-    "ds:validate": "bash scripts/visual/validate.sh",
-    "qa:tiss": "vitest run src/lib/tiss-sadt-fields.test.ts",
-    "qa:tabs": "python3 scripts/check-comparecimento-tabs.py",
-    "qa:visual": "python3 scripts/visual/check-comparecimento-visual.py",
-    "qa:visual:update": "python3 scripts/visual/check-comparecimento-visual.py --update",
-    "qa:visual:tabs": "python3 scripts/visual/check-tabs-cross-route.py",
-    "qa:visual:tabs:update": "python3 scripts/visual/check-tabs-cross-route.py --update",
-    "qa:mobile-scroll": "python3 e2e/mobile-guide-scroll.spec.py",
-    "qa:proc-headers": "python3 e2e/procedimentos-solicitados-headers.spec.py",
-    "qa:visual:proc-headers": "python3 scripts/visual/check-proc-headers-visual.py",
-    "qa:visual:proc-headers:update": "python3 scripts/visual/check-proc-headers-visual.py --update",
-    "qa:visual:sadt-steps": "python3 scripts/visual/check-sadt-steps-visual.py",
-    "qa:visual:sadt-steps:update": "python3 scripts/visual/check-sadt-steps-visual.py --update"
+    "ds:validate": "bash scripts/visual/validate.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -70,8 +58,6 @@
     "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",
-    "jspdf": "^4.2.1",
-    "jspdf-autotable": "^5.0.8",
     "lucide-react": "^0.575.0",
     "react": "^19.2.0",
     "react-day-picker": "^9.14.0",

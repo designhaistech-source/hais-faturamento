@@ -19,7 +19,9 @@ describe("Checkbox (snapshots)", () => {
   });
 
   it("estado indeterminado", () => {
-    const { container } = render(<Checkbox aria-label="Selecionar todos" checked="indeterminate" />);
+    const { container } = render(
+      <Checkbox aria-label="Selecionar todos" checked="indeterminate" />,
+    );
     expect(container.firstChild).toMatchSnapshot();
   });
 

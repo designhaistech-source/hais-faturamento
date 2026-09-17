@@ -100,7 +100,6 @@ const NATIVE_MENU_CONTROLS: Array<{
   },
 ];
 
-
 function collectSourceFiles(dir: string, acc: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {
     const fullPath = join(dir, entry);
@@ -144,7 +143,6 @@ function findUnmarkedNativeControls(filePath: string, tag: string): string[] {
   return findUnmarkedMatches(filePath, new RegExp(`<${tag}[\\s>/]`));
 }
 
-
 describe("design system: controles de UI", () => {
   const files = collectSourceFiles(ROOT);
 
@@ -154,9 +152,7 @@ describe("design system: controles de UI", () => {
 
   for (const [tag, replacement] of Object.entries(NATIVE_CONTROLS)) {
     it(`não usa <${tag}> nativo sem marcação ${ALLOW_MARKER}`, () => {
-      const offenders = files.flatMap((file) =>
-        findUnmarkedNativeControls(file, tag),
-      );
+      const offenders = files.flatMap((file) => findUnmarkedNativeControls(file, tag));
 
       expect(
         offenders,
@@ -175,9 +171,7 @@ describe("design system: controles de UI", () => {
     ...NATIVE_MENU_CONTROLS,
   ]) {
     it(`não usa ${label} nativo sem marcação ${ALLOW_MARKER}`, () => {
-      const offenders = files.flatMap((file) =>
-        findUnmarkedMatches(file, pattern),
-      );
+      const offenders = files.flatMap((file) => findUnmarkedMatches(file, pattern));
 
       expect(
         offenders,

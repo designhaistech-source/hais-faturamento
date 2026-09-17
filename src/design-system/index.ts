@@ -4,7 +4,7 @@
  * Reexporta — sem reimplementar — os fundamentos, primitivos e composições que
  * já estão em uso no produto. Nenhum estilo, variante ou comportamento é
  * alterado aqui: este arquivo apenas define qual é o núcleo reutilizável por
- * outros produtos e qual é específico do HaisGuias (ver `docs/design-system-catalog.md`).
+ * outros produtos e qual é específico do HaisFaturamento (ver `docs/design-system-catalog.md`).
  *
  * Os caminhos originais (`@/components/...`) continuam válidos para o código
  * existente; novas telas e novos produtos devem importar deste módulo.
@@ -13,11 +13,7 @@
 /* ---------------- Fundamentos ---------------- */
 
 export { cn } from "@/lib/utils";
-export {
-  useTheme,
-  setThemePreference,
-  type ThemePreference,
-} from "@/lib/theme";
+export { useTheme, setThemePreference, type ThemePreference } from "@/lib/theme";
 export * from "./tokens";
 
 /* ---------------- Primitivos de formulário ---------------- */
@@ -40,11 +36,7 @@ export {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-export {
-  Combobox,
-  MultiSelect,
-  type ComboboxOption,
-} from "@/components/ui/combobox";
+export { Combobox, MultiSelect, type ComboboxOption } from "@/components/ui/combobox";
 export {
   Command,
   CommandDialog,
@@ -67,12 +59,8 @@ export {
   SelectField,
   type SelectOption,
 } from "@/components/form-field";
-export {
-  FormActionBar,
-  type FormActionStep,
-} from "@/components/form-action-bar";
+export { FormActionBar, type FormActionStep } from "@/components/form-action-bar";
 export { SavedIndicator, formatSavedTime } from "@/components/saved-indicator";
-export { SignatureField } from "@/components/signature-field";
 
 /* ---------------- Estrutura e superfícies ---------------- */
 
@@ -224,12 +212,7 @@ export { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 export { Toaster } from "@/components/ui/sonner";
 export { Progress } from "@/components/ui/progress";
 export { Skeleton } from "@/components/ui/skeleton";
-export {
-  EmptyState,
-  ErrorState,
-  LoadingState,
-  TableSkeleton,
-} from "@/components/data-state";
+export { EmptyState, ErrorState, LoadingState, TableSkeleton } from "@/components/data-state";
 
 /* ---------------- Gráficos (Recharts) ---------------- */
 

@@ -77,16 +77,10 @@ export function SurfaceCard({
                   {title}
                 </h2>
               )}
-              {description && (
-                <p className="mt-0.5 text-sm text-muted-foreground">
-                  {description}
-                </p>
-              )}
+              {description && <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>}
             </div>
           </div>
-          {actions && (
-            <div className="flex items-center gap-2 shrink-0">{actions}</div>
-          )}
+          {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
         </header>
       )}
       {children && <div className={cn(bodyClassName)}>{children}</div>}

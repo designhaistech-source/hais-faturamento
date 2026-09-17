@@ -14,11 +14,7 @@ export interface StatusPillProps {
 export function StatusPill({ done, label }: StatusPillProps) {
   return (
     <Badge variant={done ? "success-soft" : "secondary"} size="md" data-testid="status-pill">
-      {done ? (
-        <CheckCircle2 className="h-3 w-3" />
-      ) : (
-        <CircleDashed className="h-3 w-3" />
-      )}
+      {done ? <CheckCircle2 className="h-3 w-3" /> : <CircleDashed className="h-3 w-3" />}
       <span data-testid="status-pill-label" className="whitespace-nowrap">
         {label}
       </span>

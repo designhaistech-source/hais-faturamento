@@ -17,21 +17,7 @@ interface RouteMeta {
 
 /** Mapa de rotas para rótulos de trilha, alinhado aos itens da sidebar. */
 const ROUTE_META: Record<string, RouteMeta> = {
-  "/": { label: "Visão geral" },
-  "/dashboard": { label: "Visão geral" },
-  "/emitir": { label: "Emitir guia" },
-  "/guias-emitidas": { label: "Guias emitidas" },
-  "/guias": { label: "Extrair dados da guia" },
-  "/procedimentos": { label: "Buscar procedimento" },
-  "/prescricao": { label: "Emitir prescrição" },
-  "/opme": { label: "Solicitar OPME" },
-  "/documentos": {
-    label: "Relatórios e documentos",
-  },
-  "/documentos-emitidos": { label: "Documentos emitidos" },
-  "/cid": { label: "Busca CID-10" },
-  "/perfil": { label: "Meu Perfil" },
-  "/configuracoes": { label: "Configurações" },
+  "/": { label: "Início" },
   "/design-system": { label: "Fundamentos" },
   "/design-system-icones": { label: "Ícones" },
 };
@@ -46,9 +32,7 @@ export function AppBreadcrumb({ className }: { className?: string }) {
   });
 
   const normalized =
-    pathname.length > 1 && pathname.endsWith("/")
-      ? pathname.slice(0, -1)
-      : pathname;
+    pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
   const meta = ROUTE_META[normalized];
 
   if (!meta || normalized === "/") return null;
@@ -81,6 +65,4 @@ export function AppBreadcrumb({ className }: { className?: string }) {
       </BreadcrumbList>
     </Breadcrumb>
   );
-
 }
-

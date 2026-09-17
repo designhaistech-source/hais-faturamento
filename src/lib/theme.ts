@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 /** Preferência de tema da interface. */
 export type ThemePreference = "light" | "dark" | "system";
 
-const STORAGE_KEY = "guiasplus:theme";
+const STORAGE_KEY = "haisfaturamento:theme";
 
 const listeners = new Set<(theme: ThemePreference) => void>();
 let current: ThemePreference = "system";

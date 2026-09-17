@@ -89,13 +89,7 @@ const onRender: ProfilerOnRenderCallback = (
  * Development-only React Profiler wrapper.
  * In production it renders children untouched (zero overhead).
  */
-export function RenderProfiler({
-  id,
-  children,
-}: {
-  id: string;
-  children: ReactNode;
-}) {
+export function RenderProfiler({ id, children }: { id: string; children: ReactNode }) {
   if (!import.meta.env.DEV) return <>{children}</>;
   return (
     <Profiler id={id} onRender={onRender}>

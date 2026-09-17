@@ -20,11 +20,11 @@ produtos HaisTech reutilizem a mesma base.
 | Fundamentos | `src/styles.css`, `src/lib/theme.ts` | Tokens de cor (claro/escuro), famílias, utilities (`icon-optical`, `metric-*`, `text-eyebrow`) |
 | Primitivos | `src/components/ui/**` | Base Radix + CVA: botão, campos, tabela, diálogo, menu, tooltip |
 | Composições compartilhadas | `src/components/*.tsx` | Padrões opinativos do produto: `PageHeader`, `SurfaceCard`, `DataTable`, `AppModal`, `DataState` |
-| Específico de produto | `src/features/**` | Domínio HaisGuias: guias TISS, documentos A4/A5, prescrição, OPME |
+| Específico de produto | `src/features/**` | Domínio HaisFaturamento: guias TISS, documentos A4/A5, prescrição, OPME |
 
 Regra de reuso: **fundamentos + primitivos + composições compartilhadas** são
 portáveis. Tudo em `src/features/**`, os tokens `quality-*`/`guide-type-*` e os
-fac-símiles impressos permanecem no HaisGuias.
+fac-símiles impressos permanecem no HaisFaturamento.
 
 ## Fundamentos
 

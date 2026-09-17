@@ -2,7 +2,12 @@ import * as React from "react";
 import { FileText, Stethoscope, CalendarCheck, MoreHorizontal, Info } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Combobox, MultiSelect } from "@/components/ui/combobox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
@@ -15,12 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogBody,
@@ -49,9 +49,7 @@ const ESPECIALIDADES = [
 /** Navegação, seleção avançada e sobreposições. */
 export function NavigationSection() {
   const [cid, setCid] = React.useState("M17.0");
-  const [especialidades, setEspecialidades] = React.useState(
-    ESPECIALIDADES.map((o) => o.value),
-  );
+  const [especialidades, setEspecialidades] = React.useState(ESPECIALIDADES.map((o) => o.value));
   const [tipo, setTipo] = React.useState("comum");
 
   return (
@@ -80,10 +78,7 @@ export function NavigationSection() {
             <TabsContent value="atestados" className="pt-4 text-sm text-muted-foreground">
               Conteúdo da aba Atestados.
             </TabsContent>
-            <TabsContent
-              value="comparecimento"
-              className="pt-4 text-sm text-muted-foreground"
-            >
+            <TabsContent value="comparecimento" className="pt-4 text-sm text-muted-foreground">
               Conteúdo da aba Comparecimento.
             </TabsContent>
           </Tabs>
@@ -123,11 +118,7 @@ export function NavigationSection() {
           hint="RadioGroup quando as opções mudam o fluxo (tipo de receita); Select/Combobox quando são apenas dados."
         />
         <DsSpecimen>
-          <RadioGroup
-            value={tipo}
-            onValueChange={setTipo}
-            className="flex flex-wrap gap-4"
-          >
+          <RadioGroup value={tipo} onValueChange={setTipo} className="flex flex-wrap gap-4">
             <label className="flex items-center gap-2 text-sm text-foreground">
               <RadioGroupItem value="comum" /> Receita comum
             </label>

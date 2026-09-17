@@ -35,7 +35,6 @@ export interface SectionCardProps {
   children?: React.ReactNode;
 }
 
-
 /**
  * Card de etapa/seção padronizado para os formulários longos
  * (Emitir guia, Solicitar OPME, Emitir prescrição).
@@ -61,9 +60,7 @@ export function SectionCard({
   innerRef,
   children,
 }: SectionCardProps) {
-  const [collapsed, setCollapsed] = React.useState(
-    Boolean(collapsible && defaultCollapsed),
-  );
+  const [collapsed, setCollapsed] = React.useState(Boolean(collapsible && defaultCollapsed));
   const open = !collapsible || (openProp ?? !collapsed);
   const bodyId = React.useId();
 
@@ -73,11 +70,9 @@ export function SectionCard({
     onOpenChange?.(next);
   }
 
-
   return (
     <section id={id} className={cn("scroll-mt-4", className)}>
       <div ref={innerRef} className="rounded-2xl border border-border bg-card shadow-xs">
-
         <div className="flex flex-col gap-3 p-5 lg:flex-row lg:items-start lg:justify-between lg:gap-4">
           <div className="flex min-w-0 flex-1 items-start gap-3">
             {icon && (
@@ -96,12 +91,7 @@ export function SectionCard({
                 )}
               </h2>
               {description && (
-                <p
-                  className={cn(
-                    "mt-0.5 text-xs text-muted-foreground",
-                    descriptionClassName,
-                  )}
-                >
+                <p className={cn("mt-0.5 text-xs text-muted-foreground", descriptionClassName)}>
                   {description}
                 </p>
               )}
@@ -119,14 +109,9 @@ export function SectionCard({
                   className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <ChevronDown
-                    className={cn(
-                      "h-4 w-4 transition-transform",
-                      open && "rotate-180",
-                    )}
+                    className={cn("h-4 w-4 transition-transform", open && "rotate-180")}
                   />
-                  <span className="sr-only">
-                    {open ? "Recolher seção" : "Expandir seção"}
-                  </span>
+                  <span className="sr-only">{open ? "Recolher seção" : "Expandir seção"}</span>
                 </button>
               )}
             </div>

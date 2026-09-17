@@ -33,13 +33,7 @@ function Block({ title, children }: { title: string; children: ReactNode }) {
 }
 
 const buttonSizes = ["sm", "default", "lg"] as const;
-const buttonVariants = [
-  "default",
-  "secondary",
-  "outline",
-  "ghost",
-  "destructive",
-] as const;
+const buttonVariants = ["default", "secondary", "outline", "ghost", "destructive"] as const;
 
 export function IconAlignmentMatrix() {
   return (

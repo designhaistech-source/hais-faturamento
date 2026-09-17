@@ -14,24 +14,8 @@
   ],
   "targets": [
     {
-      "name": "dashboard",
+      "name": "inicio",
       "path": "/"
-    },
-    {
-      "name": "guias",
-      "path": "/guias"
-    },
-    {
-      "name": "emitir",
-      "path": "/emitir"
-    },
-    {
-      "name": "prescricao",
-      "path": "/prescricao"
-    },
-    {
-      "name": "opme",
-      "path": "/opme"
     },
     {
       "name": "design-system",

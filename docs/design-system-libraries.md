@@ -1,6 +1,6 @@
 # Base tecnológica do Design System HaisTech
 
-Auditoria do projeto atual (HaisGuias) e definição da base de implementação
+Auditoria do projeto atual (HaisFaturamento) e definição da base de implementação
 para os próximos produtos. Nenhuma tela foi alterada visualmente: o documento
 registra o que já está padronizado e o que permanece intencionalmente fora das
 três bibliotecas de referência.
@@ -68,14 +68,14 @@ Inconsistência registrada, sem correção automática: existem dois caminhos pa
 gráficos (wrapper x Recharts direto). Migrar o painel para o wrapper altera a
 aparência dos tooltips e das legendas atuais, o que está fora do escopo
 "não alterar visualmente". Decisão: **o wrapper é a referência para novos
-gráficos e novos produtos**; o painel do HaisGuias permanece como está até uma
+gráficos e novos produtos**; o painel do HaisFaturamento permanece como está até uma
 aprovação explícita de mudança visual.
 
 Exceção consciente: o card "Procedimentos solicitados por prestador" é um mapa
 de calor em grade — o Recharts não tem esse tipo de gráfico, então segue como
 composição de células com tokens semânticos.
 
-## 4. Compartilhável x específico do HaisGuias
+## 4. Compartilhável x específico do HaisFaturamento
 
 ### Compartilhável entre produtos HaisTech
 
@@ -92,7 +92,7 @@ Sem regra de negócio; importável por `@/design-system`.
   `scripts/visual/check-design-tokens.mjs`, `eslint.ds.config.js`,
   `src/tests/design-system-tokens.test.ts`, `design-system-controls.test.ts`
 
-### Específico do HaisGuias (não portar)
+### Específico do HaisFaturamento (não portar)
 
 - Todo `src/features/**` (guias TISS/SUS, prescrição, OPME, documentos,
   beneficiários, dashboard, CID, procedimentos)
@@ -141,7 +141,7 @@ de espaçamento entre elas.
 ### Específico do produto (não portar)
 
 - `src/components/app-sidebar.tsx`: itens de menu, rotas, ícones, agrupamentos,
-  marca "Guias+" e menu do usuário. Serve apenas como referência de anatomia.
+  marca do produto e menu do usuário. Serve apenas como referência de anatomia.
 - `src/components/app-breadcrumb.tsx`: mapa `ROUTE_META` de rotas → rótulos.
 - `src/components/site-footer.tsx`: conteúdo institucional.
 - Textos, ícones (`lucide-react`) e ações de cada `PageHeader`.

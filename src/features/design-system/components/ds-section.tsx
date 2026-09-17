@@ -21,9 +21,7 @@ export function DsSection({ id, title, description, children }: DsSectionProps) 
 export function DsSubhead({ title, hint }: { title: string; hint?: string }) {
   return (
     <div className="min-w-0">
-      <h3 className="font-display text-sm font-semibold tracking-tight text-foreground">
-        {title}
-      </h3>
+      <h3 className="font-display text-sm font-semibold tracking-tight text-foreground">{title}</h3>
       {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
     </div>
   );

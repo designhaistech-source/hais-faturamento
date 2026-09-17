@@ -83,7 +83,6 @@ export function ComponentsSection() {
         </DsSpecimen>
       </div>
 
-
       <div className="space-y-3">
         <DsSubhead
           title="Campos de formulário"
@@ -104,7 +103,12 @@ export function ComponentsSection() {
               </SelectContent>
             </Select>
           </Field>
-          <Field id="ds-busca" label="Buscar material" optional hint="Busque por nome ou código TUSS">
+          <Field
+            id="ds-busca"
+            label="Buscar material"
+            optional
+            hint="Busque por nome ou código TUSS"
+          >
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input className="pl-9" placeholder="Placa bloqueada" />
@@ -124,7 +128,10 @@ export function ComponentsSection() {
       </div>
 
       <div className="space-y-3">
-        <DsSubhead title="Seleção" hint="Checkbox para múltipla escolha, switch para preferências." />
+        <DsSubhead
+          title="Seleção"
+          hint="Checkbox para múltipla escolha, switch para preferências."
+        />
         <DsSpecimen>
           <label className="flex items-center gap-2 text-sm text-foreground">
             <Checkbox defaultChecked /> Guia com anexo
