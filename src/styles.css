@@ -55,9 +55,6 @@
   --color-info-muted: var(--info-muted);
   --color-info-strong: var(--info-strong);
   --color-destructive-strong: var(--destructive-strong);
-  --color-quality-success: var(--quality-success);
-  --color-quality-failure: var(--quality-failure);
-  --color-quality-unprocessable: var(--quality-unprocessable);
 
   --color-purple: var(--purple);
   --color-purple-foreground: var(--purple-foreground);
@@ -189,15 +186,6 @@
   --success-strong: oklch(0.48 0.13 155);
   --warning-strong: oklch(0.52 0.12 75);
   --info-strong: oklch(0.48 0.16 250);
-  /* Qualidade do processamento (tons suavizados) */
-  --quality-success: #3fa67a;
-  --quality-unprocessable: #e08a3c;
-  --quality-failure: #df6666;
-  /* Tipos de guia: paleta dessaturada com contraste >= 3:1 sobre o card (WCAG 1.4.11) */
-  --guide-type-1: #4f7cbf;
-  --guide-type-2: #8474c0;
-  --guide-type-3: #3f95a8;
-  --guide-type-4: #c19a3e;
 
   --destructive-strong: oklch(0.5 0.18 25);
 
@@ -291,13 +279,6 @@
   --success-strong: oklch(0.82 0.14 155);
   --warning-strong: oklch(0.86 0.13 85);
   --info-strong: oklch(0.8 0.13 250);
-  --quality-success: #3fa67a;
-  --quality-unprocessable: #e8a05c;
-  --quality-failure: #df6666;
-  --guide-type-1: #7ba2dd;
-  --guide-type-2: #a294d8;
-  --guide-type-3: #6fbccd;
-  --guide-type-4: #d9bb69;
 
   --destructive-strong: oklch(0.78 0.15 25);
 

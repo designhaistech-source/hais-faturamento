@@ -128,18 +128,11 @@ export const neutralScale = [
 ] as const;
 
 /**
- * Tokens específicos do domínio HaisGuias (qualidade de processamento e tipos
- * de guia). Não fazem parte do núcleo reutilizável por outros produtos.
+ * Tokens específicos de domínio devem ser declarados aqui pelo produto que os
+ * criar, mantendo o núcleo reutilizável livre de cores de negócio.
  */
-export const productSpecificColorTokens = [
-  "quality-success",
-  "quality-unprocessable",
-  "quality-failure",
-  "guide-type-1",
-  "guide-type-2",
-  "guide-type-3",
-  "guide-type-4",
-] as const;
+export const productSpecificColorTokens = [] as const;
+
 
 /* ---------------- Tipografia ---------------- */
 
