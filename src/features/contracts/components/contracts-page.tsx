@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, Eye, FileText, Plus } from "lucide-react";
 import { toast } from "sonner";
 
@@ -9,6 +10,8 @@ import { AppBreadcrumb } from "@/components/app-breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { EmptyStateCard } from "@/components/empty-state-card";
+import { ErrorState, TableSkeleton } from "@/components/data-state";
+import { SurfaceCard } from "@/components/surface-card";
 
 import {
   DataTable,
@@ -27,31 +30,63 @@ import {
 } from "@/components/data-table";
 import { formatIsoToBr } from "@/lib/date";
 import { NewContractModal } from "./new-contract-modal";
-import type { Contract } from "../data/contracts";
+import type { Contract, NewContractInput } from "../data/contracts";
+import {
+  contractsQueryKey,
+  createContract,
+  createContractFileUrl,
+  listContracts,
+} from "../data/contracts-service";
 
 const COLUMNS = ["Empresa", "CNPJ", "Validade", "Contrato", "Ações"] as const;
 
-function openContractFile(contract: Contract) {
-  const opened = window.open(contract.file.url, "_blank", "noopener,noreferrer");
-  if (!opened) toast.error("Não foi possível abrir o arquivo do contrato.");
+async function openContractFile(contract: Contract) {
+  try {
+    const url = await createContractFileUrl(contract.file.path);
+    const opened = window.open(url, "_blank", "noopener,noreferrer");
+    if (!opened) toast.error("Não foi possível abrir o arquivo do contrato.");
+  } catch {
+    toast.error("Não foi possível abrir o arquivo do contrato.");
+  }
 }
 
-function downloadContractFile(contract: Contract) {
-  const link = document.createElement("a");
-  link.href = contract.file.url;
-  link.download = contract.file.name;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+async function downloadContractFile(contract: Contract) {
+  try {
+    const url = await createContractFileUrl(contract.file.path, contract.file.name);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = contract.file.name;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch {
+    toast.error("Não foi possível baixar o arquivo do contrato.");
+  }
 }
 
 export function ContractsPage() {
-  const [contracts, setContracts] = useState<Contract[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
+  const queryClient = useQueryClient();
 
-  function handleCreate(contract: Contract) {
-    setContracts((current) => [contract, ...current]);
-    toast.success("Contrato cadastrado com sucesso.");
+  const contractsQuery = useQuery({
+    queryKey: contractsQueryKey,
+    queryFn: listContracts,
+  });
+  const contracts = contractsQuery.data ?? [];
+
+  const createMutation = useMutation({
+    mutationFn: (input: NewContractInput) => createContract(input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: contractsQueryKey });
+      toast.success("Contrato cadastrado com sucesso.");
+    },
+    onError: () => {
+      toast.error("Não foi possível cadastrar o contrato.");
+    },
+  });
+
+  function handleCreate(input: NewContractInput) {
+    createMutation.mutate(input);
   }
 
   return (
@@ -76,7 +111,19 @@ export function ContractsPage() {
               }
             />
 
-            {contracts.length === 0 ? (
+            {contractsQuery.isPending ? (
+              <SurfaceCard padding="none">
+                <TableSkeleton rows={4} columns={5} />
+              </SurfaceCard>
+            ) : contractsQuery.isError ? (
+              <SurfaceCard padding="md">
+                <ErrorState
+                  title="Não foi possível carregar os contratos"
+                  description="Tente novamente em alguns instantes."
+                  onRetry={() => void contractsQuery.refetch()}
+                />
+              </SurfaceCard>
+            ) : contracts.length === 0 ? (
               <EmptyStateCard
                 icon={<FileText className="size-10" aria-hidden="true" />}
                 title="Nenhum contrato cadastrado"
@@ -187,7 +234,7 @@ function ContractActions({ contract }: { contract: Contract }) {
             variant="ghost"
             size="icon"
             aria-label={`Visualizar contrato de ${contract.company}`}
-            onClick={() => openContractFile(contract)}
+            onClick={() => void openContractFile(contract)}
           >
             <Eye className="size-4" aria-hidden="true" />
           </Button>
@@ -202,7 +249,7 @@ function ContractActions({ contract }: { contract: Contract }) {
             variant="ghost"
             size="icon"
             aria-label={`Baixar contrato de ${contract.company}`}
-            onClick={() => downloadContractFile(contract)}
+            onClick={() => void downloadContractFile(contract)}
           >
             <Download className="size-4" aria-hidden="true" />
           </Button>

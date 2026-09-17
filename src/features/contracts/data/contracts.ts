@@ -1,9 +1,9 @@
-/** Contract records managed in the Contratos screen (prototype, in-memory). */
+/** Contract records persisted in the backend (table `contracts` + storage bucket). */
 
 export interface ContractFile {
   name: string;
-  /** Object URL used to preview/download the original file. */
-  url: string;
+  /** Storage path of the uploaded file inside the `contracts` bucket. */
+  path: string;
   type: string;
 }
 
@@ -15,6 +15,14 @@ export interface Contract {
   /** yyyy-MM-dd, empty when not informed. */
   validUntil: string;
   file: ContractFile;
+}
+
+/** Data collected in the form before the contract is persisted. */
+export interface NewContractInput {
+  company: string;
+  cnpj: string;
+  validUntil: string;
+  file: File;
 }
 
 /** Applies the 00.000.000/0000-00 mask while the user types. */
@@ -34,8 +42,4 @@ export function maskCnpj(value: string): string {
   if (parts[3]) masked += `/${parts[3]}`;
   if (parts[4]) masked += `-${parts[4]}`;
   return masked;
-}
-
-export function createContractId(): string {
-  return `contract-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }

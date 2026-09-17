@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contracts: {
+        Row: {
+          cnpj: string
+          company: string
+          created_at: string
+          file_name: string
+          file_path: string
+          file_type: string
+          id: string
+          valid_until: string | null
+        }
+        Insert: {
+          cnpj?: string
+          company: string
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_type?: string
+          id?: string
+          valid_until?: string | null
+        }
+        Update: {
+          cnpj?: string
+          company?: string
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_type?: string
+          id?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

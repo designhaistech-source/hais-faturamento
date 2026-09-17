@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { createContractId, maskCnpj, type Contract } from "../data/contracts";
+import { maskCnpj, type NewContractInput } from "../data/contracts";
 
 const ACCEPTED_EXTENSIONS = [".pdf", ".doc", ".docx"] as const;
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
@@ -15,7 +15,7 @@ const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 interface NewContractModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreate: (contract: Contract) => void;
+  onCreate: (contract: NewContractInput) => void;
 }
 
 /** Formulário de cadastro de contrato: arquivo obrigatório + dados da empresa. */
@@ -80,11 +80,10 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
     setCompanyTouched(true);
     if (!file || company.trim().length === 0) return;
     onCreate({
-      id: createContractId(),
       company: company.trim(),
       cnpj: cnpj.trim(),
       validUntil,
-      file: { name: file.name, url: URL.createObjectURL(file), type: file.type },
+      file,
     });
     reset();
     onOpenChange(false);
