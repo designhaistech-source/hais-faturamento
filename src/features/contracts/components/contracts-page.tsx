@@ -205,7 +205,9 @@ export function ContractsPage() {
                       Validade
                     </legend>
                     <div className="flex min-w-0 items-center gap-2">
+                      <span className="shrink-0 text-xs text-muted-foreground">De</span>
                       <Input
+
                         id="contracts-valid-from"
                         type="date"
                         aria-label="Validade de"
