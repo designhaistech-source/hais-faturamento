@@ -62,7 +62,9 @@ async function downloadContractFile(contract: Contract) {
 
 export function ContractsPage() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [clearOpen, setClearOpen] = useState(false);
   const [previewContract, setPreviewContract] = useState<Contract | null>(null);
+
   const queryClient = useQueryClient();
 
   const contractsQuery = useQuery({
