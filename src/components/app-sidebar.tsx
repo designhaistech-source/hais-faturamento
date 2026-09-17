@@ -5,7 +5,6 @@ import {
   FileText,
   HelpCircle,
 
-  HelpCircle,
   CircleUser,
   LogOut,
   Moon,
