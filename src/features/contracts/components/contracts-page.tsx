@@ -162,6 +162,22 @@ export function ContractsPage() {
   );
 }
 
+/** Nome do arquivo truncado, com o valor completo em tooltip (mouse e teclado). */
+function ContractFileName({ name }: { name: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span tabIndex={0} className="block min-w-0 truncate rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          {name}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-80 break-all">{name}</TooltipContent>
+    </Tooltip>
+  );
+}
+
+
+
 /** Ações da linha: apenas visualizar e baixar, identificadas por tooltip. */
 function ContractActions({ contract }: { contract: Contract }) {
   return (
