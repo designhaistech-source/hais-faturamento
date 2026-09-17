@@ -108,8 +108,8 @@ export function TablePagination({
           </Select>
         </div>
 
-        <Pagination className="mx-0 w-auto justify-end">
-          <PaginationContent>
+        <Pagination className="mx-0 w-auto min-w-0 justify-end">
+          <PaginationContent className="flex-wrap justify-end">
             <PaginationItem>
               <Button
                 type="button"
