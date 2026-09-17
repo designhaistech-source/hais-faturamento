@@ -125,31 +125,24 @@ export function ContractPreviewModal({
         />
       ) : status === "error" ? (
         <ErrorState
-          title="Não foi possível carregar a pré-visualização"
+          title="Não foi possível exibir a pré-visualização"
           description="Baixe o arquivo para abri-lo."
         />
-      ) : status !== "ready" || !objectUrl ? (
+      ) : status !== "ready" ? (
         <LoadingState title="Carregando pré-visualização…" />
-      ) : isImage ? (
+      ) : imageUrl ? (
         <img
-          src={objectUrl}
+          src={imageUrl}
           alt={`Pré-visualização de ${contract?.file.name ?? "contrato"}`}
           className="mx-auto max-h-[70dvh] w-auto rounded-lg border border-border object-contain"
-          onError={() => setStatus("error")}
+          onError={handleError}
         />
+      ) : pdfData ? (
+        <PdfPreview data={pdfData} onError={handleError} />
       ) : (
-        <object
-          data={objectUrl}
-          type={mimeType || "application/pdf"}
-          title={`Pré-visualização de ${contract?.file.name ?? "contrato"}`}
-          className="h-[70dvh] w-full rounded-lg border border-border bg-muted"
-        >
-          <ErrorState
-            title="Não foi possível exibir a pré-visualização"
-            description="Baixe o arquivo para abri-lo."
-          />
-        </object>
+        <LoadingState title="Carregando pré-visualização…" />
       )}
+
     </AppModal>
   );
 }
