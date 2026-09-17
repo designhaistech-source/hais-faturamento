@@ -18,6 +18,7 @@ interface RouteMeta {
 /** Mapa de rotas para rótulos de trilha, alinhado aos itens da sidebar. */
 const ROUTE_META: Record<string, RouteMeta> = {
   "/": { label: "Início" },
+  "/contratos": { label: "Contratos" },
   "/design-system": { label: "Fundamentos" },
   "/design-system-icones": { label: "Ícones" },
 };

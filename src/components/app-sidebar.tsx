@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutGrid,
+  FileText,
   Palette,
   Shapes,
   HelpCircle,
@@ -52,7 +53,7 @@ function BrandLogo({ className }: { className?: string }) {
   );
 }
 
-export type ItemKey = "inicio" | "design-system" | "icones";
+export type ItemKey = "inicio" | "contratos" | "design-system" | "icones";
 
 export function AppSidebar({ activeKey }: { activeKey: ItemKey }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -175,6 +176,18 @@ function SidebarNav({
           to="/"
           active={activeKey === "inicio"}
           hint="Ponto de partida do produto, com a base de interface já configurada."
+          collapsed={collapsed}
+          onNavigate={onNavigate}
+        />
+      </SidebarGroup>
+
+      <SidebarGroup label="Faturamento" collapsed={collapsed}>
+        <SidebarItem
+          icon={FileText}
+          label="Contratos"
+          to="/contratos"
+          active={activeKey === "contratos"}
+          hint="Contratos das clínicas e hospitais atendidos, com arquivo original anexado."
           collapsed={collapsed}
           onNavigate={onNavigate}
         />
