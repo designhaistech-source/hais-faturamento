@@ -53,14 +53,17 @@ export function Field({
   const messageId = id ? `${id}-msg` : undefined;
 
   // Injeta id + aria-describedby + aria-invalid no primeiro filho quando possível.
+  type InjectedProps = {
+    id?: string;
+    "aria-invalid"?: boolean | "true" | "false";
+    "aria-describedby"?: string;
+  };
   const child =
-    injectChildProps && React.isValidElement(children)
-      ? React.cloneElement(children as React.ReactElement<any>, {
-          id: (children as React.ReactElement<any>).props.id ?? id,
-          "aria-invalid":
-            (children as React.ReactElement<any>).props["aria-invalid"] ?? Boolean(error),
-          "aria-describedby":
-            (children as React.ReactElement<any>).props["aria-describedby"] ?? messageId,
+    injectChildProps && React.isValidElement<InjectedProps>(children)
+      ? React.cloneElement(children, {
+          id: children.props.id ?? id,
+          "aria-invalid": children.props["aria-invalid"] ?? Boolean(error),
+          "aria-describedby": children.props["aria-describedby"] ?? messageId,
         })
       : children;
 
