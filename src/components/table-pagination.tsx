@@ -86,7 +86,7 @@ export function TablePagination({
         }`}
       </p>
 
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-3 sm:justify-end">
         <div className="flex items-center gap-2">
           <Label htmlFor={`${id}-page-size`} className="text-sm text-muted-foreground">
             Itens por página
