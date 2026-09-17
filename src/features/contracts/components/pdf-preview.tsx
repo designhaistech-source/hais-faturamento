@@ -76,8 +76,9 @@ export function PdfPreview({ data, onError }: PdfPreviewProps) {
     };
   }, [data, onError]);
 
+  // A rolagem vertical fica com o corpo do modal: aqui não há overflow próprio.
   return (
-    <div className="max-h-[70dvh] overflow-y-auto rounded-lg bg-muted p-3">
+    <div className="rounded-lg bg-muted p-3">
       {rendering ? <LoadingState title="Carregando pré-visualização…" /> : null}
       <div ref={containerRef} className="flex flex-col gap-3" />
     </div>
