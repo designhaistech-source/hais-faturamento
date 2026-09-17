@@ -64,3 +64,28 @@ function HomePage() {
     </div>
   );
 }
+
+/** Card de acesso a uma funcionalidade; reutilizado por cada item de FEATURES. */
+function FeatureCard({ icon: Icon, title, description, to, action }: (typeof FEATURES)[number]) {
+  return (
+    <SurfaceCard
+      padding="sm"
+      className="group flex flex-col gap-3 transition-colors hover:border-primary/40 hover:shadow-sm"
+      icon={<Icon className="size-4.5" aria-hidden="true" />}
+      title={title}
+      description={description}
+      headerClassName="mb-0"
+    >
+      <Button variant="link" size="sm" className="h-auto px-0" asChild>
+        <Link to={to}>
+          {action}
+          <ArrowRight
+            className="transition-transform group-hover:translate-x-0.5"
+            aria-hidden="true"
+          />
+        </Link>
+      </Button>
+    </SurfaceCard>
+  );
+}
+
