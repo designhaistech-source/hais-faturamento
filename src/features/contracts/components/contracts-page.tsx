@@ -70,6 +70,37 @@ export function ContractsPage() {
   });
   const contracts = contractsQuery.data ?? [];
 
+  const [search, setSearch] = useState("");
+  const [validFrom, setValidFrom] = useState("");
+  const [validTo, setValidTo] = useState("");
+
+  const hasFilters = search.trim() !== "" || validFrom !== "" || validTo !== "";
+  const activeCount = [search.trim() !== "", validFrom !== "", validTo !== ""].filter(Boolean)
+    .length;
+
+  const filteredContracts = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    const termDigits = term.replace(/\D/g, "");
+
+    return contracts.filter((contract) => {
+      if (term) {
+        const matchesCompany = contract.company.toLowerCase().includes(term);
+        const cnpjDigits = contract.cnpj.replace(/\D/g, "");
+        const matchesCnpj = termDigits.length > 0 && cnpjDigits.includes(termDigits);
+        if (!matchesCompany && !matchesCnpj) return false;
+      }
+      if (validFrom && (!contract.validUntil || contract.validUntil < validFrom)) return false;
+      if (validTo && (!contract.validUntil || contract.validUntil > validTo)) return false;
+      return true;
+    });
+  }, [contracts, search, validFrom, validTo]);
+
+  function handleClearFilters() {
+    setSearch("");
+    setValidFrom("");
+    setValidTo("");
+  }
+
   const createMutation = useMutation({
     mutationFn: (input: NewContractInput) => createContract(input),
     onSuccess: async () => {
