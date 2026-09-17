@@ -78,7 +78,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
             Cancelar
           </Button>
           <Button type="button" size="sm" disabled={!canSubmit} onClick={submit}>
-            Cadastrar contrato
+            Cadastrar
           </Button>
         </>
       }
