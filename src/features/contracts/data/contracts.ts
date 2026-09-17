@@ -4,8 +4,6 @@ export interface ContractFile {
   name: string;
   /** Storage path of the uploaded file inside the `contracts` bucket. */
   path: string;
-  /** Temporary URL used to preview the original file. */
-  url: string;
   type: string;
 }
 

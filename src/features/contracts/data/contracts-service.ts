@@ -38,7 +38,6 @@ export async function listContracts(): Promise<Contract[]> {
     file: {
       name: row.file_name,
       path: row.file_path,
-      url: "",
       type: row.file_type ?? "",
     },
   }));
