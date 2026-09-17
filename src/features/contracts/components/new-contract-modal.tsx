@@ -97,7 +97,23 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
           error={fileError}
           injectChildProps={false}
         >
-          <div className="min-w-0">
+          <div
+            className="min-w-0"
+            onDragOver={(event) => {
+              event.preventDefault();
+              setDragActive(true);
+            }}
+            onDragLeave={() => setDragActive(false)}
+            onDrop={(event) => {
+              event.preventDefault();
+              setDragActive(false);
+              const dropped = event.dataTransfer.files?.[0];
+              if (!dropped) return;
+              setFileTouched(true);
+              setFile(dropped);
+              if (inputRef.current) inputRef.current.value = "";
+            }}
+          >
             <input
               ref={inputRef}
               id="contract-file"
@@ -110,11 +126,21 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
             />
 
             {file ? (
-              <div className="flex min-w-0 flex-wrap items-center gap-3 rounded-xl border border-border bg-muted/30 px-4 py-3">
+              <div className="flex min-w-0 flex-wrap items-center gap-3 rounded-xl border border-dashed border-border bg-muted/50 px-4 py-3">
                 <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                <span className="min-w-0 flex-1 truncate text-sm text-foreground" title={file.name}>
-                  {file.name}
-                </span>
+                <TooltipProvider delayDuration={150}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span
+                        tabIndex={0}
+                        className="min-w-0 flex-1 truncate rounded-sm text-sm text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                      >
+                        {file.name}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-80 break-all">{file.name}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <div className="flex shrink-0 items-center gap-2">
                   <Button
                     type="button"
@@ -141,10 +167,15 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted/20 px-4 py-6 text-center">
+              <div
+                className={cn(
+                  "flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted/50 px-4 py-6 text-center transition-colors",
+                  dragActive && "border-primary bg-muted",
+                )}
+              >
                 <Upload className="size-5 text-muted-foreground" aria-hidden="true" />
                 <p className="text-sm text-muted-foreground">
-                  Selecione o arquivo do contrato para anexar.
+                  Arraste o arquivo aqui ou selecione do computador.
                 </p>
                 <Button
                   type="button"
