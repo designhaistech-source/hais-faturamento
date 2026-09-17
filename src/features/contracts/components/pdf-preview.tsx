@@ -60,8 +60,8 @@ export function PdfPreview({ data, onError }: PdfPreviewProps) {
       setRendering(false);
     };
 
-    void render().catch(() => {
-      if (!cancelled) onError();
+    void render().catch((error: unknown) => {
+      if (!cancelled) { console.error("pdf-preview", error); onError(); }
     });
 
     return () => {
