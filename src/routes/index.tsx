@@ -52,26 +52,12 @@ function HomePage() {
             description="Antecipe inconsistências no faturamento antes do envio à operadora."
           />
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {FEATURES.map((item) => (
-              <SurfaceCard key={item.to} className="flex flex-col gap-3 p-5">
-                <span className="flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
-                  <item.icon className="size-5" aria-hidden="true" />
-                </span>
-                <div className="space-y-1">
-                  <h2 className="font-display text-base font-semibold text-foreground">
-                    {item.title}
-                  </h2>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    {item.description}
-                  </p>
-                </div>
-                <Button variant="outline" className="mt-auto self-start" asChild>
-                  <Link to={item.to}>{item.action}</Link>
-                </Button>
-              </SurfaceCard>
+              <FeatureCard key={item.to} {...item} />
             ))}
           </div>
+
         </main>
         <SiteFooter />
       </div>
