@@ -243,6 +243,8 @@ function ContractActions({
             size="icon"
             aria-label={`Visualizar contrato de ${contract.company}`}
             onClick={() => onView(contract)}
+            onMouseEnter={() => prefetchContractFile(contract.file.path)}
+            onFocus={() => prefetchContractFile(contract.file.path)}
           >
             <Eye className="size-4" aria-hidden="true" />
           </Button>
