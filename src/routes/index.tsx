@@ -84,12 +84,10 @@ function HomePage() {
             <span className="flex size-10 items-center justify-center rounded-md bg-muted text-muted-foreground">
               <LayoutGrid className="size-5" aria-hidden="true" />
             </span>
-            <h2 className="font-display text-base font-semibold text-foreground">
-              Próximo passo
-            </h2>
+            <h2 className="font-display text-base font-semibold text-foreground">Próximo passo</h2>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Descreva a primeira funcionalidade do faturamento e ela será construída sobre
-              esta base, reutilizando os componentes já existentes.
+              Descreva a primeira funcionalidade do faturamento e ela será construída sobre esta
+              base, reutilizando os componentes já existentes.
             </p>
           </SurfaceCard>
         </main>

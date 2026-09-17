@@ -13,12 +13,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -271,12 +266,7 @@ function UserMenu({ collapsed }: { collapsed: boolean }) {
             <Moon className="h-4 w-4 shrink-0" aria-hidden="true" />
           )}
           <span className="flex-1">Modo escuro</span>
-          <Switch
-            checked={dark}
-            tabIndex={-1}
-            aria-hidden="true"
-            className="pointer-events-none"
-          />
+          <Switch checked={dark} tabIndex={-1} aria-hidden="true" className="pointer-events-none" />
         </DropdownMenuItem>
         <DropdownMenuItem className={itemClass}>
           <HelpCircle className="h-4 w-4" aria-hidden="true" />
@@ -461,7 +451,10 @@ function SidebarItem({
     );
   }
   return (
-    <button /* ds-allow: estilo compartilhado do item de sidebar */ type="button" className={className}>
+    <button
+      /* ds-allow: estilo compartilhado do item de sidebar */ type="button"
+      className={className}
+    >
       {inner}
     </button>
   );

@@ -32,9 +32,7 @@ export function AppBreadcrumb({ className }: { className?: string }) {
   });
 
   const normalized =
-    pathname.length > 1 && pathname.endsWith("/")
-      ? pathname.slice(0, -1)
-      : pathname;
+    pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
   const meta = ROUTE_META[normalized];
 
   if (!meta || normalized === "/") return null;
@@ -67,6 +65,4 @@ export function AppBreadcrumb({ className }: { className?: string }) {
       </BreadcrumbList>
     </Breadcrumb>
   );
-
 }
-

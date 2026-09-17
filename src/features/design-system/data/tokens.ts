@@ -16,7 +16,8 @@ export interface TokenGroup {
 export const colorGroups: TokenGroup[] = [
   {
     title: "Marca",
-    description: "Cor institucional HaisFaturamento. Usada em ações primárias, links e estados ativos.",
+    description:
+      "Cor institucional HaisFaturamento. Usada em ações primárias, links e estados ativos.",
     tokens: [
       { name: "primary", swatch: "bg-primary", usage: "Botão primário, ícone ativo" },
       { name: "primary-hover", swatch: "bg-primary-hover", usage: "Hover de ações primárias" },

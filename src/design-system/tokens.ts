@@ -58,10 +58,18 @@ export const colorTokenGroups: DesignColorGroup[] = [
     description: "Hierarquia tipográfica por cor e separadores.",
     tokens: [
       { token: "foreground", swatch: "bg-foreground", usage: "Texto principal" },
-      { token: "muted-foreground", swatch: "bg-muted-foreground", usage: "Texto de apoio e rótulos" },
+      {
+        token: "muted-foreground",
+        swatch: "bg-muted-foreground",
+        usage: "Texto de apoio e rótulos",
+      },
       { token: "text-subtle", swatch: "bg-text-subtle", usage: "Metadados, placeholders" },
       { token: "text-inverse", swatch: "bg-text-inverse", usage: "Texto sobre fundo forte" },
-      { token: "ink", swatch: "bg-ink", usage: "Tinta de documentos impressos (constante nos dois temas)" },
+      {
+        token: "ink",
+        swatch: "bg-ink",
+        usage: "Tinta de documentos impressos (constante nos dois temas)",
+      },
       { token: "border", swatch: "bg-border", usage: "Bordas padrão" },
       { token: "border-strong", swatch: "bg-border-strong", usage: "Bordas de ênfase" },
       { token: "input", swatch: "bg-input", usage: "Bordas de controles de formulário" },
@@ -74,15 +82,31 @@ export const colorTokenGroups: DesignColorGroup[] = [
     tokens: [
       { token: "success", swatch: "bg-success", usage: "Concluído, aprovado" },
       { token: "success-muted", swatch: "bg-success-muted", usage: "Fundo de badge de sucesso" },
-      { token: "success-strong", swatch: "bg-success-strong", usage: "Texto de sucesso sobre fundo suave" },
+      {
+        token: "success-strong",
+        swatch: "bg-success-strong",
+        usage: "Texto de sucesso sobre fundo suave",
+      },
       { token: "warning", swatch: "bg-warning", usage: "Pendência, atenção" },
       { token: "warning-muted", swatch: "bg-warning-muted", usage: "Fundo de badge de atenção" },
-      { token: "warning-strong", swatch: "bg-warning-strong", usage: "Texto de atenção sobre fundo suave" },
+      {
+        token: "warning-strong",
+        swatch: "bg-warning-strong",
+        usage: "Texto de atenção sobre fundo suave",
+      },
       { token: "destructive", swatch: "bg-destructive", usage: "Erro, glosa, exclusão" },
-      { token: "destructive-strong", swatch: "bg-destructive-strong", usage: "Texto de erro sobre fundo suave" },
+      {
+        token: "destructive-strong",
+        swatch: "bg-destructive-strong",
+        usage: "Texto de erro sobre fundo suave",
+      },
       { token: "info", swatch: "bg-info", usage: "Informação neutra" },
       { token: "info-muted", swatch: "bg-info-muted", usage: "Fundo de badge informativo" },
-      { token: "info-strong", swatch: "bg-info-strong", usage: "Texto informativo sobre fundo suave" },
+      {
+        token: "info-strong",
+        swatch: "bg-info-strong",
+        usage: "Texto informativo sobre fundo suave",
+      },
       { token: "purple", swatch: "bg-purple", usage: "Categoria especial (receita controlada)" },
     ],
   },
@@ -133,7 +157,6 @@ export const neutralScale = [
  */
 export const productSpecificColorTokens = [] as const;
 
-
 /* ---------------- Tipografia ---------------- */
 
 export interface DesignFontFamily {
@@ -143,9 +166,17 @@ export interface DesignFontFamily {
 }
 
 export const fontFamilies: DesignFontFamily[] = [
-  { token: "font-display", name: "Plus Jakarta Sans", usage: "Títulos (h1–h4), com tracking -0.01em" },
+  {
+    token: "font-display",
+    name: "Plus Jakarta Sans",
+    usage: "Títulos (h1–h4), com tracking -0.01em",
+  },
   { token: "font-sans", name: "Vazirmatn", usage: "Corpo, rótulos, textos de apoio" },
-  { token: "font-mono", name: "JetBrains Mono", usage: "Números, códigos (CID, TUSS, carteira) e trechos técnicos" },
+  {
+    token: "font-mono",
+    name: "JetBrains Mono",
+    usage: "Números, códigos (CID, TUSS, carteira) e trechos técnicos",
+  },
 ];
 
 export interface DesignTypeStyle {
@@ -198,8 +229,16 @@ export const typeStyles: DesignTypeStyle[] = [
     className: "text-eyebrow",
     spec: "11px · 600 · 16px · caixa alta · tracking 0.05em · muted-foreground",
   },
-  { label: "Rótulo de métrica", className: "metric-label", spec: "14px · 400 · 20px · muted-foreground" },
-  { label: "Valor de métrica", className: "metric-value", spec: "30px · 700 · 36px · tabular-nums" },
+  {
+    label: "Rótulo de métrica",
+    className: "metric-label",
+    spec: "14px · 400 · 20px · muted-foreground",
+  },
+  {
+    label: "Valor de métrica",
+    className: "metric-value",
+    spec: "30px · 700 · 36px · tabular-nums",
+  },
   { label: "Hint de métrica", className: "metric-hint", spec: "12px · 400 · 16px · tabular-nums" },
 ];
 
@@ -260,7 +299,11 @@ export const iconGuidelines = {
 /** Alturas efetivas dos controles, conforme implementadas hoje. */
 export const controlHeights: DesignScaleItem[] = [
   { name: "Button (default)", value: "h-9 (36px)", usage: "Ações padrão em qualquer viewport" },
-  { name: "Button (sm / lg / icon)", value: "h-8 / h-10 / h-9", usage: "Ações compactas, destacadas e só-ícone" },
+  {
+    name: "Button (sm / lg / icon)",
+    value: "h-8 / h-10 / h-9",
+    usage: "Ações compactas, destacadas e só-ícone",
+  },
   {
     name: "Input / SelectTrigger",
     value: "h-10 no mobile, h-9 a partir de sm",

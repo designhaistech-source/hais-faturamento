@@ -22,9 +22,7 @@ export function FeedbackSection() {
           <Alert>
             <Bell className="size-4" />
             <AlertTitle>Guia em análise</AlertTitle>
-            <AlertDescription>
-              O retorno da operadora costuma levar até 48 horas.
-            </AlertDescription>
+            <AlertDescription>O retorno da operadora costuma levar até 48 horas.</AlertDescription>
           </Alert>
           <Alert variant="destructive">
             <AlertTriangle className="size-4" />

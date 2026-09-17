@@ -33,7 +33,6 @@ function NotFoundComponent() {
   );
 }
 
-
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
@@ -63,7 +62,6 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             <a href="/">Go home</a>
           </Button>
         </div>
-
       </div>
     </div>
   );
