@@ -19,7 +19,7 @@ import {
   DataTableCardList,
   DataTableCell,
   DataTableDesktop,
-  DataTableEmptyRow,
+  
   DataTableHead,
   DataTableHeader,
   DataTableRoot,
