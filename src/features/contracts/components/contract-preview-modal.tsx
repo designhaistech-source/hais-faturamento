@@ -132,7 +132,7 @@ export function ContractPreviewModal({
           type={mimeType || "application/pdf"}
           title={`Pré-visualização de ${contract?.file.name ?? "contrato"}`}
           className="h-[70dvh] w-full rounded-lg border border-border bg-muted"
->
+        >
           <ErrorState
             title="Não foi possível exibir a pré-visualização"
             description="Baixe o arquivo para abri-lo."
