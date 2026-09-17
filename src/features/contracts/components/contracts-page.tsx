@@ -97,9 +97,7 @@ export function ContractsPage() {
                         {COLUMNS.map((column) => (
                           <DataTableHead
                             key={column}
-                            className={
-                              column === "Ações" ? "normal-case text-right" : "normal-case"
-                            }
+                            className={column === "Ações" ? "text-right" : undefined}
                           >
                             {column}
                           </DataTableHead>
