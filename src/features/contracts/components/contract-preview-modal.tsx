@@ -21,6 +21,15 @@ function isPreviewable(contract: Contract): boolean {
   return type === "application/pdf" || name.endsWith(".pdf") || type.startsWith("image/");
 }
 
+/** Descobre o MIME correto: o storage pode devolver o blob sem tipo definido. */
+function resolveMimeType(contract: Contract, blobType: string): string {
+  if (blobType && blobType !== "application/octet-stream") return blobType;
+  if (contract.file.type && contract.file.type !== "application/octet-stream") {
+    return contract.file.type;
+  }
+  return contract.file.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : blobType;
+}
+
 /**
  * Pré-visualização do contrato dentro do produto. O arquivo é carregado do
  * armazenamento como blob local, sem exibir a URL técnica na interface.
