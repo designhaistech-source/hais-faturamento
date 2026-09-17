@@ -9,6 +9,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { cn } from "@/lib/utils";
 import { createContractId, maskCnpj, type Contract } from "../data/contracts";
 
+const ACCEPTED_EXTENSIONS = [".pdf", ".doc", ".docx"] as const;
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+
+
 interface NewContractModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
