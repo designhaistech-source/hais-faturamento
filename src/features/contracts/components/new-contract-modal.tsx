@@ -121,6 +121,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
           label="Contrato"
           required
           error={fileError}
+          hint="PDF, DOC ou DOCX • Máx. 10 MB"
           injectChildProps={false}
         >
           <div
@@ -135,8 +136,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
               setDragActive(false);
               const dropped = event.dataTransfer.files?.[0];
               if (!dropped) return;
-              setFileTouched(true);
-              setFile(dropped);
+              handleSelectedFile(dropped);
               if (inputRef.current) inputRef.current.value = "";
             }}
           >
@@ -144,10 +144,10 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
               ref={inputRef}
               id="contract-file"
               type="file"
+              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               className="sr-only"
               onChange={(event) => {
-                setFileTouched(true);
-                setFile(event.target.files?.[0] ?? null);
+                handleSelectedFile(event.target.files?.[0] ?? null);
               }}
             />
 
