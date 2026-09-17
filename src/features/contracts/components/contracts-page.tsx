@@ -15,6 +15,7 @@ import { SurfaceCard } from "@/components/surface-card";
 import { FilterCard } from "@/components/filter-card";
 import { Field, SearchField } from "@/components/form-field";
 import { Input } from "@/components/ui/input";
+import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/table-pagination";
 
 import {
   DataTable,
@@ -96,10 +97,21 @@ export function ContractsPage() {
     });
   }, [contracts, search, validFrom, validTo]);
 
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+
+  const totalPages = Math.max(1, Math.ceil(filteredContracts.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedContracts = useMemo(
+    () => filteredContracts.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filteredContracts, currentPage, pageSize],
+  );
+
   function handleClearFilters() {
     setSearch("");
     setValidFrom("");
     setValidTo("");
+    setPage(1);
   }
 
   const createMutation = useMutation({
@@ -179,15 +191,24 @@ export function ContractsPage() {
                     placeholder="Buscar por empresa ou CNPJ"
                     value={search}
                     clearable
-                    onChange={(event) => setSearch(event.target.value)}
-                    onClear={() => setSearch("")}
+                    onChange={(event) => {
+                      setSearch(event.target.value);
+                      setPage(1);
+                    }}
+                    onClear={() => {
+                      setSearch("");
+                      setPage(1);
+                    }}
                   />
                   <Field id="contracts-valid-from" label="De">
                     <Input
                       type="date"
                       value={validFrom}
                       max={validTo || undefined}
-                      onChange={(event) => setValidFrom(event.target.value)}
+                      onChange={(event) => {
+                        setValidFrom(event.target.value);
+                        setPage(1);
+                      }}
                     />
                   </Field>
                   <Field id="contracts-valid-to" label="Até">
@@ -195,7 +216,10 @@ export function ContractsPage() {
                       type="date"
                       value={validTo}
                       min={validFrom || undefined}
-                      onChange={(event) => setValidTo(event.target.value)}
+                      onChange={(event) => {
+                        setValidTo(event.target.value);
+                        setPage(1);
+                      }}
                     />
                   </Field>
                 </FilterCard>
@@ -228,7 +252,7 @@ export function ContractsPage() {
                           </tr>
                         </DataTableHeader>
                         <DataTableBody>
-                          {filteredContracts.map((contract) => (
+                          {paginatedContracts.map((contract) => (
                             <DataTableRow key={contract.id}>
                               <DataTableCell className="font-medium">
                                 {contract.company}
@@ -252,7 +276,7 @@ export function ContractsPage() {
                     </DataTableDesktop>
 
                     <DataTableCardList divided>
-                      {filteredContracts.map((contract) => (
+                      {paginatedContracts.map((contract) => (
                         <DataTableCard key={contract.id} flat>
                           <DataTableCardHeader title={contract.company} />
                           <DataTableCardFields
@@ -274,6 +298,19 @@ export function ContractsPage() {
                         </DataTableCard>
                       ))}
                     </DataTableCardList>
+
+                    <TablePagination
+                      id="contracts"
+                      totalItems={filteredContracts.length}
+                      page={currentPage}
+                      pageSize={pageSize}
+                      onPageChange={setPage}
+                      onPageSizeChange={(size) => {
+                        setPageSize(size);
+                        setPage(1);
+                      }}
+                      className="px-4 pb-4"
+                    />
                   </DataTable>
                 )}
               </>
