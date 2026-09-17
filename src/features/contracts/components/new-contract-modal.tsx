@@ -80,14 +80,14 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
         className="space-y-4"
         onSubmit={(event) => {
           event.preventDefault();
-          if (canSubmit) submit();
+          submit();
         }}
       >
         <Field
           id="contract-file"
           label="Contrato"
           required
-          hint={file ? undefined : "PDF, imagem ou documento do contrato assinado."}
+          error={fileError}
           injectChildProps={false}
         >
           <div className="min-w-0">
@@ -96,8 +96,12 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
               id="contract-file"
               type="file"
               className="sr-only"
-              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+              onChange={(event) => {
+                setFileTouched(true);
+                setFile(event.target.files?.[0] ?? null);
+              }}
             />
+
             {file ? (
               <div className="flex min-w-0 flex-wrap items-center gap-3 rounded-xl border border-border bg-muted/30 px-4 py-3">
                 <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
