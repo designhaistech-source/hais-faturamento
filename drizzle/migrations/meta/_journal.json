@@ -15,6 +15,13 @@
       "when": 1789657485338,
       "tag": "0001_contracts_storage_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789668229985,
+      "tag": "0002_allow_clear_contracts_temporary",
+      "breakpoints": true
     }
   ]
 }
