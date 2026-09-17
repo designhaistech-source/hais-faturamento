@@ -27,6 +27,13 @@ export async function createContractFileUrl(path: string, downloadAs?: string): 
   return data.signedUrl;
 }
 
+/** Baixa o arquivo do storage como blob, para pré-visualização dentro do produto. */
+export async function downloadContractBlob(path: string): Promise<Blob> {
+  const { data, error } = await supabase.storage.from(BUCKET).download(path);
+  if (error || !data) throw error ?? new Error("Não foi possível carregar o arquivo do contrato.");
+  return data;
+}
+
 export async function listContracts(): Promise<Contract[]> {
   const { data, error } = await supabase
     .from("contracts")

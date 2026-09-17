@@ -30,6 +30,7 @@ import {
 } from "@/components/data-table";
 import { formatIsoToBr } from "@/lib/date";
 import { NewContractModal } from "./new-contract-modal";
+import { ContractPreviewModal } from "./contract-preview-modal";
 import type { Contract, NewContractInput } from "../data/contracts";
 import {
   contractsQueryKey,
@@ -39,16 +40,6 @@ import {
 } from "../data/contracts-service";
 
 const COLUMNS = ["Empresa", "CNPJ", "Validade", "Contrato", "Ações"] as const;
-
-async function openContractFile(contract: Contract) {
-  try {
-    const url = await createContractFileUrl(contract.file.path);
-    const opened = window.open(url, "_blank", "noopener,noreferrer");
-    if (!opened) toast.error("Não foi possível abrir o arquivo do contrato.");
-  } catch {
-    toast.error("Não foi possível abrir o arquivo do contrato.");
-  }
-}
 
 async function downloadContractFile(contract: Contract) {
   try {
@@ -66,6 +57,7 @@ async function downloadContractFile(contract: Contract) {
 
 export function ContractsPage() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [previewContract, setPreviewContract] = useState<Contract | null>(null);
   const queryClient = useQueryClient();
 
   const contractsQuery = useQuery({
@@ -163,7 +155,7 @@ export function ContractsPage() {
                             <ContractFileName name={contract.file.name} />
                           </DataTableCell>
                           <DataTableCell className="text-right">
-                            <ContractActions contract={contract} />
+                            <ContractActions contract={contract} onView={setPreviewContract} />
                           </DataTableCell>
                         </DataTableRow>
                       ))}
@@ -189,7 +181,7 @@ export function ContractsPage() {
                         ]}
                       />
                       <DataTableCardActions className="justify-end">
-                        <ContractActions contract={contract} />
+                        <ContractActions contract={contract} onView={setPreviewContract} />
                       </DataTableCardActions>
                     </DataTableCard>
                   ))}
@@ -202,6 +194,15 @@ export function ContractsPage() {
       </div>
 
       <NewContractModal open={modalOpen} onOpenChange={setModalOpen} onCreate={handleCreate} />
+
+      <ContractPreviewModal
+        contract={previewContract}
+        open={previewContract !== null}
+        onOpenChange={(next) => {
+          if (!next) setPreviewContract(null);
+        }}
+        onDownload={(contract) => void downloadContractFile(contract)}
+      />
     </TooltipProvider>
   );
 }
@@ -224,7 +225,13 @@ function ContractFileName({ name }: { name: string }) {
 }
 
 /** Ações da linha: apenas visualizar e baixar, identificadas por tooltip. */
-function ContractActions({ contract }: { contract: Contract }) {
+function ContractActions({
+  contract,
+  onView,
+}: {
+  contract: Contract;
+  onView: (contract: Contract) => void;
+}) {
   return (
     <div className="inline-flex items-center gap-1">
       <Tooltip>
@@ -234,7 +241,7 @@ function ContractActions({ contract }: { contract: Contract }) {
             variant="ghost"
             size="icon"
             aria-label={`Visualizar contrato de ${contract.company}`}
-            onClick={() => void openContractFile(contract)}
+            onClick={() => onView(contract)}
           >
             <Eye className="size-4" aria-hidden="true" />
           </Button>
