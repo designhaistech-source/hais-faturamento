@@ -76,17 +76,17 @@ export function TablePagination({
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between",
+        "flex flex-col gap-4 border-t border-border pt-4 lg:flex-row lg:items-center lg:justify-between",
         className,
       )}
     >
-      <p className="text-sm text-muted-foreground" aria-live="polite">
+      <p className="text-sm text-muted-foreground lg:whitespace-nowrap" aria-live="polite">
         {`Mostrando ${firstItem} a ${lastItem} de ${totalItems} ${
           totalItems === 1 ? "resultado" : "resultados"
         }`}
       </p>
 
-      <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-3 sm:justify-end">
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-3 lg:justify-end">
         <div className="flex items-center gap-2">
           <Label htmlFor={`${id}-page-size`} className="text-sm text-muted-foreground">
             Itens por página
@@ -108,7 +108,7 @@ export function TablePagination({
           </Select>
         </div>
 
-        <Pagination className="mx-0 w-full min-w-0 justify-end sm:w-auto">
+        <Pagination className="mx-0 w-full min-w-0 justify-end lg:w-auto">
           <PaginationContent className="flex-nowrap justify-end">
             <PaginationItem>
               <Button
@@ -124,7 +124,7 @@ export function TablePagination({
             </PaginationItem>
 
             {/* Em telas estreitas, a lista de páginas dá lugar ao indicador compacto. */}
-            <PaginationItem className="sm:hidden">
+            <PaginationItem className="lg:hidden">
               <span className="px-2 text-sm text-muted-foreground" aria-hidden="true">
                 {`Página ${currentPage} de ${totalPages}`}
               </span>
@@ -132,11 +132,11 @@ export function TablePagination({
 
             {pageItems.map((item, index) =>
               item === "ellipsis" ? (
-                <PaginationItem key={`ellipsis-${index}`} className="hidden sm:flex">
+                <PaginationItem key={`ellipsis-${index}`} className="hidden lg:flex">
                   <PaginationEllipsis />
                 </PaginationItem>
               ) : (
-                <PaginationItem key={item} className="hidden sm:flex">
+                <PaginationItem key={item} className="hidden lg:flex">
                   <Button
                     type="button"
                     variant={item === currentPage ? "outline" : "ghost"}
@@ -150,7 +150,6 @@ export function TablePagination({
                 </PaginationItem>
               ),
             )}
-
 
             <PaginationItem>
               <Button
