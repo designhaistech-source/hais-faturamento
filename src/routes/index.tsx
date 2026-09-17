@@ -8,7 +8,6 @@ import { SurfaceCard } from "@/components/surface-card";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -95,4 +94,3 @@ function FeatureCard({ icon: Icon, title, description, to, action }: (typeof FEA
     </Link>
   );
 }
-
