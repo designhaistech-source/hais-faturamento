@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ContratosRouteImport } from './routes/contratos'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as DesignSystemIconesRouteImport } from './routes/design-system-icones'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContratosRoute = ContratosRouteImport.update({
+  id: '/contratos',
+  path: '/contratos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DesignSystemRoute = DesignSystemRouteImport.update({
@@ -31,30 +37,39 @@ const DesignSystemIconesRoute = DesignSystemIconesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/contratos': typeof ContratosRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/contratos': typeof ContratosRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/contratos': typeof ContratosRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/design-system' | '/design-system-icones'
+  fullPaths: '/' | '/contratos' | '/design-system' | '/design-system-icones'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/design-system' | '/design-system-icones'
-  id: '__root__' | '/' | '/design-system' | '/design-system-icones'
+  to: '/' | '/contratos' | '/design-system' | '/design-system-icones'
+  id:
+    | '__root__'
+    | '/'
+    | '/contratos'
+    | '/design-system'
+    | '/design-system-icones'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ContratosRoute: typeof ContratosRoute
   DesignSystemRoute: typeof DesignSystemRoute
   DesignSystemIconesRoute: typeof DesignSystemIconesRoute
 }
@@ -66,6 +81,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contratos': {
+      id: '/contratos'
+      path: '/contratos'
+      fullPath: '/contratos'
+      preLoaderRoute: typeof ContratosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/design-system': {
@@ -87,6 +109,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ContratosRoute: ContratosRoute,
   DesignSystemRoute: DesignSystemRoute,
   DesignSystemIconesRoute: DesignSystemIconesRoute,
 }

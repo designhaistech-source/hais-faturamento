@@ -1,0 +1,41 @@
+/** Contract records managed in the Contratos screen (prototype, in-memory). */
+
+export interface ContractFile {
+  name: string;
+  /** Object URL used to preview/download the original file. */
+  url: string;
+  type: string;
+}
+
+export interface Contract {
+  id: string;
+  company: string;
+  /** Raw digits are never stored: the value is kept as typed/masked. */
+  cnpj: string;
+  /** yyyy-MM-dd, empty when not informed. */
+  validUntil: string;
+  file: ContractFile;
+}
+
+/** Applies the 00.000.000/0000-00 mask while the user types. */
+export function maskCnpj(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 14);
+  const parts = [
+    digits.slice(0, 2),
+    digits.slice(2, 5),
+    digits.slice(5, 8),
+    digits.slice(8, 12),
+    digits.slice(12, 14),
+  ];
+
+  let masked = parts[0];
+  if (parts[1]) masked += `.${parts[1]}`;
+  if (parts[2]) masked += `.${parts[2]}`;
+  if (parts[3]) masked += `/${parts[3]}`;
+  if (parts[4]) masked += `-${parts[4]}`;
+  return masked;
+}
+
+export function createContractId(): string {
+  return `contract-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
