@@ -123,6 +123,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
                     size="sm"
                     className="text-destructive hover:text-destructive"
                     onClick={() => {
+                      setFileTouched(true);
                       setFile(null);
                       if (inputRef.current) inputRef.current.value = "";
                     }}
