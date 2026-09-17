@@ -5,12 +5,8 @@ import { AppModal } from "@/components/app-modal";
 import { Field } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import { createContractId, maskCnpj, type Contract } from "../data/contracts";
 
 interface NewContractModalProps {
