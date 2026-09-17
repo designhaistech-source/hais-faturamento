@@ -144,11 +144,13 @@ export function AppSidebar({ activeKey }: { activeKey: ItemKey }) {
           }`}
         >
           <div
-            className={`flex items-center gap-2 border-b border-sidebar-border min-w-0 py-5 ${
-              collapsed ? "justify-center px-2" : "justify-between px-4"
+            className={`flex border-b border-sidebar-border min-w-0 py-5 ${
+              collapsed
+                ? "flex-col items-center gap-3 px-2"
+                : "items-center justify-between gap-2 px-4"
             }`}
           >
-            {!collapsed && <BrandLogo />}
+            {collapsed ? <BrandMark /> : <BrandLogo />}
             <button /* ds-allow: colapsar/expandir sidebar */
               type="button"
               onClick={() => setCollapsed((v) => !v)}
