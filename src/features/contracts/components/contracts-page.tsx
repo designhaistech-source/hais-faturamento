@@ -269,7 +269,9 @@ export function ContractsPage() {
                     </DataTableCard>
                   ))}
                 </DataTableCardList>
-              </DataTable>
+                  </DataTable>
+                )}
+              </>
             )}
           </main>
           <SiteFooter />
