@@ -228,7 +228,7 @@ export function ContractsPage() {
                         id="contracts-valid-from"
                         type="date"
                         aria-label="Validade de"
-                        className="min-w-0 flex-1"
+                        className="min-w-40 flex-1"
                         value={validFrom}
                         max={validTo || undefined}
                         onChange={(event) => {
