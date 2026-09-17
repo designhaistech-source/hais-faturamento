@@ -40,15 +40,8 @@ import {
 
 const COLUMNS = ["Empresa", "CNPJ", "Validade", "Contrato", "Ações"] as const;
 
-async function openContractFile(contract: Contract) {
-  try {
-    const url = await createContractFileUrl(contract.file.path);
-    const opened = window.open(url, "_blank", "noopener,noreferrer");
-    if (!opened) toast.error("Não foi possível abrir o arquivo do contrato.");
-  } catch {
-    toast.error("Não foi possível abrir o arquivo do contrato.");
-  }
-}
+
+
 
 async function downloadContractFile(contract: Contract) {
   try {
