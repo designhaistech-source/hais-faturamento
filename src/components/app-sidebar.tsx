@@ -31,14 +31,23 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { CURRENT_USER } from "@/lib/current-user";
 import { RenderProfiler } from "@/lib/render-profiler";
 import { useTheme } from "@/lib/theme";
+import brandLogo from "@/assets/haisfaturamento-logo.png.asset.json";
+import brandLogoDark from "@/assets/haisfaturamento-logo-dark.png.asset.json";
 
-/** Assinatura textual do produto: substitui a marca do produto anterior. */
+/** Marca oficial do produto: logo HaisFaturamento (variante clara/escura). */
 function BrandLogo({ className }: { className?: string }) {
   return (
-    <span
-      className={`block truncate font-display text-lg font-extrabold tracking-tight text-sidebar-foreground ${className ?? ""}`}
-    >
-      Hais<span className="text-primary">Faturamento</span>
+    <span className={`block min-w-0 ${className ?? ""}`}>
+      <img
+        src={brandLogo.url}
+        alt="HaisFaturamento"
+        className="h-6 w-auto max-w-full object-contain dark:hidden"
+      />
+      <img
+        src={brandLogoDark.url}
+        alt="HaisFaturamento"
+        className="hidden h-6 w-auto max-w-full object-contain dark:block"
+      />
     </span>
   );
 }
