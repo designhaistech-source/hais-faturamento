@@ -209,7 +209,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
               <div
                 className={cn(
                   "flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-6 text-center transition-colors",
-                  dragActive && "border-primary bg-accent",
+                  dragActive && "border-primary bg-primary-muted",
                 )}
               >
                 <Upload className="size-5 text-muted-foreground" aria-hidden="true" />
