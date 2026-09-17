@@ -9,9 +9,9 @@ interface PdfPreviewProps {
 }
 
 /**
- * Renderiza o PDF em canvas com pdf.js. Diferente de iframe/object, essa
- * abordagem não depende do leitor nativo do navegador, que é bloqueado
- * dentro de iframes com sandbox (como o preview do produto).
+ * Renderiza o PDF em canvas com pdf.js (build legacy, compatível com mais
+ * navegadores). Diferente de iframe/object, essa abordagem não depende do
+ * leitor nativo do navegador, bloqueado dentro de iframes com sandbox.
  */
 export function PdfPreview({ data, onError }: PdfPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -22,24 +22,25 @@ export function PdfPreview({ data, onError }: PdfPreviewProps) {
     setRendering(true);
 
     const render = async () => {
-      const pdfjs = await import("pdfjs-dist");
-      const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
+      const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+      const workerUrl = (await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url")).default;
       pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
 
       // pdf.js consome (e neutraliza) o buffer recebido: usar uma cópia.
-      const document = await pdfjs.getDocument({ data: data.slice(0) }).promise;
+      const pdf = await pdfjs.getDocument({ data: data.slice(0) }).promise;
       if (cancelled) return;
 
       const container = containerRef.current;
       if (!container) return;
       container.replaceChildren();
 
-      for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
-        const page = await document.getPage(pageNumber);
+      for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+        const page = await pdf.getPage(pageNumber);
         if (cancelled) return;
 
         const baseViewport = page.getViewport({ scale: 1 });
-        const scale = Math.min(2, Math.max(1, (container.clientWidth || 800) / baseViewport.width));
+        const width = container.clientWidth || 800;
+        const scale = Math.min(2, Math.max(1, width / baseViewport.width));
         const viewport = page.getViewport({ scale: scale * (window.devicePixelRatio || 1) });
 
         const canvas = window.document.createElement("canvas");
@@ -53,15 +54,15 @@ export function PdfPreview({ data, onError }: PdfPreviewProps) {
         if (!context) throw new Error("Canvas indisponível");
 
         container.append(canvas);
-        await page.render({ canvas, canvasContext: context, viewport }).promise;
+        await page.render({ canvasContext: context, viewport }).promise;
         if (cancelled) return;
       }
 
       setRendering(false);
     };
 
-    void render().catch((error: unknown) => {
-      if (!cancelled) { console.error("pdf-preview", error); onError(); }
+    void render().catch(() => {
+      if (!cancelled) onError();
     });
 
     return () => {
