@@ -163,7 +163,55 @@ export function ContractsPage() {
                 }
               />
             ) : (
-              <DataTable>
+              <>
+                <FilterCard
+                  id="contracts-filters"
+                  variant="bar"
+                  activeCount={activeCount}
+                  onClear={handleClearFilters}
+                  clearDisabled={!hasFilters}
+                  barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_10rem_10rem_auto] lg:gap-4"
+                >
+                  <SearchField
+                    id="contracts-search"
+                    label="Buscar"
+                    placeholder="Buscar por empresa ou CNPJ"
+                    value={search}
+                    clearable
+                    onChange={(event) => setSearch(event.target.value)}
+                    onClear={() => setSearch("")}
+                  />
+                  <Field id="contracts-valid-from" label="De">
+                    <Input
+                      type="date"
+                      value={validFrom}
+                      max={validTo || undefined}
+                      onChange={(event) => setValidFrom(event.target.value)}
+                    />
+                  </Field>
+                  <Field id="contracts-valid-to" label="Até">
+                    <Input
+                      type="date"
+                      value={validTo}
+                      min={validFrom || undefined}
+                      onChange={(event) => setValidTo(event.target.value)}
+                    />
+                  </Field>
+                </FilterCard>
+
+                {filteredContracts.length === 0 ? (
+                  <EmptyStateCard
+                    icon={<FileText className="size-10" aria-hidden="true" />}
+                    title="Nenhum contrato encontrado"
+                    description="Ajuste a busca ou o período de validade para ver outros resultados."
+                    action={
+                      <Button type="button" variant="outline" onClick={handleClearFilters}>
+                        Limpar filtros
+                      </Button>
+                    }
+                  />
+                ) : (
+                  <DataTable>
                 <DataTableDesktop>
                   <DataTableRoot>
                     <DataTableHeader>
