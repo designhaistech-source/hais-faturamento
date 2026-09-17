@@ -206,6 +206,7 @@ export function ContractsPage() {
                   <SearchField
                     id="contracts-search"
                     label="Buscar"
+                    fieldClassName="sm:col-span-2 lg:col-span-1"
                     placeholder="Buscar por empresa ou CNPJ"
                     value={search}
                     clearable
