@@ -41,10 +41,6 @@ import {
 
 const COLUMNS = ["Empresa", "CNPJ", "Validade", "Contrato", "Ações"] as const;
 
-
-
-
-
 async function downloadContractFile(contract: Contract) {
   try {
     const url = await createContractFileUrl(contract.file.path, contract.file.name);

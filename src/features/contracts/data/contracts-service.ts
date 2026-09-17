@@ -34,7 +34,6 @@ export async function downloadContractBlob(path: string): Promise<Blob> {
   return data;
 }
 
-
 export async function listContracts(): Promise<Contract[]> {
   const { data, error } = await supabase
     .from("contracts")
