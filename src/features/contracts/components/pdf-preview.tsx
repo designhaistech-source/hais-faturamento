@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import { LoadingState } from "@/components/data-state";
 import { loadPdfjs } from "./pdf-engine";
 
-
 interface PdfPreviewProps {
   /** Bytes completos do PDF já recuperados do armazenamento. */
   data: ArrayBuffer;

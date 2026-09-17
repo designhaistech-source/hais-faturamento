@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import type { Contract } from "../data/contracts";
 import { downloadContractBlob } from "../data/contracts-service";
-import { PdfPreview, prefetchPdfEngine } from "./pdf-preview";
+import { PdfPreview } from "./pdf-preview";
+import { prefetchPdfEngine } from "./pdf-engine";
 
 /** Bytes já convertidos por contrato, reutilizados ao reabrir na mesma sessão. */
 const pdfBufferCache = new Map<string, ArrayBuffer>();
