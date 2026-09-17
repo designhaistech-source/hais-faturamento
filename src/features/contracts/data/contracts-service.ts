@@ -99,3 +99,25 @@ export async function createContract(input: NewContractInput): Promise<void> {
 export function prefetchContractFile(path: string): void {
   void downloadContractBlob(path).catch(() => undefined);
 }
+
+/**
+ * Ferramenta provisória de testes: remove todos os contratos e os arquivos
+ * correspondentes no storage.
+ */
+export async function deleteAllContracts(): Promise<void> {
+  const { data, error: listError } = await supabase.from("contracts").select("id, file_path");
+  if (listError) throw listError;
+
+  const paths = (data ?? []).map((row) => row.file_path).filter(Boolean);
+  if (paths.length > 0) {
+    const { error: removeError } = await supabase.storage.from(BUCKET).remove(paths);
+    if (removeError) throw removeError;
+    paths.forEach((path) => contractBlobCache.delete(path));
+  }
+
+  const ids = (data ?? []).map((row) => row.id);
+  if (ids.length > 0) {
+    const { error } = await supabase.from("contracts").delete().in("id", ids);
+    if (error) throw error;
+  }
+}

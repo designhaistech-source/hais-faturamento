@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Eye, FileText, Plus } from "lucide-react";
+import { Download, Eye, FileText, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -10,6 +10,8 @@ import { AppBreadcrumb } from "@/components/app-breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { EmptyStateCard } from "@/components/empty-state-card";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+
 import { ErrorState, TableSkeleton } from "@/components/data-state";
 import { SurfaceCard } from "@/components/surface-card";
 import { FilterCard } from "@/components/filter-card";
@@ -40,6 +42,7 @@ import {
   contractsQueryKey,
   createContract,
   createContractFileUrl,
+  deleteAllContracts,
   listContracts,
   prefetchContractFile,
 } from "../data/contracts-service";
@@ -62,7 +65,9 @@ async function downloadContractFile(contract: Contract) {
 
 export function ContractsPage() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [clearOpen, setClearOpen] = useState(false);
   const [previewContract, setPreviewContract] = useState<Contract | null>(null);
+
   const queryClient = useQueryClient();
 
   const contractsQuery = useQuery({
@@ -128,6 +133,19 @@ export function ContractsPage() {
   function handleCreate(input: NewContractInput) {
     createMutation.mutate(input);
   }
+
+  const clearMutation = useMutation({
+    mutationFn: deleteAllContracts,
+    onSuccess: async () => {
+      setClearOpen(false);
+      await queryClient.invalidateQueries({ queryKey: contractsQueryKey });
+      handleClearFilters();
+      toast.success("Contratos cadastrados removidos.");
+    },
+    onError: () => {
+      toast.error("Não foi possível limpar os contratos cadastrados.");
+    },
+  });
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -326,7 +344,25 @@ export function ContractsPage() {
                 )}
               </>
             )}
+
+            {/* Ferramenta provisória de testes: não faz parte do produto. */}
+            {contracts.length > 0 && (
+              <div className="flex justify-end border-t border-dashed border-border pt-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground hover:text-destructive"
+                  disabled={clearMutation.isPending}
+                  onClick={() => setClearOpen(true)}
+                >
+                  <Trash2 className="size-3.5" aria-hidden="true" />
+                  Limpar contratos cadastrados · Temporário
+                </Button>
+              </div>
+            )}
           </main>
+
           <SiteFooter />
         </div>
       </div>
@@ -340,6 +376,15 @@ export function ContractsPage() {
           if (!next) setPreviewContract(null);
         }}
         onDownload={(contract) => void downloadContractFile(contract)}
+      />
+
+      <ConfirmDialog
+        open={clearOpen}
+        onOpenChange={setClearOpen}
+        title="Limpar contratos cadastrados?"
+        description="Esta ação apagará todos os contratos cadastrados e seus arquivos. Deseja continuar?"
+        confirmLabel="Limpar contratos"
+        onConfirm={() => clearMutation.mutate()}
       />
     </TooltipProvider>
   );
