@@ -125,11 +125,19 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
         >
           <div
             className="min-w-0"
+            onDragEnter={(event) => {
+              event.preventDefault();
+              setDragActive(true);
+            }}
             onDragOver={(event) => {
               event.preventDefault();
               setDragActive(true);
             }}
-            onDragLeave={() => setDragActive(false)}
+            onDragLeave={(event) => {
+              // Ignora a saída para elementos filhos da própria drop zone.
+              if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+              setDragActive(false);
+            }}
             onDrop={(event) => {
               event.preventDefault();
               setDragActive(false);
@@ -139,6 +147,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
               if (inputRef.current) inputRef.current.value = "";
             }}
           >
+
             <input
               ref={inputRef}
               id="contract-file"
