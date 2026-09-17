@@ -79,7 +79,11 @@ export function ContractsPage() {
               title="Contratos"
               description="Contratos das clínicas e hospitais cadastrados no HaisFaturamento."
               actions={
-                <Button type="button" className="w-full sm:w-auto" onClick={() => setModalOpen(true)}>
+                <Button
+                  type="button"
+                  className="w-full sm:w-auto"
+                  onClick={() => setModalOpen(true)}
+                >
                   <Plus className="size-4" aria-hidden="true" />
                   Novo contrato
                 </Button>
@@ -133,10 +137,7 @@ export function ContractsPage() {
                 ) : (
                   contracts.map((contract) => (
                     <DataTableCard key={contract.id} flat>
-                      <DataTableCardHeader
-                        title={contract.company}
-                        subtitle={contract.file.name}
-                      />
+                      <DataTableCardHeader title={contract.company} subtitle={contract.file.name} />
                       <DataTableCardFields
                         fields={[
                           { label: "CNPJ", value: contract.cnpj || "—" },
