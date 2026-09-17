@@ -45,7 +45,7 @@ export function PdfPreview({ data, onError }: PdfPreviewProps) {
         const canvas = window.document.createElement("canvas");
         canvas.width = Math.floor(viewport.width);
         canvas.height = Math.floor(viewport.height);
-        canvas.className = "mx-auto w-full rounded-lg border border-border bg-white";
+        canvas.className = "mx-auto w-full rounded-lg border border-border bg-card";
         canvas.setAttribute("role", "img");
         canvas.setAttribute("aria-label", `Página ${String(pageNumber)} do contrato`);
 
