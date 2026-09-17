@@ -125,11 +125,19 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
         >
           <div
             className="min-w-0"
+            onDragEnter={(event) => {
+              event.preventDefault();
+              setDragActive(true);
+            }}
             onDragOver={(event) => {
               event.preventDefault();
               setDragActive(true);
             }}
-            onDragLeave={() => setDragActive(false)}
+            onDragLeave={(event) => {
+              // Ignora a saída para elementos filhos da própria drop zone.
+              if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+              setDragActive(false);
+            }}
             onDrop={(event) => {
               event.preventDefault();
               setDragActive(false);
@@ -151,7 +159,12 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
             />
 
             {file ? (
-              <div className="flex min-w-0 flex-wrap items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-3">
+              <div
+                className={cn(
+                  "flex min-w-0 flex-wrap items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-3 transition-colors",
+                  dragActive && "border-primary bg-primary-muted",
+                )}
+              >
                 <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                 <TooltipProvider delayDuration={150}>
                   <Tooltip>
@@ -194,7 +207,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
               <div
                 className={cn(
                   "flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-6 text-center transition-colors",
-                  dragActive && "border-primary bg-accent",
+                  dragActive && "border-primary bg-primary-muted",
                 )}
               >
                 <Upload className="size-5 text-muted-foreground" aria-hidden="true" />
