@@ -9,6 +9,8 @@ import { AppBreadcrumb } from "@/components/app-breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { EmptyState } from "@/components/data-state";
+import { SurfaceCard } from "@/components/surface-card";
+
 import {
   DataTable,
   DataTableBody,
@@ -76,17 +78,20 @@ export function ContractsPage() {
             />
 
             {contracts.length === 0 ? (
-              <EmptyState
-                icon={<FileText className="size-10" aria-hidden="true" />}
-                title="Nenhum contrato cadastrado"
-                description="Cadastre um contrato para começar."
-                action={
-                  <Button type="button" size="sm" onClick={() => setModalOpen(true)}>
-                    <Plus className="size-4" aria-hidden="true" />
-                    Novo contrato
-                  </Button>
-                }
-              />
+              <SurfaceCard padding="lg">
+                <EmptyState
+                  size="lg"
+                  icon={<FileText className="size-10" aria-hidden="true" />}
+                  title="Nenhum contrato cadastrado"
+                  description="Cadastre um contrato para começar."
+                  action={
+                    <Button type="button" onClick={() => setModalOpen(true)}>
+                      <Plus className="size-4" aria-hidden="true" />
+                      Novo contrato
+                    </Button>
+                  }
+                />
+              </SurfaceCard>
             ) : (
               <DataTable>
                 <DataTableDesktop>
