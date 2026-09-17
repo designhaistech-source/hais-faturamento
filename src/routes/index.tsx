@@ -1,12 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { FileText } from "lucide-react";
+import { ArrowRight, FileText } from "lucide-react";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteFooter } from "@/components/site-footer";
 import { PageHeader } from "@/components/page-header";
 import { SurfaceCard } from "@/components/surface-card";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -68,29 +67,23 @@ function HomePage() {
 /** Card de acesso a uma funcionalidade; reutilizado por cada item de FEATURES. */
 function FeatureCard({ icon: Icon, title, description, to, action }: (typeof FEATURES)[number]) {
   return (
-    <Link
-      to={to}
-      aria-label={action}
-      className="group rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    <SurfaceCard
+      padding="sm"
+      className="group flex flex-col gap-3 transition-colors hover:border-primary/40 hover:shadow-sm"
+      icon={<Icon className="size-4.5" aria-hidden="true" />}
+      title={title}
+      description={description}
+      headerClassName="mb-0"
     >
-      <SurfaceCard
-        padding="sm"
-        className="flex h-full flex-col gap-3 transition-colors hover:border-primary/40 hover:shadow-sm"
-        icon={<Icon className="size-4.5" aria-hidden="true" />}
-        title={title}
-        description={description}
-        headerClassName="mb-0"
-      >
-        {/* Visual de botão: o card inteiro é o link de acesso. */}
-        <span
-          className={cn(
-            buttonVariants({ variant: "outline", size: "sm" }),
-            "self-start group-hover:bg-accent group-hover:text-accent-foreground",
-          )}
-        >
-          Acessar
-        </span>
-      </SurfaceCard>
-    </Link>
+      <Button variant="link" size="sm" className="h-auto px-0" asChild>
+        <Link to={to}>
+          {action}
+          <ArrowRight
+            className="transition-transform group-hover:translate-x-0.5"
+            aria-hidden="true"
+          />
+        </Link>
+      </Button>
+    </SurfaceCard>
   );
 }
