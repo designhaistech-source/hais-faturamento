@@ -69,16 +69,16 @@ function FeatureCard({ icon: Icon, title, description, to, action }: (typeof FEA
   return (
     <SurfaceCard
       padding="sm"
-      className="flex flex-col items-start gap-2 transition-colors hover:border-primary/40 hover:shadow-sm"
+      className="flex flex-col items-start gap-0 transition-colors hover:border-primary/40 hover:shadow-sm"
     >
       <span className="inline-flex size-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
         <Icon className="size-6" aria-hidden="true" />
       </span>
-      <h2 className="font-display text-base font-semibold tracking-tight text-foreground">
+      <h2 className="mt-4 font-display text-base font-semibold tracking-tight text-foreground">
         {title}
       </h2>
-      <p className="text-sm text-muted-foreground">{description}</p>
-      <Button variant="outline" size="sm" className="mt-1" asChild>
+      <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+      <Button variant="outline" size="sm" className="mt-4" asChild>
         <Link to={to}>{action}</Link>
       </Button>
     </SurfaceCard>
