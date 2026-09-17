@@ -19,7 +19,6 @@ import {
   DataTableCardList,
   DataTableCell,
   DataTableDesktop,
-  
   DataTableHead,
   DataTableHeader,
   DataTableRoot,
@@ -151,7 +150,6 @@ export function ContractsPage() {
                 </DataTableCardList>
               </DataTable>
             )}
-
           </main>
           <SiteFooter />
         </div>
@@ -167,7 +165,10 @@ function ContractFileName({ name }: { name: string }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span tabIndex={0} className="block min-w-0 truncate rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <span
+          tabIndex={0}
+          className="block min-w-0 truncate rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
           {name}
         </span>
       </TooltipTrigger>
@@ -175,8 +176,6 @@ function ContractFileName({ name }: { name: string }) {
     </Tooltip>
   );
 }
-
-
 
 /** Ações da linha: apenas visualizar e baixar, identificadas por tooltip. */
 function ContractActions({ contract }: { contract: Contract }) {
