@@ -40,9 +40,11 @@ import {
   contractsQueryKey,
   createContract,
   createContractFileUrl,
+  deleteAllContracts,
   listContracts,
   prefetchContractFile,
 } from "../data/contracts-service";
+
 
 const COLUMNS = ["Empresa", "CNPJ", "Validade", "Contrato", "Ações"] as const;
 
