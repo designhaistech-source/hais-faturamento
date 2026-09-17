@@ -122,7 +122,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
             />
 
             {file ? (
-              <div className="flex min-w-0 flex-wrap items-center gap-3 rounded-xl border border-dashed border-border bg-muted/50 px-4 py-3">
+              <div className="flex min-w-0 flex-wrap items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-3">
                 <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                 <TooltipProvider delayDuration={150}>
                   <Tooltip>
@@ -165,8 +165,8 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
             ) : (
               <div
                 className={cn(
-                  "flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted/50 px-4 py-6 text-center transition-colors",
-                  dragActive && "border-primary bg-muted",
+                  "flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-6 text-center transition-colors",
+                  dragActive && "border-primary bg-accent",
                 )}
               >
                 <Upload className="size-5 text-muted-foreground" aria-hidden="true" />
