@@ -97,10 +97,21 @@ export function ContractsPage() {
     });
   }, [contracts, search, validFrom, validTo]);
 
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+
+  const totalPages = Math.max(1, Math.ceil(filteredContracts.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedContracts = useMemo(
+    () => filteredContracts.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filteredContracts, currentPage, pageSize],
+  );
+
   function handleClearFilters() {
     setSearch("");
     setValidFrom("");
     setValidTo("");
+    setPage(1);
   }
 
   const createMutation = useMutation({
