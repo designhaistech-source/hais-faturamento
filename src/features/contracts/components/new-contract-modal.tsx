@@ -151,10 +151,11 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
           </div>
         </Field>
 
-        <Field id="contract-company" label="Nome da empresa" required>
+        <Field id="contract-company" label="Nome da empresa" required error={companyError}>
           <Input
             value={company}
             onChange={(event) => setCompany(event.target.value)}
+            onBlur={() => setCompanyTouched(true)}
             placeholder="Clínica ou hospital"
             autoComplete="organization"
           />
