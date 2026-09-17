@@ -8,8 +8,8 @@ import { PageHeader } from "@/components/page-header";
 import { AppBreadcrumb } from "@/components/app-breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { EmptyState } from "@/components/data-state";
-import { SurfaceCard } from "@/components/surface-card";
+import { EmptyStateCard } from "@/components/empty-state-card";
+
 
 import {
   DataTable,
