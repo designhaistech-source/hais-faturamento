@@ -108,7 +108,7 @@ export function ContractsPage() {
                       {contracts.map((contract) => (
                         <DataTableRow key={contract.id}>
                           <DataTableCell className="font-medium">{contract.company}</DataTableCell>
-                          <DataTableCell className="font-mono text-xs">
+                          <DataTableCell className="font-mono">
                             {contract.cnpj || "—"}
                           </DataTableCell>
                           <DataTableCell>{formatIsoToBr(contract.validUntil) || "—"}</DataTableCell>
