@@ -78,7 +78,8 @@ export function ContractPreviewModal({
         }
         if (!cancelled) setStatus("ready");
       })
-      .catch(() => {
+      .catch((error: unknown) => {
+        console.error("preview-load", error);
         if (!cancelled) setStatus("error");
       });
 
