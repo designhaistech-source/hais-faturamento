@@ -26,10 +26,36 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
   const [companyTouched, setCompanyTouched] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
+  const [invalidFileMessage, setInvalidFileMessage] = useState<string | null>(null);
+
   const canSubmit = Boolean(file) && company.trim().length > 0;
-  const fileError = fileTouched && !file ? "Selecione o arquivo do contrato." : undefined;
+  const fileError =
+    invalidFileMessage ??
+    (fileTouched && !file ? "Selecione o arquivo do contrato." : undefined);
   const companyError =
     companyTouched && company.trim().length === 0 ? "Informe o nome da empresa." : undefined;
+
+  /** Aplica as restrições implementadas: PDF, DOC ou DOCX com no máximo 10 MB. */
+  function handleSelectedFile(selected: File | null) {
+    setFileTouched(true);
+    if (!selected) {
+      setInvalidFileMessage(null);
+      setFile(null);
+      return;
+    }
+    if (!ACCEPTED_EXTENSIONS.some((ext) => selected.name.toLowerCase().endsWith(ext))) {
+      setInvalidFileMessage("Formato não aceito. Envie um arquivo PDF, DOC ou DOCX.");
+      setFile(null);
+      return;
+    }
+    if (selected.size > MAX_FILE_SIZE_BYTES) {
+      setInvalidFileMessage("Arquivo maior que 10 MB.");
+      setFile(null);
+      return;
+    }
+    setInvalidFileMessage(null);
+    setFile(selected);
+  }
 
   function reset() {
     setFile(null);
