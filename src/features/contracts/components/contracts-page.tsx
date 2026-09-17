@@ -129,6 +129,20 @@ export function ContractsPage() {
     createMutation.mutate(input);
   }
 
+  const clearMutation = useMutation({
+    mutationFn: deleteAllContracts,
+    onSuccess: async () => {
+      setClearOpen(false);
+      await queryClient.invalidateQueries({ queryKey: contractsQueryKey });
+      handleClearFilters();
+      toast.success("Contratos cadastrados removidos.");
+    },
+    onError: () => {
+      toast.error("Não foi possível limpar os contratos cadastrados.");
+    },
+  });
+
+
   return (
     <TooltipProvider delayDuration={150}>
       <div className="flex min-h-screen bg-background">
