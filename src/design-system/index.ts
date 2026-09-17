@@ -214,6 +214,11 @@ export { Progress } from "@/components/ui/progress";
 export { Skeleton } from "@/components/ui/skeleton";
 export { EmptyState, ErrorState, LoadingState, TableSkeleton } from "@/components/data-state";
 export { EmptyStateCard } from "@/components/empty-state-card";
+export {
+  TablePagination,
+  DEFAULT_PAGE_SIZE,
+  PAGE_SIZE_OPTIONS,
+} from "@/components/table-pagination";
 
 /* ---------------- Gráficos (Recharts) ---------------- */
 
