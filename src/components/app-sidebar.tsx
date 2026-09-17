@@ -4,7 +4,6 @@ import {
   LayoutGrid,
   FileText,
   HelpCircle,
-
   CircleUser,
   LogOut,
   Moon,
@@ -192,7 +191,6 @@ function SidebarNav({
         />
       </SidebarGroup>
     </nav>
-
   );
 }
 
