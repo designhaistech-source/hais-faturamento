@@ -18,7 +18,11 @@ function sanitizeFileName(name: string): string {
 export async function createContractFileUrl(path: string, downloadAs?: string): Promise<string> {
   const { data, error } = await supabase.storage
     .from(BUCKET)
-    .createSignedUrl(path, SIGNED_URL_TTL_SECONDS, downloadAs ? { download: downloadAs } : undefined);
+    .createSignedUrl(
+      path,
+      SIGNED_URL_TTL_SECONDS,
+      downloadAs ? { download: downloadAs } : undefined,
+    );
   if (error || !data) throw error ?? new Error("Não foi possível abrir o arquivo do contrato.");
   return data.signedUrl;
 }
