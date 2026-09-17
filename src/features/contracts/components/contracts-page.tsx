@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { EmptyStateCard } from "@/components/empty-state-card";
 
-
 import {
   DataTable,
   DataTableBody,
@@ -90,7 +89,6 @@ export function ContractsPage() {
                 }
               />
             ) : (
-
               <DataTable>
                 <DataTableDesktop>
                   <DataTableRoot>

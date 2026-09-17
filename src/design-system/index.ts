@@ -215,7 +215,6 @@ export { Skeleton } from "@/components/ui/skeleton";
 export { EmptyState, ErrorState, LoadingState, TableSkeleton } from "@/components/data-state";
 export { EmptyStateCard } from "@/components/empty-state-card";
 
-
 /* ---------------- Gráficos (Recharts) ---------------- */
 
 export {
