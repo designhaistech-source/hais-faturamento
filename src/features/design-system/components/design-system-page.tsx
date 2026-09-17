@@ -9,16 +9,16 @@ import { PatternsSection } from "./patterns-section";
 import { NavigationSection } from "./navigation-section";
 import { FeedbackSection } from "./feedback-section";
 
-/** Guia vivo do design system HaisGuias. */
+/** Guia vivo do design system HaisFaturamento. */
 export function DesignSystemPage() {
   return (
     <div className="flex min-h-screen bg-background">
-      <AppSidebar activeKey="ajuda" />
+      <AppSidebar activeKey="design-system" />
       <div className="flex min-h-screen flex-1 flex-col">
         <main className="flex-1 space-y-6 p-6 pb-16">
           <PageHeader
             title="Design system"
-            description="Fundamentos visuais, componentes e padrões de interface usados em todas as telas do HaisGuias. Use esta referência antes de criar qualquer tela nova."
+            description="Fundamentos visuais, componentes e padrões de interface usados em todas as telas do HaisFaturamento. Use esta referência antes de criar qualquer tela nova."
           />
 
           <DsSection

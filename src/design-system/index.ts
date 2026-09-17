@@ -4,7 +4,7 @@
  * Reexporta — sem reimplementar — os fundamentos, primitivos e composições que
  * já estão em uso no produto. Nenhum estilo, variante ou comportamento é
  * alterado aqui: este arquivo apenas define qual é o núcleo reutilizável por
- * outros produtos e qual é específico do HaisGuias (ver `docs/design-system-catalog.md`).
+ * outros produtos e qual é específico do HaisFaturamento (ver `docs/design-system-catalog.md`).
  *
  * Os caminhos originais (`@/components/...`) continuam válidos para o código
  * existente; novas telas e novos produtos devem importar deste módulo.

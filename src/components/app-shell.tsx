@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 /**
  * Estrutura genérica de página do design system HaisTech.
  *
- * Reproduz — sem alterar — o esqueleto já repetido nas telas do HaisGuias:
+ * Reproduz — sem alterar — o esqueleto já repetido nas telas do HaisFaturamento:
  * navegação lateral à esquerda + `main` rolável com a coluna de conteúdo.
  * A navegação em si (itens, rotas, ícones, marca) é sempre um slot fornecido
  * pelo produto: este componente não conhece rota nem regra de negócio.
