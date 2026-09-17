@@ -58,7 +58,7 @@ fac-símiles impressos permanecem no HaisFaturamento.
 | Tooltips | `Tooltip*`, `tooltipPanelClass`, `InfoHint` | `InfoHint` para explicações ao lado de rótulos |
 | Navegação | `AppSidebar`, `AppBreadcrumb`, `Tabs` + `appTabs*Class`, `Accordion`, `Collapsible` | `AppSidebar` depende da marca e das rotas do produto |
 | Feedback | `Toaster` (sonner), `Alert`, `Progress` | Toda ação confirma resultado e bloqueia envio duplicado |
-| Estados de dados | `LoadingState`, `EmptyState`, `ErrorState`, `TableSkeleton`, `Skeleton` | Obrigatórios em qualquer superfície de dados |
+| Estados de dados | `LoadingState`, `EmptyStateCard`, `EmptyState`, `ErrorState`, `TableSkeleton`, `Skeleton` | Obrigatórios em qualquer superfície de dados |
 | Salvamento | `SavedIndicator` | Rascunho salvo/hora |
 | Layout de busca | `SearchPageLayout` | Páginas de consulta (CID, procedimentos) |
 
@@ -71,7 +71,7 @@ fac-símiles impressos permanecem no HaisFaturamento.
 | Erro | `destructive*`, mensagem do `Field` com `role="alert"`, `ErrorState` |
 | Informação | `info*`, `Badge variant="info-soft"`, `InfoHint` |
 | Carregando | `LoadingState`, `TableSkeleton`, `Skeleton`, `Progress`, spinner do `SearchInput` |
-| Vazio | `EmptyState`, `DataTableEmptyRow`, "—" em `muted-foreground` |
+| Vazio | `EmptyStateCard` (listagem sem nenhum registro), `EmptyState`, `DataTableEmptyRow`, "—" em `muted-foreground` |
 | Desabilitado | `disabled:opacity-50` + `cursor-not-allowed` (padrão dos primitivos) |
 | Somente leitura | `read-only:bg-muted/50` mantendo contraste total |
 | Foco | `ring-ring` visível em todos os controles |
