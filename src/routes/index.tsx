@@ -37,7 +37,7 @@ const FEATURES = [
     description:
       "Cadastre e consulte os contratos de clínicas e hospitais utilizados no faturamento.",
     to: "/contratos",
-    action: "Acessar contratos",
+    action: "Acessar",
   },
 ] as const;
 
@@ -69,20 +69,17 @@ function FeatureCard({ icon: Icon, title, description, to, action }: (typeof FEA
   return (
     <SurfaceCard
       padding="sm"
-      className="group flex flex-col gap-3 transition-colors hover:border-primary/40 hover:shadow-sm"
-      icon={<Icon className="size-4.5" aria-hidden="true" />}
-      title={title}
-      description={description}
-      headerClassName="mb-0"
+      className="flex flex-col items-start gap-2 transition-colors hover:border-primary/40 hover:shadow-sm"
     >
-      <Button variant="link" size="sm" className="h-auto px-0" asChild>
-        <Link to={to}>
-          {action}
-          <ArrowRight
-            className="transition-transform group-hover:translate-x-0.5"
-            aria-hidden="true"
-          />
-        </Link>
+      <span className="inline-flex size-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <Icon className="size-6" aria-hidden="true" />
+      </span>
+      <h2 className="font-display text-base font-semibold tracking-tight text-foreground">
+        {title}
+      </h2>
+      <p className="text-sm text-muted-foreground">{description}</p>
+      <Button variant="outline" size="sm" className="mt-1" asChild>
+        <Link to={to}>{action}</Link>
       </Button>
     </SurfaceCard>
   );
