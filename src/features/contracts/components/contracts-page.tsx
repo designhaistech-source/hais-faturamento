@@ -37,6 +37,7 @@ import {
   createContract,
   createContractFileUrl,
   listContracts,
+  prefetchContractFile,
 } from "../data/contracts-service";
 
 const COLUMNS = ["Empresa", "CNPJ", "Validade", "Contrato", "Ações"] as const;
