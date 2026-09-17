@@ -377,7 +377,17 @@ export function ContractsPage() {
         }}
         onDownload={(contract) => void downloadContractFile(contract)}
       />
+
+      <ConfirmDialog
+        open={clearOpen}
+        onOpenChange={setClearOpen}
+        title="Limpar contratos cadastrados?"
+        description="Esta ação apagará todos os contratos cadastrados e seus arquivos. Deseja continuar?"
+        confirmLabel="Limpar contratos"
+        onConfirm={() => clearMutation.mutate()}
+      />
     </TooltipProvider>
+
   );
 }
 
