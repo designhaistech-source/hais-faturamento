@@ -38,14 +38,18 @@ export function PdfPreview({ data, onError }: PdfPreviewProps) {
         if (cancelled) return;
 
         const baseViewport = page.getViewport({ scale: 1 });
-        const width = container.clientWidth || 800;
-        const scale = Math.min(2, Math.max(1, width / baseViewport.width));
-        const viewport = page.getViewport({ scale: scale * (window.devicePixelRatio || 1) });
+        const available = container.clientWidth || 800;
+        // Ajusta à largura disponível sem ampliar além do tamanho original.
+        const cssScale = Math.min(1, available / baseViewport.width);
+        const ratio = Math.min(2, window.devicePixelRatio || 1);
+        const viewport = page.getViewport({ scale: cssScale * ratio });
 
         const canvas = window.document.createElement("canvas");
         canvas.width = Math.floor(viewport.width);
         canvas.height = Math.floor(viewport.height);
-        canvas.className = "mx-auto w-full rounded-lg border border-border bg-card";
+        canvas.style.width = `${String(Math.floor(baseViewport.width * cssScale))}px`;
+        canvas.style.height = "auto";
+        canvas.className = "mx-auto max-w-full rounded-lg border border-border bg-card";
         canvas.setAttribute("role", "img");
         canvas.setAttribute("aria-label", `Página ${String(pageNumber)} do contrato`);
 

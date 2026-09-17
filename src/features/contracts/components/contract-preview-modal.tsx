@@ -113,7 +113,7 @@ export function ContractPreviewModal({
     <AppModal
       open={open}
       onOpenChange={onOpenChange}
-      size="xl"
+      size="lg"
       title={contract?.file.name ?? "Contrato"}
       description="Pré-visualização do contrato."
       descriptionHidden
