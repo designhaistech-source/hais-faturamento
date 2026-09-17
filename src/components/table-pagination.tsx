@@ -109,7 +109,7 @@ export function TablePagination({
         </div>
 
         <Pagination className="mx-0 w-auto min-w-0 justify-end">
-          <PaginationContent className="flex-wrap justify-end">
+          <PaginationContent className="flex-nowrap justify-end">
             <PaginationItem>
               <Button
                 type="button"
@@ -123,13 +123,20 @@ export function TablePagination({
               </Button>
             </PaginationItem>
 
+            {/* Em telas estreitas, a lista de páginas dá lugar ao indicador compacto. */}
+            <PaginationItem className="sm:hidden">
+              <span className="px-2 text-sm text-muted-foreground" aria-hidden="true">
+                {`Página ${currentPage} de ${totalPages}`}
+              </span>
+            </PaginationItem>
+
             {pageItems.map((item, index) =>
               item === "ellipsis" ? (
-                <PaginationItem key={`ellipsis-${index}`}>
+                <PaginationItem key={`ellipsis-${index}`} className="hidden sm:flex">
                   <PaginationEllipsis />
                 </PaginationItem>
               ) : (
-                <PaginationItem key={item}>
+                <PaginationItem key={item} className="hidden sm:flex">
                   <Button
                     type="button"
                     variant={item === currentPage ? "outline" : "ghost"}
@@ -143,6 +150,7 @@ export function TablePagination({
                 </PaginationItem>
               ),
             )}
+
 
             <PaginationItem>
               <Button
