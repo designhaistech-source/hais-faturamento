@@ -229,7 +229,6 @@ export function ContractsPage() {
                       </Field>
                     </div>
                   </fieldset>
-
                 </FilterCard>
 
                 {filteredContracts.length === 0 ? (
