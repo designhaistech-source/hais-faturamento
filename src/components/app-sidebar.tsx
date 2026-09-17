@@ -32,6 +32,7 @@ import { RenderProfiler } from "@/lib/render-profiler";
 import { useTheme } from "@/lib/theme";
 import brandLogo from "@/assets/haisfaturamento-logo.png.asset.json";
 import brandLogoDark from "@/assets/haisfaturamento-logo-dark.png.asset.json";
+import brandMark from "@/assets/haisfaturamento-mark.svg.asset.json";
 
 /** Marca oficial do produto: logo HaisFaturamento (variante clara/escura). */
 function BrandLogo({ className }: { className?: string }) {
@@ -48,6 +49,17 @@ function BrandLogo({ className }: { className?: string }) {
         className="hidden h-6 w-auto max-w-full object-contain dark:block"
       />
     </span>
+  );
+}
+
+/** Símbolo isolado da marca, usado no sidebar recolhido. */
+function BrandMark({ className }: { className?: string }) {
+  return (
+    <img
+      src={brandMark.url}
+      alt="HaisFaturamento"
+      className={`h-6 w-6 shrink-0 object-contain ${className ?? ""}`}
+    />
   );
 }
 
@@ -132,11 +144,13 @@ export function AppSidebar({ activeKey }: { activeKey: ItemKey }) {
           }`}
         >
           <div
-            className={`flex items-center gap-2 border-b border-sidebar-border min-w-0 py-5 ${
-              collapsed ? "justify-center px-2" : "justify-between px-4"
+            className={`flex border-b border-sidebar-border min-w-0 py-5 ${
+              collapsed
+                ? "flex-col items-center gap-3 px-2"
+                : "items-center justify-between gap-2 px-4"
             }`}
           >
-            {!collapsed && <BrandLogo />}
+            {collapsed ? <BrandMark /> : <BrandLogo />}
             <button /* ds-allow: colapsar/expandir sidebar */
               type="button"
               onClick={() => setCollapsed((v) => !v)}
