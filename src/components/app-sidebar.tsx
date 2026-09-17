@@ -144,23 +144,51 @@ export function AppSidebar({ activeKey }: { activeKey: ItemKey }) {
           }`}
         >
           <div
-            className={`flex min-w-0 items-center border-b border-sidebar-border py-5 ${
+            className={`flex min-w-0 items-center gap-2 border-b border-sidebar-border py-5 ${
               collapsed ? "justify-center px-2" : "px-4"
             }`}
           >
-            {/* A própria marca é o controle de recolher/expandir: no hover o símbolo dá lugar ao ícone de menu. */}
-            <button /* ds-allow: colapsar/expandir sidebar pela área da marca */
-              type="button"
-              onClick={() => setCollapsed((v) => !v)}
-              aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
-              aria-expanded={!collapsed}
-              className="group/brand relative flex min-w-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              {collapsed ? <BrandMark /> : <BrandLogo />}
-              <span className="absolute left-0 top-0 grid size-6 place-items-center rounded-md bg-sidebar text-sidebar-muted opacity-0 transition-opacity group-hover/brand:opacity-100">
-                <PanelLeft className="h-4 w-4" aria-hidden="true" />
-              </span>
-            </button>
+            {collapsed ? (
+              /* Recolhido: a própria marca expande o menu; no hover o símbolo dá lugar ao ícone de menu. */
+              <button /* ds-allow: expandir sidebar pela área da marca */
+                type="button"
+                onClick={() => setCollapsed(false)}
+                aria-label="Expandir menu"
+                aria-expanded={false}
+                className="group/brand relative flex min-w-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <BrandMark />
+                <span className="absolute left-0 top-0 grid size-6 place-items-center rounded-md bg-sidebar text-sidebar-muted opacity-0 transition-opacity group-hover/brand:opacity-100">
+                  <PanelLeft className="h-4 w-4" aria-hidden="true" />
+                </span>
+              </button>
+            ) : (
+              <>
+                <Link
+                  to="/"
+                  aria-label="Ir para Início"
+                  className="min-w-0 flex-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <BrandLogo />
+                </Link>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Recolher menu"
+                      aria-expanded={true}
+                      onClick={() => setCollapsed(true)}
+                      className="shrink-0 text-sidebar-muted hover:text-sidebar-accent-foreground"
+                    >
+                      <PanelLeft className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">Recolher menu</TooltipContent>
+                </Tooltip>
+              </>
+            )}
           </div>
 
           <SidebarNav activeKey={activeKey} collapsed={collapsed} />
