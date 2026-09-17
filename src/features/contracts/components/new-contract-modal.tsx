@@ -9,6 +9,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { cn } from "@/lib/utils";
 import { createContractId, maskCnpj, type Contract } from "../data/contracts";
 
+const ACCEPTED_EXTENSIONS = [".pdf", ".doc", ".docx"] as const;
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+
 interface NewContractModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -26,10 +29,35 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
   const [companyTouched, setCompanyTouched] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
+  const [invalidFileMessage, setInvalidFileMessage] = useState<string | null>(null);
+
   const canSubmit = Boolean(file) && company.trim().length > 0;
-  const fileError = fileTouched && !file ? "Selecione o arquivo do contrato." : undefined;
+  const fileError =
+    invalidFileMessage ?? (fileTouched && !file ? "Selecione o arquivo do contrato." : undefined);
   const companyError =
     companyTouched && company.trim().length === 0 ? "Informe o nome da empresa." : undefined;
+
+  /** Aplica as restrições implementadas: PDF, DOC ou DOCX com no máximo 10 MB. */
+  function handleSelectedFile(selected: File | null) {
+    setFileTouched(true);
+    if (!selected) {
+      setInvalidFileMessage(null);
+      setFile(null);
+      return;
+    }
+    if (!ACCEPTED_EXTENSIONS.some((ext) => selected.name.toLowerCase().endsWith(ext))) {
+      setInvalidFileMessage("Formato não aceito. Envie um arquivo PDF, DOC ou DOCX.");
+      setFile(null);
+      return;
+    }
+    if (selected.size > MAX_FILE_SIZE_BYTES) {
+      setInvalidFileMessage("Arquivo maior que 10 MB.");
+      setFile(null);
+      return;
+    }
+    setInvalidFileMessage(null);
+    setFile(selected);
+  }
 
   function reset() {
     setFile(null);
@@ -38,6 +66,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
     setValidUntil("");
     setFileTouched(false);
     setCompanyTouched(false);
+    setInvalidFileMessage(null);
     if (inputRef.current) inputRef.current.value = "";
   }
 
@@ -91,6 +120,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
           label="Contrato"
           required
           error={fileError}
+          hint="PDF, DOC ou DOCX • Máx. 10 MB"
           injectChildProps={false}
         >
           <div
@@ -105,8 +135,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
               setDragActive(false);
               const dropped = event.dataTransfer.files?.[0];
               if (!dropped) return;
-              setFileTouched(true);
-              setFile(dropped);
+              handleSelectedFile(dropped);
               if (inputRef.current) inputRef.current.value = "";
             }}
           >
@@ -114,10 +143,10 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
               ref={inputRef}
               id="contract-file"
               type="file"
+              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               className="sr-only"
               onChange={(event) => {
-                setFileTouched(true);
-                setFile(event.target.files?.[0] ?? null);
+                handleSelectedFile(event.target.files?.[0] ?? null);
               }}
             />
 
@@ -152,8 +181,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
                     size="sm"
                     className="text-destructive hover:text-destructive"
                     onClick={() => {
-                      setFileTouched(true);
-                      setFile(null);
+                      handleSelectedFile(null);
                       if (inputRef.current) inputRef.current.value = "";
                     }}
                   >
