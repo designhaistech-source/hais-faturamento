@@ -52,6 +52,17 @@ function BrandLogo({ className }: { className?: string }) {
   );
 }
 
+/** Símbolo isolado da marca, usado no sidebar recolhido. */
+function BrandMark({ className }: { className?: string }) {
+  return (
+    <img
+      src={brandMark.url}
+      alt="HaisFaturamento"
+      className={`h-6 w-6 shrink-0 object-contain ${className ?? ""}`}
+    />
+  );
+}
+
 export type ItemKey = "inicio" | "contratos" | "design-system" | "icones";
 
 export function AppSidebar({ activeKey }: { activeKey: ItemKey }) {
