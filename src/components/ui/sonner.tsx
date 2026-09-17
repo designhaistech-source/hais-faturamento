@@ -6,6 +6,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       className="toaster group"
+      duration={4000}
       toastOptions={{
         classNames: {
           toast:
@@ -13,8 +14,11 @@ const Toaster = ({ ...props }: ToasterProps) => {
           description: "group-[.toast]:text-muted-foreground",
           actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
           cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+          // Ícone de confirmação usa a cor semântica de sucesso do tema.
+          success: "group-[.toaster]:[&_[data-icon]]:text-success",
         },
       }}
+
       {...props}
     />
   );
