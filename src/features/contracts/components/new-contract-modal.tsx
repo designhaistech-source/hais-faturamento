@@ -20,14 +20,21 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
   const [company, setCompany] = useState("");
   const [cnpj, setCnpj] = useState("");
   const [validUntil, setValidUntil] = useState("");
+  const [fileTouched, setFileTouched] = useState(false);
+  const [companyTouched, setCompanyTouched] = useState(false);
 
   const canSubmit = Boolean(file) && company.trim().length > 0;
+  const fileError = fileTouched && !file ? "Selecione o arquivo do contrato." : undefined;
+  const companyError =
+    companyTouched && company.trim().length === 0 ? "Informe o nome da empresa." : undefined;
 
   function reset() {
     setFile(null);
     setCompany("");
     setCnpj("");
     setValidUntil("");
+    setFileTouched(false);
+    setCompanyTouched(false);
     if (inputRef.current) inputRef.current.value = "";
   }
 
@@ -37,7 +44,9 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
   }
 
   function submit() {
-    if (!file) return;
+    setFileTouched(true);
+    setCompanyTouched(true);
+    if (!file || company.trim().length === 0) return;
     onCreate({
       id: createContractId(),
       company: company.trim(),
