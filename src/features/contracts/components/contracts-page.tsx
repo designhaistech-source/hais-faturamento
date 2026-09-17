@@ -222,13 +222,13 @@ export function ContractsPage() {
                     <legend className="text-xs font-medium leading-snug text-muted-foreground">
                       Validade
                     </legend>
-                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
                       <span className="shrink-0 text-xs text-muted-foreground">De</span>
                       <Input
                         id="contracts-valid-from"
                         type="date"
                         aria-label="Validade de"
-                        className="min-w-40 flex-1"
+                        className="min-w-0 flex-1"
                         value={validFrom}
                         max={validTo || undefined}
                         onChange={(event) => {
@@ -241,7 +241,7 @@ export function ContractsPage() {
                         id="contracts-valid-to"
                         type="date"
                         aria-label="Validade até"
-                        className="min-w-40 flex-1"
+                        className="min-w-0 flex-1"
                         value={validTo}
                         min={validFrom || undefined}
                         onChange={(event) => {
