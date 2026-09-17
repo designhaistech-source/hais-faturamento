@@ -51,22 +51,8 @@ export function ContractsPage() {
 
   function handleCreate(contract: Contract) {
     setContracts((current) => [contract, ...current]);
-    toast.success("Contrato cadastrado.");
+    toast.success("Contrato cadastrado com sucesso.");
   }
-
-  const empty = (
-    <EmptyState
-      icon={<FileText className="size-10" aria-hidden="true" />}
-      title="Nenhum contrato cadastrado"
-      description="Cadastre o primeiro contrato para acompanhar as clínicas e hospitais atendidos."
-      action={
-        <Button type="button" size="sm" onClick={() => setModalOpen(true)}>
-          <Plus className="size-4" aria-hidden="true" />
-          Novo contrato
-        </Button>
-      }
-    />
-  );
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -90,26 +76,38 @@ export function ContractsPage() {
               }
             />
 
-            <DataTable>
-              <DataTableDesktop>
-                <DataTableRoot>
-                  <DataTableHeader>
-                    <tr>
-                      {COLUMNS.map((column) => (
-                        <DataTableHead
-                          key={column}
-                          className={column === "Ações" ? "text-right" : undefined}
-                        >
-                          {column}
-                        </DataTableHead>
-                      ))}
-                    </tr>
-                  </DataTableHeader>
-                  <DataTableBody>
-                    {contracts.length === 0 ? (
-                      <DataTableEmptyRow colSpan={COLUMNS.length}>{empty}</DataTableEmptyRow>
-                    ) : (
-                      contracts.map((contract) => (
+            {contracts.length === 0 ? (
+              <EmptyState
+                icon={<FileText className="size-10" aria-hidden="true" />}
+                title="Nenhum contrato cadastrado"
+                description="Cadastre um contrato para começar."
+                action={
+                  <Button type="button" size="sm" onClick={() => setModalOpen(true)}>
+                    <Plus className="size-4" aria-hidden="true" />
+                    Novo contrato
+                  </Button>
+                }
+              />
+            ) : (
+              <DataTable>
+                <DataTableDesktop>
+                  <DataTableRoot>
+                    <DataTableHeader>
+                      <tr>
+                        {COLUMNS.map((column) => (
+                          <DataTableHead
+                            key={column}
+                            className={
+                              column === "Ações" ? "normal-case text-right" : "normal-case"
+                            }
+                          >
+                            {column}
+                          </DataTableHead>
+                        ))}
+                      </tr>
+                    </DataTableHeader>
+                    <DataTableBody>
+                      {contracts.map((contract) => (
                         <DataTableRow key={contract.id}>
                           <DataTableCell className="font-medium">{contract.company}</DataTableCell>
                           <DataTableCell className="font-mono text-xs">
@@ -117,27 +115,21 @@ export function ContractsPage() {
                           </DataTableCell>
                           <DataTableCell>{formatIsoToBr(contract.validUntil) || "—"}</DataTableCell>
                           <DataTableCell className="max-w-72">
-                            <span className="block truncate" title={contract.file.name}>
-                              {contract.file.name}
-                            </span>
+                            <ContractFileName name={contract.file.name} />
                           </DataTableCell>
                           <DataTableCell className="text-right">
                             <ContractActions contract={contract} />
                           </DataTableCell>
                         </DataTableRow>
-                      ))
-                    )}
-                  </DataTableBody>
-                </DataTableRoot>
-              </DataTableDesktop>
+                      ))}
+                    </DataTableBody>
+                  </DataTableRoot>
+                </DataTableDesktop>
 
-              <DataTableCardList divided>
-                {contracts.length === 0 ? (
-                  <li>{empty}</li>
-                ) : (
-                  contracts.map((contract) => (
+                <DataTableCardList divided>
+                  {contracts.map((contract) => (
                     <DataTableCard key={contract.id} flat>
-                      <DataTableCardHeader title={contract.company} subtitle={contract.file.name} />
+                      <DataTableCardHeader title={contract.company} />
                       <DataTableCardFields
                         fields={[
                           { label: "CNPJ", value: contract.cnpj || "—" },
@@ -145,16 +137,21 @@ export function ContractsPage() {
                             label: "Validade",
                             value: formatIsoToBr(contract.validUntil) || "—",
                           },
+                          {
+                            label: "Contrato",
+                            value: <ContractFileName name={contract.file.name} />,
+                          },
                         ]}
                       />
                       <DataTableCardActions className="justify-end">
                         <ContractActions contract={contract} />
                       </DataTableCardActions>
                     </DataTableCard>
-                  ))
-                )}
-              </DataTableCardList>
-            </DataTable>
+                  ))}
+                </DataTableCardList>
+              </DataTable>
+            )}
+
           </main>
           <SiteFooter />
         </div>
