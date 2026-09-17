@@ -182,7 +182,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
                 <div className="flex shrink-0 items-center gap-2">
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => inputRef.current?.click()}
                   >
