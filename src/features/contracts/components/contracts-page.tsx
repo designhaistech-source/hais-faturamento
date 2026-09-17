@@ -30,6 +30,7 @@ import {
 } from "@/components/data-table";
 import { formatIsoToBr } from "@/lib/date";
 import { NewContractModal } from "./new-contract-modal";
+import { ContractPreviewModal } from "./contract-preview-modal";
 import type { Contract, NewContractInput } from "../data/contracts";
 import {
   contractsQueryKey,
@@ -39,6 +40,7 @@ import {
 } from "../data/contracts-service";
 
 const COLUMNS = ["Empresa", "CNPJ", "Validade", "Contrato", "Ações"] as const;
+
 
 
 
