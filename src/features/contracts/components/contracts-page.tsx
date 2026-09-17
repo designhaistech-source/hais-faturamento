@@ -204,29 +204,32 @@ export function ContractsPage() {
                     <legend className="text-xs font-medium leading-snug text-muted-foreground">
                       Validade
                     </legend>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Field id="contracts-valid-from" label="De">
-                        <Input
-                          type="date"
-                          value={validFrom}
-                          max={validTo || undefined}
-                          onChange={(event) => {
-                            setValidFrom(event.target.value);
-                            setPage(1);
-                          }}
-                        />
-                      </Field>
-                      <Field id="contracts-valid-to" label="Até">
-                        <Input
-                          type="date"
-                          value={validTo}
-                          min={validFrom || undefined}
-                          onChange={(event) => {
-                            setValidTo(event.target.value);
-                            setPage(1);
-                          }}
-                        />
-                      </Field>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <Input
+                        id="contracts-valid-from"
+                        type="date"
+                        aria-label="Validade de"
+                        className="min-w-0 flex-1"
+                        value={validFrom}
+                        max={validTo || undefined}
+                        onChange={(event) => {
+                          setValidFrom(event.target.value);
+                          setPage(1);
+                        }}
+                      />
+                      <span className="shrink-0 text-xs text-muted-foreground">até</span>
+                      <Input
+                        id="contracts-valid-to"
+                        type="date"
+                        aria-label="Validade até"
+                        className="min-w-0 flex-1"
+                        value={validTo}
+                        min={validFrom || undefined}
+                        onChange={(event) => {
+                          setValidTo(event.target.value);
+                          setPage(1);
+                        }}
+                      />
                     </div>
                   </fieldset>
                 </FilterCard>
