@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, Eye, FileText, Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -12,6 +12,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { EmptyStateCard } from "@/components/empty-state-card";
 import { ErrorState, TableSkeleton } from "@/components/data-state";
 import { SurfaceCard } from "@/components/surface-card";
+import { FilterCard } from "@/components/filter-card";
+import { Field, SearchField } from "@/components/form-field";
+import { Input } from "@/components/ui/input";
 
 import {
   DataTable,
@@ -66,6 +69,38 @@ export function ContractsPage() {
     queryFn: listContracts,
   });
   const contracts = contractsQuery.data ?? [];
+
+  const [search, setSearch] = useState("");
+  const [validFrom, setValidFrom] = useState("");
+  const [validTo, setValidTo] = useState("");
+
+  const hasFilters = search.trim() !== "" || validFrom !== "" || validTo !== "";
+  const activeCount = [search.trim() !== "", validFrom !== "", validTo !== ""].filter(
+    Boolean,
+  ).length;
+
+  const filteredContracts = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    const termDigits = term.replace(/\D/g, "");
+
+    return contracts.filter((contract) => {
+      if (term) {
+        const matchesCompany = contract.company.toLowerCase().includes(term);
+        const cnpjDigits = contract.cnpj.replace(/\D/g, "");
+        const matchesCnpj = termDigits.length > 0 && cnpjDigits.includes(termDigits);
+        if (!matchesCompany && !matchesCnpj) return false;
+      }
+      if (validFrom && (!contract.validUntil || contract.validUntil < validFrom)) return false;
+      if (validTo && (!contract.validUntil || contract.validUntil > validTo)) return false;
+      return true;
+    });
+  }, [contracts, search, validFrom, validTo]);
+
+  function handleClearFilters() {
+    setSearch("");
+    setValidFrom("");
+    setValidTo("");
+  }
 
   const createMutation = useMutation({
     mutationFn: (input: NewContractInput) => createContract(input),
@@ -129,65 +164,119 @@ export function ContractsPage() {
                 }
               />
             ) : (
-              <DataTable>
-                <DataTableDesktop>
-                  <DataTableRoot>
-                    <DataTableHeader>
-                      <tr>
-                        {COLUMNS.map((column) => (
-                          <DataTableHead
-                            key={column}
-                            className={column === "Ações" ? "text-right" : undefined}
-                          >
-                            {column}
-                          </DataTableHead>
-                        ))}
-                      </tr>
-                    </DataTableHeader>
-                    <DataTableBody>
-                      {contracts.map((contract) => (
-                        <DataTableRow key={contract.id}>
-                          <DataTableCell className="font-medium">{contract.company}</DataTableCell>
-                          <DataTableCell className="font-mono">
-                            {contract.cnpj || "—"}
-                          </DataTableCell>
-                          <DataTableCell>{formatIsoToBr(contract.validUntil) || "—"}</DataTableCell>
-                          <DataTableCell className="max-w-72">
-                            <ContractFileName name={contract.file.name} />
-                          </DataTableCell>
-                          <DataTableCell className="text-right">
-                            <ContractActions contract={contract} onView={setPreviewContract} />
-                          </DataTableCell>
-                        </DataTableRow>
-                      ))}
-                    </DataTableBody>
-                  </DataTableRoot>
-                </DataTableDesktop>
+              <>
+                <FilterCard
+                  id="contracts-filters"
+                  variant="bar"
+                  activeCount={activeCount}
+                  onClear={handleClearFilters}
+                  clearDisabled={!hasFilters}
+                  barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_10rem_10rem_auto] lg:gap-4"
+                >
+                  <SearchField
+                    id="contracts-search"
+                    label="Buscar"
+                    placeholder="Buscar por empresa ou CNPJ"
+                    value={search}
+                    clearable
+                    onChange={(event) => setSearch(event.target.value)}
+                    onClear={() => setSearch("")}
+                  />
+                  <Field id="contracts-valid-from" label="De">
+                    <Input
+                      type="date"
+                      value={validFrom}
+                      max={validTo || undefined}
+                      onChange={(event) => setValidFrom(event.target.value)}
+                    />
+                  </Field>
+                  <Field id="contracts-valid-to" label="Até">
+                    <Input
+                      type="date"
+                      value={validTo}
+                      min={validFrom || undefined}
+                      onChange={(event) => setValidTo(event.target.value)}
+                    />
+                  </Field>
+                </FilterCard>
 
-                <DataTableCardList divided>
-                  {contracts.map((contract) => (
-                    <DataTableCard key={contract.id} flat>
-                      <DataTableCardHeader title={contract.company} />
-                      <DataTableCardFields
-                        fields={[
-                          { label: "CNPJ", value: contract.cnpj || "—" },
-                          {
-                            label: "Validade",
-                            value: formatIsoToBr(contract.validUntil) || "—",
-                          },
-                          {
-                            label: "Contrato",
-                            value: <ContractFileName name={contract.file.name} />,
-                          },
-                        ]}
-                      />
-                      <DataTableCardActions className="justify-end">
-                        <ContractActions contract={contract} onView={setPreviewContract} />
-                      </DataTableCardActions>
-                    </DataTableCard>
-                  ))}
-                </DataTableCardList>
-              </DataTable>
+                {filteredContracts.length === 0 ? (
+                  <EmptyStateCard
+                    icon={<FileText className="size-10" aria-hidden="true" />}
+                    title="Nenhum contrato encontrado"
+                    description="Ajuste a busca ou o período de validade para ver outros resultados."
+                    action={
+                      <Button type="button" variant="outline" onClick={handleClearFilters}>
+                        Limpar filtros
+                      </Button>
+                    }
+                  />
+                ) : (
+                  <DataTable>
+                    <DataTableDesktop>
+                      <DataTableRoot>
+                        <DataTableHeader>
+                          <tr>
+                            {COLUMNS.map((column) => (
+                              <DataTableHead
+                                key={column}
+                                className={column === "Ações" ? "text-right" : undefined}
+                              >
+                                {column}
+                              </DataTableHead>
+                            ))}
+                          </tr>
+                        </DataTableHeader>
+                        <DataTableBody>
+                          {filteredContracts.map((contract) => (
+                            <DataTableRow key={contract.id}>
+                              <DataTableCell className="font-medium">
+                                {contract.company}
+                              </DataTableCell>
+                              <DataTableCell className="font-mono">
+                                {contract.cnpj || "—"}
+                              </DataTableCell>
+                              <DataTableCell>
+                                {formatIsoToBr(contract.validUntil) || "—"}
+                              </DataTableCell>
+                              <DataTableCell className="max-w-72">
+                                <ContractFileName name={contract.file.name} />
+                              </DataTableCell>
+                              <DataTableCell className="text-right">
+                                <ContractActions contract={contract} onView={setPreviewContract} />
+                              </DataTableCell>
+                            </DataTableRow>
+                          ))}
+                        </DataTableBody>
+                      </DataTableRoot>
+                    </DataTableDesktop>
+
+                    <DataTableCardList divided>
+                      {filteredContracts.map((contract) => (
+                        <DataTableCard key={contract.id} flat>
+                          <DataTableCardHeader title={contract.company} />
+                          <DataTableCardFields
+                            fields={[
+                              { label: "CNPJ", value: contract.cnpj || "—" },
+                              {
+                                label: "Validade",
+                                value: formatIsoToBr(contract.validUntil) || "—",
+                              },
+                              {
+                                label: "Contrato",
+                                value: <ContractFileName name={contract.file.name} />,
+                              },
+                            ]}
+                          />
+                          <DataTableCardActions className="justify-end">
+                            <ContractActions contract={contract} onView={setPreviewContract} />
+                          </DataTableCardActions>
+                        </DataTableCard>
+                      ))}
+                    </DataTableCardList>
+                  </DataTable>
+                )}
+              </>
             )}
           </main>
           <SiteFooter />
