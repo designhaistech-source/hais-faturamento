@@ -124,13 +124,20 @@ export function ContractPreviewModal({
           src={objectUrl}
           alt={`Pré-visualização de ${contract?.file.name ?? "contrato"}`}
           className="mx-auto max-h-[70dvh] w-auto rounded-lg border border-border object-contain"
+          onError={() => setStatus("error")}
         />
       ) : (
-        <iframe
-          src={objectUrl}
+        <object
+          data={objectUrl}
+          type={mimeType || "application/pdf"}
           title={`Pré-visualização de ${contract?.file.name ?? "contrato"}`}
           className="h-[70dvh] w-full rounded-lg border border-border bg-muted"
-        />
+собственно        >
+          <ErrorState
+            title="Não foi possível exibir a pré-visualização"
+            description="Baixe o arquivo para abri-lo."
+          />
+        </object>
       )}
     </AppModal>
   );
