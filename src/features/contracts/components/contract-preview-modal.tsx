@@ -55,9 +55,23 @@ export function ContractPreviewModal({
     setStatus("error");
   }, []);
 
+  // Aquece o motor de PDF antes do primeiro clique em Visualizar.
+  useEffect(() => {
+    prefetchPdfEngine();
+  }, []);
+
   useEffect(() => {
     if (!open || !contract || !previewable) {
       setStatus("idle");
+      return;
+    }
+
+    const path = contract.file.path;
+    const cachedBuffer = pdfBufferCache.get(path);
+    if (cachedBuffer && !isImage(contract)) {
+      setPdfData(cachedBuffer);
+      setImageUrl(null);
+      setStatus("ready");
       return;
     }
 
@@ -65,7 +79,7 @@ export function ContractPreviewModal({
     let createdUrl: string | null = null;
     setStatus("loading");
 
-    void downloadContractBlob(contract.file.path)
+    void downloadContractBlob(path)
       .then(async (blob) => {
         if (cancelled) return;
         if (isImage(contract)) {
@@ -76,6 +90,7 @@ export function ContractPreviewModal({
           const buffer = await blob.arrayBuffer();
           if (cancelled) return;
           if (buffer.byteLength === 0) throw new Error("Arquivo vazio");
+          pdfBufferCache.set(path, buffer);
           setPdfData(buffer);
           setImageUrl(null);
         }
