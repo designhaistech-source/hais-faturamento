@@ -93,7 +93,6 @@ export function ContractsPage() {
                 />
               </SurfaceCard>
             ) : (
-
               <DataTable>
                 <DataTableDesktop>
                   <DataTableRoot>
