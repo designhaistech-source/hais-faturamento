@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Download, FileText } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import type { Contract } from "../data/contracts";
 import { downloadContractBlob } from "../data/contracts-service";
+import { PdfPreview } from "./pdf-preview";
 
 interface ContractPreviewModalProps {
   contract: Contract | null;
@@ -14,25 +15,27 @@ interface ContractPreviewModalProps {
   onDownload: (contract: Contract) => void;
 }
 
-/** Formatos que o navegador consegue renderizar diretamente. */
-function isPreviewable(contract: Contract): boolean {
-  const name = contract.file.name.toLowerCase();
-  const type = contract.file.type.toLowerCase();
-  return type === "application/pdf" || name.endsWith(".pdf") || type.startsWith("image/");
+function isPdf(contract: Contract): boolean {
+  return (
+    contract.file.type.toLowerCase() === "application/pdf" ||
+    contract.file.name.toLowerCase().endsWith(".pdf")
+  );
 }
 
-/** Descobre o MIME correto: o storage pode devolver o blob sem tipo definido. */
-function resolveMimeType(contract: Contract, blobType: string): string {
-  if (blobType && blobType !== "application/octet-stream") return blobType;
-  if (contract.file.type && contract.file.type !== "application/octet-stream") {
-    return contract.file.type;
-  }
-  return contract.file.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : blobType;
+function isImage(contract: Contract): boolean {
+  return contract.file.type.toLowerCase().startsWith("image/");
+}
+
+/** Formatos que o produto consegue pré-visualizar. */
+function isPreviewable(contract: Contract): boolean {
+  return isPdf(contract) || isImage(contract);
 }
 
 /**
  * Pré-visualização do contrato dentro do produto. O arquivo é carregado do
  * armazenamento como blob local, sem exibir a URL técnica na interface.
+ * PDFs são desenhados em canvas (pdf.js) porque o leitor nativo do navegador
+ * não funciona dentro do iframe do preview.
  */
 export function ContractPreviewModal({
   contract,
@@ -40,11 +43,14 @@ export function ContractPreviewModal({
   onOpenChange,
   onDownload,
 }: ContractPreviewModalProps) {
-  const [objectUrl, setObjectUrl] = useState<string | null>(null);
-  const [mimeType, setMimeType] = useState<string>("");
+  const [pdfData, setPdfData] = useState<ArrayBuffer | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
 
   const previewable = contract ? isPreviewable(contract) : false;
+  const handleError = useCallback(() => {
+    setStatus("error");
+  }, []);
 
   useEffect(() => {
     if (!open || !contract || !previewable) {
@@ -57,14 +63,20 @@ export function ContractPreviewModal({
     setStatus("loading");
 
     void downloadContractBlob(contract.file.path)
-      .then((blob) => {
+      .then(async (blob) => {
         if (cancelled) return;
-        const type = resolveMimeType(contract, blob.type);
-        // Re-tipar o blob garante que o navegador renderize o PDF em vez de baixá-lo.
-        createdUrl = URL.createObjectURL(type ? blob.slice(0, blob.size, type) : blob);
-        setMimeType(type);
-        setObjectUrl(createdUrl);
-        setStatus("ready");
+        if (isImage(contract)) {
+          createdUrl = URL.createObjectURL(blob);
+          setImageUrl(createdUrl);
+          setPdfData(null);
+        } else {
+          const buffer = await blob.arrayBuffer();
+          if (cancelled) return;
+          if (buffer.byteLength === 0) throw new Error("Arquivo vazio");
+          setPdfData(buffer);
+          setImageUrl(null);
+        }
+        if (!cancelled) setStatus("ready");
       })
       .catch(() => {
         if (!cancelled) setStatus("error");
@@ -72,13 +84,11 @@ export function ContractPreviewModal({
 
     return () => {
       cancelled = true;
-      setObjectUrl(null);
-      setMimeType("");
+      setPdfData(null);
+      setImageUrl(null);
       if (createdUrl) URL.revokeObjectURL(createdUrl);
     };
   }, [open, contract, previewable]);
-
-  const isImage = mimeType.toLowerCase().startsWith("image/");
 
   return (
     <AppModal
@@ -114,30 +124,22 @@ export function ContractPreviewModal({
         />
       ) : status === "error" ? (
         <ErrorState
-          title="Não foi possível carregar a pré-visualização"
+          title="Não foi possível exibir a pré-visualização"
           description="Baixe o arquivo para abri-lo."
         />
-      ) : status !== "ready" || !objectUrl ? (
+      ) : status !== "ready" ? (
         <LoadingState title="Carregando pré-visualização…" />
-      ) : isImage ? (
+      ) : imageUrl ? (
         <img
-          src={objectUrl}
+          src={imageUrl}
           alt={`Pré-visualização de ${contract?.file.name ?? "contrato"}`}
           className="mx-auto max-h-[70dvh] w-auto rounded-lg border border-border object-contain"
-          onError={() => setStatus("error")}
+          onError={handleError}
         />
+      ) : pdfData ? (
+        <PdfPreview data={pdfData} onError={handleError} />
       ) : (
-        <object
-          data={objectUrl}
-          type={mimeType || "application/pdf"}
-          title={`Pré-visualização de ${contract?.file.name ?? "contrato"}`}
-          className="h-[70dvh] w-full rounded-lg border border-border bg-muted"
-        >
-          <ErrorState
-            title="Não foi possível exibir a pré-visualização"
-            description="Baixe o arquivo para abri-lo."
-          />
-        </object>
+        <LoadingState title="Carregando pré-visualização…" />
       )}
     </AppModal>
   );
