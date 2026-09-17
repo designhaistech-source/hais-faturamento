@@ -75,8 +75,9 @@ export function ContractsPage() {
   const [validTo, setValidTo] = useState("");
 
   const hasFilters = search.trim() !== "" || validFrom !== "" || validTo !== "";
-  const activeCount = [search.trim() !== "", validFrom !== "", validTo !== ""].filter(Boolean)
-    .length;
+  const activeCount = [search.trim() !== "", validFrom !== "", validTo !== ""].filter(
+    Boolean,
+  ).length;
 
   const filteredContracts = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -212,63 +213,67 @@ export function ContractsPage() {
                   />
                 ) : (
                   <DataTable>
-                <DataTableDesktop>
-                  <DataTableRoot>
-                    <DataTableHeader>
-                      <tr>
-                        {COLUMNS.map((column) => (
-                          <DataTableHead
-                            key={column}
-                            className={column === "Ações" ? "text-right" : undefined}
-                          >
-                            {column}
-                          </DataTableHead>
-                        ))}
-                      </tr>
-                    </DataTableHeader>
-                    <DataTableBody>
-                      {contracts.map((contract) => (
-                        <DataTableRow key={contract.id}>
-                          <DataTableCell className="font-medium">{contract.company}</DataTableCell>
-                          <DataTableCell className="font-mono">
-                            {contract.cnpj || "—"}
-                          </DataTableCell>
-                          <DataTableCell>{formatIsoToBr(contract.validUntil) || "—"}</DataTableCell>
-                          <DataTableCell className="max-w-72">
-                            <ContractFileName name={contract.file.name} />
-                          </DataTableCell>
-                          <DataTableCell className="text-right">
-                            <ContractActions contract={contract} onView={setPreviewContract} />
-                          </DataTableCell>
-                        </DataTableRow>
-                      ))}
-                    </DataTableBody>
-                  </DataTableRoot>
-                </DataTableDesktop>
+                    <DataTableDesktop>
+                      <DataTableRoot>
+                        <DataTableHeader>
+                          <tr>
+                            {COLUMNS.map((column) => (
+                              <DataTableHead
+                                key={column}
+                                className={column === "Ações" ? "text-right" : undefined}
+                              >
+                                {column}
+                              </DataTableHead>
+                            ))}
+                          </tr>
+                        </DataTableHeader>
+                        <DataTableBody>
+                          {filteredContracts.map((contract) => (
+                            <DataTableRow key={contract.id}>
+                              <DataTableCell className="font-medium">
+                                {contract.company}
+                              </DataTableCell>
+                              <DataTableCell className="font-mono">
+                                {contract.cnpj || "—"}
+                              </DataTableCell>
+                              <DataTableCell>
+                                {formatIsoToBr(contract.validUntil) || "—"}
+                              </DataTableCell>
+                              <DataTableCell className="max-w-72">
+                                <ContractFileName name={contract.file.name} />
+                              </DataTableCell>
+                              <DataTableCell className="text-right">
+                                <ContractActions contract={contract} onView={setPreviewContract} />
+                              </DataTableCell>
+                            </DataTableRow>
+                          ))}
+                        </DataTableBody>
+                      </DataTableRoot>
+                    </DataTableDesktop>
 
-                <DataTableCardList divided>
-                  {contracts.map((contract) => (
-                    <DataTableCard key={contract.id} flat>
-                      <DataTableCardHeader title={contract.company} />
-                      <DataTableCardFields
-                        fields={[
-                          { label: "CNPJ", value: contract.cnpj || "—" },
-                          {
-                            label: "Validade",
-                            value: formatIsoToBr(contract.validUntil) || "—",
-                          },
-                          {
-                            label: "Contrato",
-                            value: <ContractFileName name={contract.file.name} />,
-                          },
-                        ]}
-                      />
-                      <DataTableCardActions className="justify-end">
-                        <ContractActions contract={contract} onView={setPreviewContract} />
-                      </DataTableCardActions>
-                    </DataTableCard>
-                  ))}
-                </DataTableCardList>
+                    <DataTableCardList divided>
+                      {filteredContracts.map((contract) => (
+                        <DataTableCard key={contract.id} flat>
+                          <DataTableCardHeader title={contract.company} />
+                          <DataTableCardFields
+                            fields={[
+                              { label: "CNPJ", value: contract.cnpj || "—" },
+                              {
+                                label: "Validade",
+                                value: formatIsoToBr(contract.validUntil) || "—",
+                              },
+                              {
+                                label: "Contrato",
+                                value: <ContractFileName name={contract.file.name} />,
+                              },
+                            ]}
+                          />
+                          <DataTableCardActions className="justify-end">
+                            <ContractActions contract={contract} onView={setPreviewContract} />
+                          </DataTableCardActions>
+                        </DataTableCard>
+                      ))}
+                    </DataTableCardList>
                   </DataTable>
                 )}
               </>
