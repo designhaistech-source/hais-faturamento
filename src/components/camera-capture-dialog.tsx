@@ -79,10 +79,7 @@ export function CameraCaptureDialog({ open, onOpenChange, onCapture }: CameraCap
   const confirm = async () => {
     if (!preview) return;
     const blob = await (await fetch(preview)).blob();
-    const stamp = new Date()
-      .toISOString()
-      .replace(/[:T]/g, "-")
-      .slice(0, 19);
+    const stamp = new Date().toISOString().replace(/[:T]/g, "-").slice(0, 19);
     onCapture(new File([blob], `foto-guia-${stamp}.jpg`, { type: "image/jpeg" }));
     onOpenChange(false);
   };

@@ -9,27 +9,20 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/90",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        success:
-          "border-transparent bg-success text-success-foreground hover:bg-success/90",
-        warning:
-          "border-transparent bg-warning text-warning-foreground hover:bg-warning/90",
+        success: "border-transparent bg-success text-success-foreground hover:bg-success/90",
+        warning: "border-transparent bg-warning text-warning-foreground hover:bg-warning/90",
         info: "border-transparent bg-info text-info-foreground hover:bg-info/90",
-        purple:
-          "border-transparent bg-purple text-purple-foreground hover:bg-purple/90",
+        purple: "border-transparent bg-purple text-purple-foreground hover:bg-purple/90",
         "primary-soft": "border-primary/30 bg-primary/10 text-primary",
-        "success-soft":
-          "border-success/30 bg-success-muted text-success",
-        "warning-soft":
-          "border-warning/30 bg-warning-muted text-warning-foreground",
+        "success-soft": "border-success/30 bg-success-muted text-success",
+        "warning-soft": "border-warning/30 bg-warning-muted text-warning-foreground",
         "info-soft": "border-info/30 bg-info-muted text-info",
-        "destructive-soft":
-          "border-destructive/30 bg-destructive/10 text-destructive",
+        "destructive-soft": "border-destructive/30 bg-destructive/10 text-destructive",
         outline: "border-border text-foreground bg-transparent",
       },
       size: {
@@ -37,7 +30,6 @@ const badgeVariants = cva(
         md: "px-2.5 h-7 text-xs [&_svg]:size-3.5",
         lg: "px-3 h-8 text-sm [&_svg]:size-4",
       },
-
     },
     defaultVariants: {
       variant: "default",
@@ -47,13 +39,10 @@ const badgeVariants = cva(
 );
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLSpanElement>,
-    VariantProps<typeof badgeVariants> {}
+  extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {}
 
 function Badge({ className, variant, size, ...props }: BadgeProps) {
-  return (
-    <span className={cn(badgeVariants({ variant, size }), className)} {...props} />
-  );
+  return <span className={cn(badgeVariants({ variant, size }), className)} {...props} />;
 }
 
 export { Badge, badgeVariants };

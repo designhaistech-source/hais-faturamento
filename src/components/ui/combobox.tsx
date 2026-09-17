@@ -47,8 +47,7 @@ const ComboboxTrigger = React.forwardRef<HTMLButtonElement, TriggerProps>(
       className={cn(
         triggerBase,
         "data-[placeholder]:text-muted-foreground",
-        invalid &&
-          "border-destructive/60 focus-visible:ring-destructive/30",
+        invalid && "border-destructive/60 focus-visible:ring-destructive/30",
         className,
       )}
       {...props}
@@ -147,9 +146,7 @@ export function Combobox({
                   }}
                   className="flex items-center gap-2"
                 >
-                  <Check
-                    className={cn("h-4 w-4", !value ? "opacity-100" : "opacity-0")}
-                  />
+                  <Check className={cn("h-4 w-4", !value ? "opacity-100" : "opacity-0")} />
                   <span className="truncate">{allOptionLabel}</span>
                 </CommandItem>
               )}
@@ -166,12 +163,7 @@ export function Combobox({
                     }}
                     className="flex items-center gap-2"
                   >
-                    <Check
-                      className={cn(
-                        "h-4 w-4",
-                        active ? "opacity-100" : "opacity-0",
-                      )}
-                    />
+                    <Check className={cn("h-4 w-4", active ? "opacity-100" : "opacity-0")} />
                     <div className="flex flex-col min-w-0">
                       <span className="truncate">{opt.label}</span>
                       {opt.description && (
@@ -251,7 +243,7 @@ export function MultiSelect({
       : values.length === options.length
         ? allLabel
         : values.length === 1
-          ? options.find((o) => o.value === values[0])?.label ?? countLabel(1)
+          ? (options.find((o) => o.value === values[0])?.label ?? countLabel(1))
           : countLabel(values.length);
 
   const isPlaceholder = values.length === 0;
@@ -301,7 +293,6 @@ export function MultiSelect({
   const effectiveMax = chips ? Math.min(visibleCount, maxChips * 100) : maxChips;
   const visibleChips = selectedOptions.slice(0, effectiveMax);
   const hiddenChips = selectedOptions.length - visibleChips.length;
-
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -399,9 +390,7 @@ export function MultiSelect({
             className={className}
             aria-expanded={open}
           >
-            <span className="truncate">
-              {isPlaceholder ? placeholder : label}
-            </span>
+            <span className="truncate">{isPlaceholder ? placeholder : label}</span>
           </ComboboxTrigger>
         )}
       </PopoverTrigger>
@@ -440,7 +429,6 @@ export function MultiSelect({
             </div>
           )}
           <CommandList className="max-h-none flex-1 overflow-y-auto">
-
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
               {options.map((opt) => {
@@ -470,10 +458,7 @@ export function MultiSelect({
                     </span>
                     <span className="flex min-w-0 flex-1 items-baseline gap-2">
                       <span
-                        className={cn(
-                          "truncate text-sm text-foreground",
-                          active && "font-medium",
-                        )}
+                        className={cn("truncate text-sm text-foreground", active && "font-medium")}
                       >
                         {opt.label}
                       </span>
@@ -486,7 +471,6 @@ export function MultiSelect({
                   </CommandItem>
                 );
               })}
-
             </CommandGroup>
           </CommandList>
         </Command>

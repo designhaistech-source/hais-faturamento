@@ -28,8 +28,9 @@ const TOOLTIP_VARIANTS = {
   panel: tooltipPanelClass,
 } as const;
 
-interface TooltipContentProps
-  extends React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content> {
+interface TooltipContentProps extends React.ComponentPropsWithoutRef<
+  typeof TooltipPrimitive.Content
+> {
   /** `default` para texto curto; `panel` para conteúdo estruturado. */
   variant?: keyof typeof TOOLTIP_VARIANTS;
 }

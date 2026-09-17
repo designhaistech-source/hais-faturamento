@@ -94,7 +94,11 @@ export function AppModal({
 
         {toolbar && <DialogToolbar className={toolbarClassName}>{toolbar}</DialogToolbar>}
 
-        {unstyledBody ? children : <DialogBody className={cn(bodyClassName)}>{children}</DialogBody>}
+        {unstyledBody ? (
+          children
+        ) : (
+          <DialogBody className={cn(bodyClassName)}>{children}</DialogBody>
+        )}
 
         {footer && <DialogFooter className={footerClassName}>{footer}</DialogFooter>}
       </DialogContent>

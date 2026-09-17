@@ -53,7 +53,8 @@ const dialogContentVariants = cva(
 );
 
 export interface DialogContentProps
-  extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
+  extends
+    React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
     VariantProps<typeof dialogContentVariants> {
   /** Elemento que recebe o foco ao abrir. Por padrão o foco vai para o próprio modal. */
   initialFocusRef?: React.RefObject<HTMLElement | null>;
@@ -135,10 +136,7 @@ DialogBody.displayName = "DialogBody";
 /** Faixa fixa auxiliar (filtros, busca) entre cabeçalho e corpo. */
 const DialogToolbar = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn(
-      "shrink-0 border-b border-border bg-surface-subtle px-4 py-3 sm:px-6",
-      className,
-    )}
+    className={cn("shrink-0 border-b border-border bg-surface-subtle px-4 py-3 sm:px-6", className)}
     {...props}
   />
 );
@@ -155,7 +153,6 @@ const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
   />
 );
 DialogFooter.displayName = "DialogFooter";
-
 
 const DialogTitle = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Title>,

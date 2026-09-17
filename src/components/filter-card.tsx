@@ -101,7 +101,6 @@ export function FilterCard({
     </Button>
   ) : null;
 
-
   if (isPanel && !open) {
     return showToggle ? (
       <div className="flex">
@@ -202,7 +201,6 @@ export function FilterCard({
           {clearButton}
         </div>
       )}
-
     </div>
   );
 }

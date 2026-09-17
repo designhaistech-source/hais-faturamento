@@ -63,7 +63,9 @@ export function ConfirmDialog({
       unstyledBody
       icon={
         <AlertTriangle
-          className={tone === "destructive" ? "size-4 text-destructive" : "size-4 text-warning-strong"}
+          className={
+            tone === "destructive" ? "size-4 text-destructive" : "size-4 text-warning-strong"
+          }
         />
       }
       title={title}

@@ -1,7 +1,6 @@
 import type { FormEvent, ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 
-
 import { AppBreadcrumb } from "@/components/app-breadcrumb";
 import { AppSidebar, type ItemKey } from "@/components/app-sidebar";
 import { PageHeader } from "@/components/page-header";
@@ -74,7 +73,6 @@ export function SearchPageLayout({
               {submitting ? "Buscando…" : submitLabel}
             </Button>
           </form>
-
 
           <section
             aria-label="Resultados da busca"

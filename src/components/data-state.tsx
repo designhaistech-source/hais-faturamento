@@ -113,11 +113,7 @@ export function ErrorState({
         {icon ?? <AlertCircle className={s.icon} />}
       </div>
       <p className={cn("font-medium text-foreground", s.title)}>{title}</p>
-      {description && (
-        <p className={cn("max-w-md text-muted-foreground", s.desc)}>
-          {description}
-        </p>
-      )}
+      {description && <p className={cn("max-w-md text-muted-foreground", s.desc)}>{description}</p>}
       {(action || onRetry) && (
         <div className="mt-2 flex items-center gap-2">
           {action}
@@ -142,11 +138,7 @@ interface TableSkeletonProps {
  * Skeleton para listagens tabulares — mantém a mesma altura de linha
  * das tabelas reais para evitar CLS.
  */
-export function TableSkeleton({
-  rows = 5,
-  columns = 4,
-  className,
-}: TableSkeletonProps) {
+export function TableSkeleton({ rows = 5, columns = 4, className }: TableSkeletonProps) {
   return (
     <div className={cn("divide-y divide-border", className)} aria-hidden="true">
       {Array.from({ length: rows }).map((_, r) => (
