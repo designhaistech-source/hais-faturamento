@@ -1,18 +1,15 @@
-/** Dados sintéticos do usuário autenticado (protótipo). */
+/**
+ * Usuário sintético usado pelos protótipos.
+ * Não representa dados reais: serve apenas para preencher a interface.
+ */
 export interface CurrentUser {
   name: string;
-  crm: string;
   email: string;
-  specialty: string;
-  phone: string;
-  city: string;
+  role: string;
 }
 
 export const CURRENT_USER: CurrentUser = {
-  name: "Dr Fulano da Silva",
-  crm: "CRM 1234/RN",
-  email: "dr.fulano@haistech.com",
-  specialty: "Clínica médica",
-  phone: "(84) 98888-1234",
-  city: "Natal / RN",
+  name: "Ana Souza",
+  email: "ana.souza@haistech.example",
+  role: "Faturamento",
 };
