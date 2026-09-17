@@ -41,6 +41,7 @@ export function ContractPreviewModal({
   onDownload,
 }: ContractPreviewModalProps) {
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const [mimeType, setMimeType] = useState<string>("");
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
 
   const previewable = contract ? isPreviewable(contract) : false;
@@ -58,7 +59,10 @@ export function ContractPreviewModal({
     void downloadContractBlob(contract.file.path)
       .then((blob) => {
         if (cancelled) return;
-        createdUrl = URL.createObjectURL(blob);
+        const type = resolveMimeType(contract, blob.type);
+        // Re-tipar o blob garante que o navegador renderize o PDF em vez de baixá-lo.
+        createdUrl = URL.createObjectURL(type ? blob.slice(0, blob.size, type) : blob);
+        setMimeType(type);
         setObjectUrl(createdUrl);
         setStatus("ready");
       })
@@ -69,11 +73,12 @@ export function ContractPreviewModal({
     return () => {
       cancelled = true;
       setObjectUrl(null);
+      setMimeType("");
       if (createdUrl) URL.revokeObjectURL(createdUrl);
     };
   }, [open, contract, previewable]);
 
-  const isImage = contract?.file.type.toLowerCase().startsWith("image/") ?? false;
+  const isImage = mimeType.toLowerCase().startsWith("image/");
 
   return (
     <AppModal
