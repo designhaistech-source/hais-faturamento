@@ -78,22 +78,19 @@ export function ContractsPage() {
             />
 
             {contracts.length === 0 ? (
-              <SurfaceCard padding="md">
-                <EmptyState
-                  size="lg"
-                  className="py-8"
-                  icon={<FileText className="size-10" aria-hidden="true" />}
-                  title="Nenhum contrato cadastrado"
-                  description="Cadastre um contrato para começar."
-                  action={
-                    <Button type="button" onClick={() => setModalOpen(true)}>
-                      <Plus className="size-4" aria-hidden="true" />
-                      Novo contrato
-                    </Button>
-                  }
-                />
-              </SurfaceCard>
+              <EmptyStateCard
+                icon={<FileText className="size-10" aria-hidden="true" />}
+                title="Nenhum contrato cadastrado"
+                description="Cadastre um contrato para começar."
+                action={
+                  <Button type="button" onClick={() => setModalOpen(true)}>
+                    <Plus className="size-4" aria-hidden="true" />
+                    Novo contrato
+                  </Button>
+                }
+              />
             ) : (
+
               <DataTable>
                 <DataTableDesktop>
                   <DataTableRoot>
