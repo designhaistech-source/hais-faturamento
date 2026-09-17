@@ -74,18 +74,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "A web application that replicates a website's layout, featuring an image-based sidebar." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "A web application that replicates a website's layout, featuring an image-based sidebar." },
+      { title: "HaisFaturamento" },
+      {
+        name: "description",
+        content:
+          "HaisFaturamento: base de interface HaisTech com tokens, componentes e padrões de página prontos para uso.",
+      },
+      { name: "author", content: "HaisTech" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Lovable App" },
-      { name: "twitter:description", content: "A web application that replicates a website's layout, featuring an image-based sidebar." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/990fd0c9-54ad-44a3-bdf4-00a364046269/id-preview-facf38a2--a4d26fe4-f793-420e-bafb-4db6cd1ac680.lovable.app-1782822691885.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/990fd0c9-54ad-44a3-bdf4-00a364046269/id-preview-facf38a2--a4d26fe4-f793-420e-bafb-4db6cd1ac680.lovable.app-1782822691885.png" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },

@@ -141,7 +141,7 @@ de espaçamento entre elas.
 ### Específico do produto (não portar)
 
 - `src/components/app-sidebar.tsx`: itens de menu, rotas, ícones, agrupamentos,
-  marca "Guias+" e menu do usuário. Serve apenas como referência de anatomia.
+  marca do produto e menu do usuário. Serve apenas como referência de anatomia.
 - `src/components/app-breadcrumb.tsx`: mapa `ROUTE_META` de rotas → rótulos.
 - `src/components/site-footer.tsx`: conteúdo institucional.
 - Textos, ícones (`lucide-react`) e ações de cada `PageHeader`.
