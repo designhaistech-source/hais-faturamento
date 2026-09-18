@@ -3,7 +3,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutGrid,
   FileText,
-  Table2,
+  CircleDollarSign,
   HelpCircle,
   CircleUser,
   LogOut,
@@ -235,7 +235,7 @@ function SidebarNav({
           onNavigate={onNavigate}
         />
         <SidebarItem
-          icon={Table2}
+          icon={CircleDollarSign}
           label="Base de precificação"
           to="/base-precificacao"
           active={activeKey === "base-precificacao"}
