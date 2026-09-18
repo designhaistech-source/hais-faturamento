@@ -86,7 +86,7 @@ export function NewPricingVersionModal({
             Cancelar
           </Button>
           <Button type="button" size="sm" disabled={!canSubmit} onClick={submit}>
-            Cadastrar versão
+            Cadastrar
           </Button>
         </>
       }
