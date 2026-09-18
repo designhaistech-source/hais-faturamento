@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { FileText } from "lucide-react";
+import { CircleDollarSign, FileText } from "lucide-react";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteFooter } from "@/components/site-footer";
@@ -37,6 +37,14 @@ const FEATURES = [
     description:
       "Cadastre e consulte os contratos de clínicas e hospitais utilizados no faturamento.",
     to: "/contratos",
+    action: "Acessar",
+  },
+  {
+    icon: CircleDollarSign,
+    title: "Base de precificação",
+    description:
+      "Cadastre e consulte as versões da base de valores utilizada na análise do faturamento.",
+    to: "/base-precificacao",
     action: "Acessar",
   },
 ] as const;
