@@ -19,6 +19,7 @@ interface RouteMeta {
 const ROUTE_META: Record<string, RouteMeta> = {
   "/": { label: "Início" },
   "/contratos": { label: "Contratos" },
+  "/base-precificacao": { label: "Base de precificação" },
   "/design-system": { label: "Fundamentos" },
   "/design-system-icones": { label: "Ícones" },
 };

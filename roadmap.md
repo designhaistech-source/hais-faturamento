@@ -7,6 +7,7 @@
 
 ## Funcionalidades
 - [x] Contratos: listagem (empresa, CNPJ, validade, contrato, ações), cadastro com upload e ações visualizar/baixar
+- [x] Base de precificação: histórico de versões (arquivo, cadastrado por, data), cadastro de versão CSV, chip "Atual", download e paginação
 
 ## Próximos passos (aguardando definição do usuário)
 - [ ] Próxima funcionalidade de faturamento (escopo ainda não definido)

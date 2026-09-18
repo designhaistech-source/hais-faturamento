@@ -22,6 +22,13 @@
       "when": 1789668229985,
       "tag": "0002_allow_clear_contracts_temporary",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789738201426,
+      "tag": "0003_create_pricing_versions",
+      "breakpoints": true
     }
   ]
 }
