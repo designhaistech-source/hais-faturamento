@@ -115,14 +115,16 @@ export function PricingBasePage() {
             />
 
             <section className="space-y-4">
-              <div className="min-w-0">
-                <h2 className="font-display text-base font-semibold tracking-tight text-foreground">
-                  Histórico de versões
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  A versão mais recente é utilizada nas novas análises.
-                </p>
-              </div>
+              {!versionsQuery.isPending && !versionsQuery.isError && versions.length > 0 && (
+                <div className="min-w-0">
+                  <h2 className="font-display text-base font-semibold tracking-tight text-foreground">
+                    Histórico de versões
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    A versão mais recente é utilizada nas novas análises.
+                  </p>
+                </div>
+              )}
 
               {versionsQuery.isPending ? (
                 <SurfaceCard padding="none">
@@ -139,8 +141,8 @@ export function PricingBasePage() {
               ) : versions.length === 0 ? (
                 <EmptyStateCard
                   icon={<Table2 className="size-10" aria-hidden="true" />}
-                  title="Nenhuma versão cadastrada"
-                  description="Cadastre a base de precificação para começar."
+                  title="Nenhuma base cadastrada"
+                  description="Cadastre a primeira versão da base de precificação para começar."
                   action={
                     <Button type="button" onClick={() => setModalOpen(true)}>
                       <Plus className="size-4" aria-hidden="true" />
