@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Info, Paperclip, BadgeDollarSign, Trash2, Upload } from "lucide-react";
+import { Info, Paperclip, Table2, Trash2, Upload } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
 import { Field } from "@/components/form-field";
@@ -79,7 +79,7 @@ export function NewPricingVersionModal({
       onOpenChange={(next) => (next ? onOpenChange(true) : close())}
       title="Cadastrar nova versão"
       description="Envie o arquivo CSV com os valores atualizados da base de precificação."
-      icon={<BadgeDollarSign className="size-5" aria-hidden="true" />}
+      icon={<Table2 className="size-5" aria-hidden="true" />}
       footer={
         <>
           <Button type="button" variant="outline" size="sm" onClick={close}>

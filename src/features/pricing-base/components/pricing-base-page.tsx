@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Eye, EyeOff, Plus, BadgeDollarSign, Trash2 } from "lucide-react";
+import { Download, Eye, EyeOff, Plus, Table2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -159,7 +159,7 @@ export function PricingBasePage() {
                 </SurfaceCard>
               ) : versions.length === 0 ? (
                 <EmptyStateCard
-                  icon={<BadgeDollarSign className="size-10" aria-hidden="true" />}
+                  icon={<Table2 className="size-10" aria-hidden="true" />}
                   title="Nenhuma base cadastrada"
                   description="Cadastre a primeira versão da base de precificação para começar."
                   action={
