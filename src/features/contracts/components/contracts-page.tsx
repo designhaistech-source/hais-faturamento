@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Eye, FileText, Plus, Trash2 } from "lucide-react";
+import { Download, Eye, EyeOff, FileText, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -74,7 +74,10 @@ export function ContractsPage() {
     queryKey: contractsQueryKey,
     queryFn: listContracts,
   });
-  const contracts = contractsQuery.data ?? [];
+  const storedContracts = contractsQuery.data ?? [];
+  /** Ferramenta provisória de testes: simula a página sem contratos, sem alterar dados. */
+  const [simulateEmpty, setSimulateEmpty] = useState(false);
+  const contracts = simulateEmpty ? [] : storedContracts;
 
   const [search, setSearch] = useState("");
   const [validFrom, setValidFrom] = useState("");
@@ -346,20 +349,38 @@ export function ContractsPage() {
               </>
             )}
 
-            {/* Ferramenta provisória de testes: não faz parte do produto. */}
-            {contracts.length > 0 && (
-              <div className="flex justify-end border-t border-dashed border-border pt-4">
+            {/* Ferramentas provisórias de testes: não fazem parte do produto. */}
+            {storedContracts.length > 0 && (
+              <div className="flex flex-wrap justify-end gap-2 border-t border-dashed border-border pt-4">
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="text-xs text-muted-foreground hover:text-destructive"
-                  disabled={clearMutation.isPending}
-                  onClick={() => setClearOpen(true)}
+                  className="text-xs text-muted-foreground"
+                  onClick={() => setSimulateEmpty((previous) => !previous)}
                 >
-                  <Trash2 className="size-3.5" aria-hidden="true" />
-                  Limpar contratos cadastrados · Temporário
+                  {simulateEmpty ? (
+                    <EyeOff className="size-3.5" aria-hidden="true" />
+                  ) : (
+                    <Eye className="size-3.5" aria-hidden="true" />
+                  )}
+                  {simulateEmpty
+                    ? "Sair do estado vazio · Temporário"
+                    : "Visualizar estado vazio · Temporário"}
                 </Button>
+                {!simulateEmpty && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-muted-foreground hover:text-destructive"
+                    disabled={clearMutation.isPending}
+                    onClick={() => setClearOpen(true)}
+                  >
+                    <Trash2 className="size-3.5" aria-hidden="true" />
+                    Limpar contratos cadastrados · Temporário
+                  </Button>
+                )}
               </div>
             )}
           </main>
