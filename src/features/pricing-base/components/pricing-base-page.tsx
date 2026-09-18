@@ -128,7 +128,7 @@ export function PricingBasePage() {
                   onClick={() => setModalOpen(true)}
                 >
                   <Plus className="size-4" aria-hidden="true" />
-                  Cadastrar nova versão
+                  Nova versão
                 </Button>
               }
             />
@@ -165,7 +165,7 @@ export function PricingBasePage() {
                   action={
                     <Button type="button" onClick={() => setModalOpen(true)}>
                       <Plus className="size-4" aria-hidden="true" />
-                      Cadastrar primeira versão
+                      Primeira versão
                     </Button>
                   }
                 />
