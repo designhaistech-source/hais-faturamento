@@ -39,6 +39,14 @@ const FEATURES = [
     to: "/contratos",
     action: "Acessar",
   },
+  {
+    icon: CircleDollarSign,
+    title: "Base de precificação",
+    description:
+      "Cadastre e consulte as versões da base de valores utilizada na análise do faturamento.",
+    to: "/base-precificacao",
+    action: "Acessar",
+  },
 ] as const;
 
 function HomePage() {
