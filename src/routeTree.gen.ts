@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BasePrecificacaoRouteImport } from './routes/base-precificacao'
 import { Route as ContratosRouteImport } from './routes/contratos'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as DesignSystemIconesRouteImport } from './routes/design-system-icones'
@@ -17,6 +18,11 @@ import { Route as DesignSystemIconesRouteImport } from './routes/design-system-i
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BasePrecificacaoRoute = BasePrecificacaoRouteImport.update({
+  id: '/base-precificacao',
+  path: '/base-precificacao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContratosRoute = ContratosRouteImport.update({
@@ -37,12 +43,14 @@ const DesignSystemIconesRoute = DesignSystemIconesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/base-precificacao': typeof BasePrecificacaoRoute
   '/contratos': typeof ContratosRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/base-precificacao': typeof BasePrecificacaoRoute
   '/contratos': typeof ContratosRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
@@ -50,18 +58,30 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/base-precificacao': typeof BasePrecificacaoRoute
   '/contratos': typeof ContratosRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/contratos' | '/design-system' | '/design-system-icones'
+  fullPaths:
+    | '/'
+    | '/base-precificacao'
+    | '/contratos'
+    | '/design-system'
+    | '/design-system-icones'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/contratos' | '/design-system' | '/design-system-icones'
+  to:
+    | '/'
+    | '/base-precificacao'
+    | '/contratos'
+    | '/design-system'
+    | '/design-system-icones'
   id:
     | '__root__'
     | '/'
+    | '/base-precificacao'
     | '/contratos'
     | '/design-system'
     | '/design-system-icones'
@@ -69,6 +89,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BasePrecificacaoRoute: typeof BasePrecificacaoRoute
   ContratosRoute: typeof ContratosRoute
   DesignSystemRoute: typeof DesignSystemRoute
   DesignSystemIconesRoute: typeof DesignSystemIconesRoute
@@ -81,6 +102,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/base-precificacao': {
+      id: '/base-precificacao'
+      path: '/base-precificacao'
+      fullPath: '/base-precificacao'
+      preLoaderRoute: typeof BasePrecificacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contratos': {
@@ -109,6 +137,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BasePrecificacaoRoute: BasePrecificacaoRoute,
   ContratosRoute: ContratosRoute,
   DesignSystemRoute: DesignSystemRoute,
   DesignSystemIconesRoute: DesignSystemIconesRoute,

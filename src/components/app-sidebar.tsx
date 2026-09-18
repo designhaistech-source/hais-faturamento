@@ -3,6 +3,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutGrid,
   FileText,
+  Table2,
   HelpCircle,
   CircleUser,
   LogOut,
@@ -63,7 +64,12 @@ function BrandMark({ className }: { className?: string }) {
   );
 }
 
-export type ItemKey = "inicio" | "contratos" | "design-system" | "icones";
+export type ItemKey =
+  | "inicio"
+  | "contratos"
+  | "base-precificacao"
+  | "design-system"
+  | "icones";
 
 export function AppSidebar({ activeKey }: { activeKey: ItemKey }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -230,6 +236,15 @@ function SidebarNav({
           to="/contratos"
           active={activeKey === "contratos"}
           hint="Contratos das clínicas e hospitais atendidos, com arquivo original anexado."
+          collapsed={collapsed}
+          onNavigate={onNavigate}
+        />
+        <SidebarItem
+          icon={Table2}
+          label="Base de precificação"
+          to="/base-precificacao"
+          active={activeKey === "base-precificacao"}
+          hint="Versões da base de valores utilizada na análise do faturamento."
           collapsed={collapsed}
           onNavigate={onNavigate}
         />
