@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Plus, Table2 } from "lucide-react";
+import { Download, Eye, EyeOff, Plus, Table2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { EmptyStateCard } from "@/components/empty-state-card";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ErrorState, TableSkeleton } from "@/components/data-state";
 import { SurfaceCard } from "@/components/surface-card";
 import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/table-pagination";
@@ -39,6 +40,7 @@ import {
 import {
   createPricingVersion,
   createPricingVersionFileUrl,
+  deleteAllPricingVersions,
   listPricingVersions,
   pricingVersionsQueryKey,
 } from "../data/pricing-versions-service";
@@ -67,7 +69,11 @@ export function PricingBasePage() {
     queryKey: pricingVersionsQueryKey,
     queryFn: listPricingVersions,
   });
-  const versions = versionsQuery.data ?? [];
+  const storedVersions = versionsQuery.data ?? [];
+  const [clearOpen, setClearOpen] = useState(false);
+  /** Ferramenta provisória de testes: simula a página sem versões, sem alterar dados. */
+  const [simulateEmpty, setSimulateEmpty] = useState(false);
+  const versions = simulateEmpty ? [] : storedVersions;
   const currentVersionId = versions[0]?.id;
 
   const [page, setPage] = useState(1);
@@ -89,6 +95,19 @@ export function PricingBasePage() {
     },
     onError: () => {
       toast.error("Não foi possível cadastrar a versão.");
+    },
+  });
+
+  const clearMutation = useMutation({
+    mutationFn: deleteAllPricingVersions,
+    onSuccess: async () => {
+      setClearOpen(false);
+      await queryClient.invalidateQueries({ queryKey: pricingVersionsQueryKey });
+      setPage(1);
+      toast.success("Versões cadastradas removidas.");
+    },
+    onError: () => {
+      toast.error("Não foi possível limpar as versões cadastradas.");
     },
   });
 
@@ -236,6 +255,41 @@ export function PricingBasePage() {
                 </DataTable>
               )}
             </section>
+
+            {/* Ferramentas provisórias de testes: não fazem parte do produto. */}
+            {storedVersions.length > 0 && (
+              <div className="flex flex-wrap justify-end gap-2 border-t border-dashed border-border pt-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground"
+                  onClick={() => setSimulateEmpty((previous) => !previous)}
+                >
+                  {simulateEmpty ? (
+                    <EyeOff className="size-3.5" aria-hidden="true" />
+                  ) : (
+                    <Eye className="size-3.5" aria-hidden="true" />
+                  )}
+                  {simulateEmpty
+                    ? "Sair do estado vazio · Temporário"
+                    : "Visualizar estado vazio · Temporário"}
+                </Button>
+                {!simulateEmpty && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-muted-foreground hover:text-destructive"
+                    disabled={clearMutation.isPending}
+                    onClick={() => setClearOpen(true)}
+                  >
+                    <Trash2 className="size-3.5" aria-hidden="true" />
+                    Limpar versões cadastradas · Temporário
+                  </Button>
+                )}
+              </div>
+            )}
           </main>
 
           <SiteFooter />
@@ -246,6 +300,15 @@ export function PricingBasePage() {
         open={modalOpen}
         onOpenChange={setModalOpen}
         onCreate={(input) => createMutation.mutate(input)}
+      />
+
+      <ConfirmDialog
+        open={clearOpen}
+        onOpenChange={setClearOpen}
+        title="Limpar versões cadastradas?"
+        description="Esta ação apagará todas as versões da base de precificação e seus arquivos. Deseja continuar?"
+        confirmLabel="Limpar versões"
+        onConfirm={() => clearMutation.mutate()}
       />
     </TooltipProvider>
   );
