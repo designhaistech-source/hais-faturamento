@@ -67,3 +67,23 @@ export async function createPricingVersion(input: NewPricingVersionInput): Promi
   });
   if (error) throw error;
 }
+
+/** Ferramenta provisória de testes: apaga todas as versões e seus arquivos. */
+export async function deleteAllPricingVersions(): Promise<void> {
+  const { data, error: listError } = await supabase
+    .from("pricing_versions")
+    .select("id, file_path");
+  if (listError) throw listError;
+
+  const paths = (data ?? []).map((row) => row.file_path).filter(Boolean);
+  if (paths.length > 0) {
+    const { error: removeError } = await supabase.storage.from(BUCKET).remove(paths);
+    if (removeError) throw removeError;
+  }
+
+  const ids = (data ?? []).map((row) => row.id);
+  if (ids.length > 0) {
+    const { error } = await supabase.from("pricing_versions").delete().in("id", ids);
+    if (error) throw error;
+  }
+}
