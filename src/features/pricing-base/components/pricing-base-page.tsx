@@ -178,7 +178,9 @@ export function PricingBasePage() {
                               </div>
                             </DataTableCell>
                             <DataTableCell>{version.createdBy}</DataTableCell>
-                            <DataTableCell>{formatVersionDateTime(version.createdAt)}</DataTableCell>
+                            <DataTableCell>
+                              {formatVersionDateTime(version.createdAt)}
+                            </DataTableCell>
                             <DataTableCell className="text-right">
                               <VersionActions version={version} />
                             </DataTableCell>

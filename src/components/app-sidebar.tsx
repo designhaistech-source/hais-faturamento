@@ -64,12 +64,7 @@ function BrandMark({ className }: { className?: string }) {
   );
 }
 
-export type ItemKey =
-  | "inicio"
-  | "contratos"
-  | "base-precificacao"
-  | "design-system"
-  | "icones";
+export type ItemKey = "inicio" | "contratos" | "base-precificacao" | "design-system" | "icones";
 
 export function AppSidebar({ activeKey }: { activeKey: ItemKey }) {
   const [collapsed, setCollapsed] = useState(false);
