@@ -224,14 +224,19 @@ export function PricingBasePage() {
                     {paginatedVersions.map((version) => (
                       <DataTableCard key={version.id} flat>
                         <DataTableCardHeader
-                          title={<VersionFileName name={version.file.name} />}
-                          trailing={
-                            version.id === currentVersionId ? (
-                              <Badge variant="success-soft" size="sm">
-                                Atual
-                              </Badge>
-                            ) : undefined
+                          title={
+                            <>
+                              <span className="shrink-0">
+                                {pricingBaseTypeLabel(version.baseType)}
+                              </span>
+                              {currentVersionIds.has(version.id) && (
+                                <Badge variant="success-soft" size="sm" className="shrink-0">
+                                  Atual
+                                </Badge>
+                              )}
+                            </>
                           }
+                          subtitle={version.file.name}
                         />
                         <DataTableCardFields
                           fields={[
@@ -242,6 +247,7 @@ export function PricingBasePage() {
                             },
                           ]}
                         />
+
                         <DataTableCardActions className="justify-end">
                           <VersionActions version={version} />
                         </DataTableCardActions>
