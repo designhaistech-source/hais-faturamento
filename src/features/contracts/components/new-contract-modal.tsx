@@ -114,6 +114,36 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
           submit();
         }}
       >
+        <Field id="contract-company" label="Nome da empresa" required error={companyError}>
+          <Input
+            value={company}
+            onChange={(event) => setCompany(event.target.value)}
+            onBlur={() => setCompanyTouched(true)}
+            placeholder="Clínica ou hospital"
+            autoComplete="organization"
+          />
+        </Field>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field id="contract-cnpj" label="CNPJ">
+            <Input
+              value={cnpj}
+              onChange={(event) => setCnpj(maskCnpj(event.target.value))}
+              placeholder="00.000.000/0000-00"
+              inputMode="numeric"
+              className="font-mono"
+            />
+          </Field>
+
+          <Field id="contract-valid-until" label="Data de validade do contrato">
+            <Input
+              type="date"
+              value={validUntil}
+              onChange={(event) => setValidUntil(event.target.value)}
+            />
+          </Field>
+        </div>
+
         <Field
           id="contract-file"
           label="Contrato"
@@ -225,36 +255,6 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
             )}
           </div>
         </Field>
-
-        <Field id="contract-company" label="Nome da empresa" required error={companyError}>
-          <Input
-            value={company}
-            onChange={(event) => setCompany(event.target.value)}
-            onBlur={() => setCompanyTouched(true)}
-            placeholder="Clínica ou hospital"
-            autoComplete="organization"
-          />
-        </Field>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field id="contract-cnpj" label="CNPJ">
-            <Input
-              value={cnpj}
-              onChange={(event) => setCnpj(maskCnpj(event.target.value))}
-              placeholder="00.000.000/0000-00"
-              inputMode="numeric"
-              className="font-mono"
-            />
-          </Field>
-
-          <Field id="contract-valid-until" label="Data de validade do contrato">
-            <Input
-              type="date"
-              value={validUntil}
-              onChange={(event) => setValidUntil(event.target.value)}
-            />
-          </Field>
-        </div>
       </form>
     </AppModal>
   );
