@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CircleDollarSign, Download, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
+import { Database, Download, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -210,7 +210,7 @@ export function PricingBasePage() {
                 </SurfaceCard>
               ) : versions.length === 0 ? (
                 <EmptyStateCard
-                  icon={<CircleDollarSign className="size-10" aria-hidden="true" />}
+                  icon={<Database className="size-10" aria-hidden="true" />}
                   title="Nenhuma base cadastrada"
                   description="Cadastre uma versão de uma base de precificação para começar."
                   action={
@@ -296,7 +296,7 @@ export function PricingBasePage() {
 
                   {filteredVersions.length === 0 ? (
                     <EmptyStateCard
-                      icon={<CircleDollarSign className="size-10" aria-hidden="true" />}
+                      icon={<Database className="size-10" aria-hidden="true" />}
                       title="Nenhuma versão encontrada"
                       description="Ajuste os filtros para ver outros resultados."
                       action={

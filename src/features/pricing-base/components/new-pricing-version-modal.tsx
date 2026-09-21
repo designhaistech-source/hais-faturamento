@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { CircleDollarSign, Info, Paperclip, Trash2, Upload } from "lucide-react";
+import { Database, Info, Paperclip, Trash2, Upload } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
 import { Field, SelectField, type SelectOption } from "@/components/form-field";
@@ -100,7 +100,7 @@ export function NewPricingVersionModal({
       onOpenChange={(next) => (next ? onOpenChange(true) : close())}
       title="Cadastrar nova versão"
       description="Envie o arquivo CSV com os valores atualizados da base de precificação."
-      icon={<CircleDollarSign className="size-5" aria-hidden="true" />}
+      icon={<Database className="size-5" aria-hidden="true" />}
       footer={
         <>
           <Button type="button" variant="outline" size="sm" onClick={close}>
@@ -228,9 +228,7 @@ export function NewPricingVersionModal({
                 )}
               >
                 <Upload className="size-5 text-muted-foreground" aria-hidden="true" />
-                <p className="text-sm text-muted-foreground">
-                  Arraste e solte o arquivo aqui
-                </p>
+                <p className="text-sm text-muted-foreground">Arraste e solte o arquivo aqui</p>
                 <Button
                   type="button"
                   variant="outline"
