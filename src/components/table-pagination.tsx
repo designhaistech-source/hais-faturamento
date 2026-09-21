@@ -95,7 +95,11 @@ export function TablePagination({
             value={String(pageSize)}
             onValueChange={(value) => onPageSizeChange(Number(value))}
           >
-            <SelectTrigger id={`${id}-page-size`} className="w-20">
+            {/* line-clamp com line-height 1 cortava o valor no mobile: usa leading normal e truncate. */}
+            <SelectTrigger
+              id={`${id}-page-size`}
+              className="w-20 text-base/normal sm:text-sm/normal [&>span]:line-clamp-none [&>span]:block [&>span]:truncate"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
