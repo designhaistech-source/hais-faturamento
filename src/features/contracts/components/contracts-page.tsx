@@ -47,7 +47,7 @@ import {
   prefetchContractFile,
 } from "../data/contracts-service";
 
-const COLUMNS = ["Empresa", "CNPJ", "Validade", "Contrato", "Ações"] as const;
+const COLUMNS = ["Empresa", "CNPJ", "Contrato", "Validade", "Ações"] as const;
 
 async function downloadContractFile(contract: Contract) {
   try {
@@ -293,11 +293,11 @@ export function ContractsPage() {
                               <DataTableCell className="font-mono">
                                 {contract.cnpj || "—"}
                               </DataTableCell>
-                              <DataTableCell>
-                                {formatIsoToBr(contract.validUntil) || "—"}
-                              </DataTableCell>
                               <DataTableCell className="max-w-72">
                                 <ContractFileName name={contract.file.name} />
+                              </DataTableCell>
+                              <DataTableCell>
+                                {formatIsoToBr(contract.validUntil) || "—"}
                               </DataTableCell>
                               <DataTableCell className="text-right">
                                 <ContractActions contract={contract} onView={setPreviewContract} />
@@ -316,12 +316,12 @@ export function ContractsPage() {
                             fields={[
                               { label: "CNPJ", value: contract.cnpj || "—" },
                               {
-                                label: "Validade",
-                                value: formatIsoToBr(contract.validUntil) || "—",
-                              },
-                              {
                                 label: "Contrato",
                                 value: <ContractFileName name={contract.file.name} />,
+                              },
+                              {
+                                label: "Validade",
+                                value: formatIsoToBr(contract.validUntil) || "—",
                               },
                             ]}
                           />
