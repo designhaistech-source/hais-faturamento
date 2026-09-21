@@ -83,7 +83,7 @@ export function PricingBasePage() {
   /** Ferramenta provisória de testes: simula a página sem versões, sem alterar dados. */
   const [simulateEmpty, setSimulateEmpty] = useState(false);
   const versions = simulateEmpty ? [] : storedVersions;
-  const currentVersionId = versions[0]?.id;
+  const currentVersionIds = useMemo(() => currentVersionIdsByType(versions), [versions]);
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -129,7 +129,7 @@ export function PricingBasePage() {
             <AppBreadcrumb />
             <PageHeader
               title="Base de precificação"
-              description="Gerencie a base de valores utilizada na análise do faturamento."
+              description="Gerencie as bases de valores utilizadas na análise do faturamento."
               actions={
                 <Button
                   type="button"
@@ -149,14 +149,14 @@ export function PricingBasePage() {
                     Histórico de versões
                   </h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    A versão mais recente é utilizada nas novas análises.
+                    A versão mais recente de cada base é utilizada nas novas análises.
                   </p>
                 </div>
               )}
 
               {versionsQuery.isPending ? (
                 <SurfaceCard padding="none">
-                  <TableSkeleton rows={4} columns={4} />
+                  <TableSkeleton rows={4} columns={5} />
                 </SurfaceCard>
               ) : versionsQuery.isError ? (
                 <SurfaceCard padding="md">
