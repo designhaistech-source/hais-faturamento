@@ -125,6 +125,8 @@ export function NewPricingVersionModal({
           required
           placeholder="Selecione o tipo da base"
           options={BASE_TYPE_OPTIONS}
+          // line-height 1 do trigger cortava o texto no mobile: usa leading normal.
+          triggerClassName="text-base/normal sm:text-sm/normal [&>span]:line-clamp-none [&>span]:block [&>span]:truncate"
           value={baseType === "" ? undefined : baseType}
           error={baseTypeError}
           onValueChange={(value) => {
