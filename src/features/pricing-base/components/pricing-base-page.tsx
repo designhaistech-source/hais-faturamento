@@ -196,17 +196,6 @@ export function PricingBasePage() {
             />
 
             <section className="space-y-4">
-              {!versionsQuery.isPending && !versionsQuery.isError && versions.length > 0 && (
-                <div className="min-w-0">
-                  <h2 className="font-display text-base font-semibold tracking-tight text-foreground">
-                    Histórico de versões
-                  </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    A versão mais recente de cada base é utilizada nas novas análises.
-                  </p>
-                </div>
-              )}
-
               {versionsQuery.isPending ? (
                 <SurfaceCard padding="none">
                   <TableSkeleton rows={4} columns={5} />
@@ -317,6 +306,11 @@ export function PricingBasePage() {
                     />
                   ) : (
                     <DataTable>
+                      <div className="border-b border-border px-4 py-4 sm:px-6">
+                        <h2 className="font-display text-base font-semibold tracking-tight text-foreground">
+                          Histórico de versões
+                        </h2>
+                      </div>
                       <DataTableDesktop>
                         <DataTableRoot>
                           <DataTableHeader>
