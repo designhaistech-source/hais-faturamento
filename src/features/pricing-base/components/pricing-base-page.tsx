@@ -33,7 +33,9 @@ import {
 
 import { NewPricingVersionModal } from "./new-pricing-version-modal";
 import {
+  currentVersionIdsByType,
   formatVersionDateTime,
+  pricingBaseTypeLabel,
   type NewPricingVersionInput,
   type PricingVersion,
 } from "../data/pricing-versions";
@@ -45,7 +47,14 @@ import {
   pricingVersionsQueryKey,
 } from "../data/pricing-versions-service";
 
-const COLUMNS = ["Arquivo", "Cadastrado por", "Data do cadastro", "Ações"] as const;
+const COLUMNS = [
+  "Tipo da base",
+  "Arquivo",
+  "Cadastrado por",
+  "Data do cadastro",
+  "Ações",
+] as const;
+
 
 async function downloadVersionFile(version: PricingVersion) {
   try {
