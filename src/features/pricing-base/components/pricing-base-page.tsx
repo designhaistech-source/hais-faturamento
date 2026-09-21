@@ -14,6 +14,10 @@ import { EmptyStateCard } from "@/components/empty-state-card";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ErrorState, TableSkeleton } from "@/components/data-state";
 import { SurfaceCard } from "@/components/surface-card";
+import { FilterCard } from "@/components/filter-card";
+import { SearchField, SelectField } from "@/components/form-field";
+import { Input } from "@/components/ui/input";
+import { toLocalIsoDate } from "@/lib/date";
 import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/table-pagination";
 import {
   DataTable,
@@ -36,7 +40,9 @@ import {
   currentVersionIdsByType,
   formatVersionDateTime,
   pricingBaseTypeLabel,
+  PRICING_BASE_TYPES,
   type NewPricingVersionInput,
+  type PricingBaseType,
   type PricingVersion,
 } from "../data/pricing-versions";
 import {
@@ -83,14 +89,63 @@ export function PricingBasePage() {
     [storedVersions],
   );
 
+  const [search, setSearch] = useState("");
+  const [baseTypeFilter, setBaseTypeFilter] = useState<"all" | PricingBaseType>("all");
+  const [createdFrom, setCreatedFrom] = useState("");
+  const [createdTo, setCreatedTo] = useState("");
+
+  const activeCount = [
+    search.trim() !== "",
+    baseTypeFilter !== "all",
+    createdFrom !== "",
+    createdTo !== "",
+  ].filter(Boolean).length;
+  const hasFilters = activeCount > 0;
+
+  const filteredVersions = useMemo(() => {
+    const term = search.trim().toLowerCase();
+
+    return versions.filter((version) => {
+      if (term && !version.file.name.toLowerCase().includes(term)) return false;
+      if (baseTypeFilter !== "all" && version.baseType !== baseTypeFilter) return false;
+      if (createdFrom || createdTo) {
+        const created = new Date(version.createdAt);
+        if (Number.isNaN(created.getTime())) return false;
+        const createdDay = toLocalIsoDate(created);
+        if (createdFrom && createdDay < createdFrom) return false;
+        if (createdTo && createdDay > createdTo) return false;
+      }
+      return true;
+    });
+  }, [versions, search, baseTypeFilter, createdFrom, createdTo]);
+
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
-  const totalPages = Math.max(1, Math.ceil(versions.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(filteredVersions.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const paginatedVersions = useMemo(
-    () => versions.slice((currentPage - 1) * pageSize, currentPage * pageSize),
-    [versions, currentPage, pageSize],
+    () => filteredVersions.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filteredVersions, currentPage, pageSize],
+  );
+
+  function handleClearFilters() {
+    setSearch("");
+    setBaseTypeFilter("all");
+    setCreatedFrom("");
+    setCreatedTo("");
+    setPage(1);
+  }
+
+  const baseTypeOptions = useMemo(
+    () => [
+      { value: "all", label: "Todos os tipos" },
+      ...PRICING_BASE_TYPES.map((type) => ({
+        value: type,
+        label: pricingBaseTypeLabel(type),
+      })),
+    ],
+    [],
   );
 
   const createMutation = useMutation({
@@ -177,101 +232,185 @@ export function PricingBasePage() {
                   }
                 />
               ) : (
-                <DataTable>
-                  <DataTableDesktop>
-                    <DataTableRoot>
-                      <DataTableHeader>
-                        <tr>
-                          {COLUMNS.map((column) => (
-                            <DataTableHead
-                              key={column}
-                              className={column === "Ações" ? "text-right" : undefined}
-                            >
-                              {column}
-                            </DataTableHead>
-                          ))}
-                        </tr>
-                      </DataTableHeader>
-                      <DataTableBody>
-                        {paginatedVersions.map((version) => (
-                          <DataTableRow key={version.id}>
-                            <DataTableCell className="max-w-96">
-                              <div className="flex min-w-0 items-center gap-2">
-                                <VersionFileName name={version.file.name} />
-                                {currentVersionIds.has(version.id) && (
-                                  <Badge variant="success-soft" size="sm" className="shrink-0">
-                                    Atual
+                <>
+                  <FilterCard
+                    id="pricing-versions-filters"
+                    variant="bar"
+                    activeCount={activeCount}
+                    onClear={handleClearFilters}
+                    clearDisabled={!hasFilters}
+                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_12rem_21rem_auto] lg:gap-4"
+                  >
+                    <SearchField
+                      id="pricing-versions-search"
+                      label="Buscar"
+                      fieldClassName="sm:col-span-2 lg:col-span-1"
+                      placeholder="Buscar por nome do arquivo"
+                      value={search}
+                      clearable
+                      onChange={(event) => {
+                        setSearch(event.target.value);
+                        setPage(1);
+                      }}
+                      onClear={() => {
+                        setSearch("");
+                        setPage(1);
+                      }}
+                    />
+                    <SelectField
+                      id="pricing-versions-base-type"
+                      label="Tipo da base"
+                      value={baseTypeFilter}
+                      options={baseTypeOptions}
+                      onValueChange={(value) => {
+                        setBaseTypeFilter(value as "all" | PricingBaseType);
+                        setPage(1);
+                      }}
+                    />
+                    <fieldset className="min-w-0 space-y-1.5 sm:col-span-2 sm:space-y-2 lg:col-span-1">
+                      <legend className="text-xs font-medium leading-snug text-muted-foreground">
+                        Data do cadastro
+                      </legend>
+                      <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
+                        <span className="shrink-0 text-xs text-muted-foreground">De</span>
+                        <Input
+                          id="pricing-versions-created-from"
+                          type="date"
+                          aria-label="Data do cadastro de"
+                          className="min-w-0 flex-1"
+                          value={createdFrom}
+                          max={createdTo || undefined}
+                          onChange={(event) => {
+                            setCreatedFrom(event.target.value);
+                            setPage(1);
+                          }}
+                        />
+                        <span className="shrink-0 text-xs text-muted-foreground">até</span>
+                        <Input
+                          id="pricing-versions-created-to"
+                          type="date"
+                          aria-label="Data do cadastro até"
+                          className="min-w-0 flex-1"
+                          value={createdTo}
+                          min={createdFrom || undefined}
+                          onChange={(event) => {
+                            setCreatedTo(event.target.value);
+                            setPage(1);
+                          }}
+                        />
+                      </div>
+                    </fieldset>
+                  </FilterCard>
+
+                  {filteredVersions.length === 0 ? (
+                    <EmptyStateCard
+                      icon={<CircleDollarSign className="size-10" aria-hidden="true" />}
+                      title="Nenhuma versão encontrada"
+                      description="Ajuste os filtros para ver outros resultados."
+                      action={
+                        <Button type="button" variant="outline" onClick={handleClearFilters}>
+                          Limpar filtros
+                        </Button>
+                      }
+                    />
+                  ) : (
+                    <DataTable>
+                      <DataTableDesktop>
+                        <DataTableRoot>
+                          <DataTableHeader>
+                            <tr>
+                              {COLUMNS.map((column) => (
+                                <DataTableHead
+                                  key={column}
+                                  className={column === "Ações" ? "text-right" : undefined}
+                                >
+                                  {column}
+                                </DataTableHead>
+                              ))}
+                            </tr>
+                          </DataTableHeader>
+                          <DataTableBody>
+                            {paginatedVersions.map((version) => (
+                              <DataTableRow key={version.id}>
+                                <DataTableCell className="max-w-96">
+                                  <div className="flex min-w-0 items-center gap-2">
+                                    <VersionFileName name={version.file.name} />
+                                    {currentVersionIds.has(version.id) && (
+                                      <Badge variant="success-soft" size="sm" className="shrink-0">
+                                        Atual
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </DataTableCell>
+                                <DataTableCell>
+                                  <Badge variant="info-soft" size="sm" className="shrink-0">
+                                    {pricingBaseTypeLabel(version.baseType)}
                                   </Badge>
-                                )}
-                              </div>
-                            </DataTableCell>
-                            <DataTableCell>
-                              <Badge variant="info-soft" size="sm" className="shrink-0">
-                                {pricingBaseTypeLabel(version.baseType)}
-                              </Badge>
-                            </DataTableCell>
-                            <DataTableCell>{version.createdBy}</DataTableCell>
-                            <DataTableCell>
-                              {formatVersionDateTime(version.createdAt)}
-                            </DataTableCell>
+                                </DataTableCell>
+                                <DataTableCell>{version.createdBy}</DataTableCell>
+                                <DataTableCell>
+                                  {formatVersionDateTime(version.createdAt)}
+                                </DataTableCell>
 
-                            <DataTableCell className="text-right">
+                                <DataTableCell className="text-right">
+                                  <VersionActions version={version} />
+                                </DataTableCell>
+                              </DataTableRow>
+                            ))}
+                          </DataTableBody>
+                        </DataTableRoot>
+                      </DataTableDesktop>
+
+                      <DataTableCardList divided>
+                        {paginatedVersions.map((version) => (
+                          <DataTableCard key={version.id} flat>
+                            <DataTableCardHeader
+                              title={
+                                <>
+                                  <Badge variant="info-soft" size="sm" className="shrink-0">
+                                    {pricingBaseTypeLabel(version.baseType)}
+                                  </Badge>
+                                  {currentVersionIds.has(version.id) && (
+                                    <Badge variant="success-soft" size="sm" className="shrink-0">
+                                      Atual
+                                    </Badge>
+                                  )}
+                                </>
+                              }
+                              subtitle={version.file.name}
+                            />
+                            <DataTableCardFields
+                              fields={[
+                                { label: "Cadastrado por", value: version.createdBy },
+                                {
+                                  label: "Data do cadastro",
+                                  value: formatVersionDateTime(version.createdAt),
+                                },
+                              ]}
+                            />
+
+                            <DataTableCardActions className="justify-end">
                               <VersionActions version={version} />
-                            </DataTableCell>
-                          </DataTableRow>
+                            </DataTableCardActions>
+                          </DataTableCard>
                         ))}
-                      </DataTableBody>
-                    </DataTableRoot>
-                  </DataTableDesktop>
+                      </DataTableCardList>
 
-                  <DataTableCardList divided>
-                    {paginatedVersions.map((version) => (
-                      <DataTableCard key={version.id} flat>
-                        <DataTableCardHeader
-                          title={
-                            <>
-                              <Badge variant="info-soft" size="sm" className="shrink-0">
-                                {pricingBaseTypeLabel(version.baseType)}
-                              </Badge>
-                              {currentVersionIds.has(version.id) && (
-                                <Badge variant="success-soft" size="sm" className="shrink-0">
-                                  Atual
-                                </Badge>
-                              )}
-                            </>
-                          }
-                          subtitle={version.file.name}
-                        />
-                        <DataTableCardFields
-                          fields={[
-                            { label: "Cadastrado por", value: version.createdBy },
-                            {
-                              label: "Data do cadastro",
-                              value: formatVersionDateTime(version.createdAt),
-                            },
-                          ]}
-                        />
-
-                        <DataTableCardActions className="justify-end">
-                          <VersionActions version={version} />
-                        </DataTableCardActions>
-                      </DataTableCard>
-                    ))}
-                  </DataTableCardList>
-
-                  <TablePagination
-                    id="pricing-versions"
-                    totalItems={versions.length}
-                    page={currentPage}
-                    pageSize={pageSize}
-                    onPageChange={setPage}
-                    onPageSizeChange={(size) => {
-                      setPageSize(size);
-                      setPage(1);
-                    }}
-                    className="px-4 pb-4"
-                  />
-                </DataTable>
+                      <TablePagination
+                        id="pricing-versions"
+                        totalItems={filteredVersions.length}
+                        page={currentPage}
+                        pageSize={pageSize}
+                        onPageChange={setPage}
+                        onPageSizeChange={(size) => {
+                          setPageSize(size);
+                          setPage(1);
+                        }}
+                        className="px-4 pb-4"
+                      />
+                    </DataTable>
+                  )}
+                </>
               )}
             </section>
 
