@@ -251,6 +251,7 @@ export function PricingBasePage() {
                     <SelectField
                       id="pricing-versions-base-type"
                       label="Tipo da base"
+                      className="sm:col-span-2 lg:col-span-1"
                       value={baseTypeFilter}
                       options={baseTypeOptions}
                       onValueChange={(value) => {
