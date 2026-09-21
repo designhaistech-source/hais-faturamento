@@ -223,11 +223,11 @@ export function PricingBasePage() {
                 <EmptyStateCard
                   icon={<CircleDollarSign className="size-10" aria-hidden="true" />}
                   title="Nenhuma base cadastrada"
-                  description="Cadastre a primeira versão da base de precificação para começar."
+                  description="Cadastre uma versão de uma base de precificação para começar."
                   action={
                     <Button type="button" onClick={() => setModalOpen(true)}>
                       <Plus className="size-4" aria-hidden="true" />
-                      Primeira versão
+                      Nova versão
                     </Button>
                   }
                 />
