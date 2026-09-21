@@ -398,7 +398,7 @@ export function PricingBasePage() {
 
                   <TablePagination
                     id="pricing-versions"
-                    totalItems={versions.length}
+                    totalItems={filteredVersions.length}
                     page={currentPage}
                     pageSize={pageSize}
                     onPageChange={setPage}
@@ -408,7 +408,9 @@ export function PricingBasePage() {
                     }}
                     className="px-4 pb-4"
                   />
-                </DataTable>
+                    </DataTable>
+                  )}
+                </>
               )}
             </section>
 
