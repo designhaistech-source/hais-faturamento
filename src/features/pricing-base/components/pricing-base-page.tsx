@@ -305,7 +305,7 @@ export function PricingBasePage() {
                       }
                     />
                   ) : (
-                    <div className="mt-6 space-y-4">
+                    <div className="mt-5 space-y-3">
                       <h2 className="font-display text-base font-semibold tracking-tight text-foreground">
                         Histórico de versões
                       </h2>
