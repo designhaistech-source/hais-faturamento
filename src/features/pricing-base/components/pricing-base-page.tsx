@@ -87,14 +87,63 @@ export function PricingBasePage() {
     [storedVersions],
   );
 
+  const [search, setSearch] = useState("");
+  const [baseTypeFilter, setBaseTypeFilter] = useState<"all" | PricingBaseType>("all");
+  const [createdFrom, setCreatedFrom] = useState("");
+  const [createdTo, setCreatedTo] = useState("");
+
+  const activeCount = [
+    search.trim() !== "",
+    baseTypeFilter !== "all",
+    createdFrom !== "",
+    createdTo !== "",
+  ].filter(Boolean).length;
+  const hasFilters = activeCount > 0;
+
+  const filteredVersions = useMemo(() => {
+    const term = search.trim().toLowerCase();
+
+    return versions.filter((version) => {
+      if (term && !version.file.name.toLowerCase().includes(term)) return false;
+      if (baseTypeFilter !== "all" && version.baseType !== baseTypeFilter) return false;
+      if (createdFrom || createdTo) {
+        const created = new Date(version.createdAt);
+        if (Number.isNaN(created.getTime())) return false;
+        const createdDay = toLocalIsoDate(created);
+        if (createdFrom && createdDay < createdFrom) return false;
+        if (createdTo && createdDay > createdTo) return false;
+      }
+      return true;
+    });
+  }, [versions, search, baseTypeFilter, createdFrom, createdTo]);
+
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
-  const totalPages = Math.max(1, Math.ceil(versions.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(filteredVersions.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const paginatedVersions = useMemo(
-    () => versions.slice((currentPage - 1) * pageSize, currentPage * pageSize),
-    [versions, currentPage, pageSize],
+    () => filteredVersions.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filteredVersions, currentPage, pageSize],
+  );
+
+  function handleClearFilters() {
+    setSearch("");
+    setBaseTypeFilter("all");
+    setCreatedFrom("");
+    setCreatedTo("");
+    setPage(1);
+  }
+
+  const baseTypeOptions = useMemo(
+    () => [
+      { value: "all", label: "Todos os tipos" },
+      ...PRICING_BASE_TYPES.map((type) => ({
+        value: type,
+        label: pricingBaseTypeLabel(type),
+      })),
+    ],
+    [],
   );
 
   const createMutation = useMutation({
