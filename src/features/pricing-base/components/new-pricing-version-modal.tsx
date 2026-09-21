@@ -243,10 +243,17 @@ export function NewPricingVersionModal({
         </Field>
 
         {replacesCurrent && (
-          <p className="flex items-start gap-2 text-xs text-muted-foreground">
-            <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-            {`A nova versão substituirá a versão atual de ${pricingBaseTypeLabel(baseType as PricingBaseType)} nas próximas análises. A versão anterior continuará disponível no histórico.`}
-          </p>
+          <div className="flex items-start gap-3 rounded-xl border border-info/30 bg-info-muted px-4 py-3">
+            <Info className="mt-0.5 size-4 shrink-0 text-info-strong" aria-hidden="true" />
+            <div className="min-w-0 space-y-1">
+              <p className="text-sm font-medium text-foreground">
+                {`Esta será a nova versão atual de ${pricingBaseTypeLabel(baseType as PricingBaseType)}.`}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                A versão anterior continuará disponível no histórico.
+              </p>
+            </div>
+          </div>
         )}
       </form>
     </AppModal>
