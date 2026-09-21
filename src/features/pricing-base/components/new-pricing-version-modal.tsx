@@ -121,7 +121,22 @@ export function NewPricingVersionModal({
           submit();
         }}
       >
+        <SelectField
+          id="pricing-version-base-type"
+          label="Tipo da base"
+          required
+          placeholder="Selecione o tipo da base"
+          options={BASE_TYPE_OPTIONS}
+          value={baseType === "" ? undefined : baseType}
+          error={baseTypeError}
+          onValueChange={(value) => {
+            setBaseTypeTouched(true);
+            setBaseType(value as PricingBaseType);
+          }}
+        />
+
         <Field
+
           id="pricing-version-file"
           label="Arquivo CSV"
           required
