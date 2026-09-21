@@ -1,6 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CURRENT_USER } from "@/lib/current-user";
-import type { NewPricingVersionInput, PricingVersion } from "./pricing-versions";
+import {
+  inferPricingBaseType,
+  toPricingBaseType,
+  type NewPricingVersionInput,
+  type PricingVersion,
+} from "./pricing-versions";
+
 
 const BUCKET = "pricing-versions";
 /** Validade das URLs assinadas geradas para baixar o arquivo. */
@@ -35,7 +41,7 @@ export async function createPricingVersionFileUrl(
 export async function listPricingVersions(): Promise<PricingVersion[]> {
   const { data, error } = await supabase
     .from("pricing_versions")
-    .select("id, created_at, created_by, file_name, file_path, file_type")
+    .select("id, created_at, created_by, base_type, file_name, file_path, file_type")
     .order("created_at", { ascending: false });
   if (error) throw error;
 
@@ -43,6 +49,7 @@ export async function listPricingVersions(): Promise<PricingVersion[]> {
     id: row.id,
     createdAt: row.created_at,
     createdBy: row.created_by,
+    baseType: toPricingBaseType(row.base_type),
     file: {
       name: row.file_name,
       path: row.file_path,
@@ -63,10 +70,12 @@ export async function createPricingVersion(input: NewPricingVersionInput): Promi
     file_name: input.file.name,
     file_path: path,
     file_type: input.file.type,
+    base_type: input.baseType ?? inferPricingBaseType(input.file.name),
     created_by: CURRENT_USER.name,
   });
   if (error) throw error;
 }
+
 
 /** Ferramenta provisória de testes: apaga todas as versões e seus arquivos. */
 export async function deleteAllPricingVersions(): Promise<void> {

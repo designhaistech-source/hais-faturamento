@@ -1,5 +1,42 @@
 /** Pricing base versions persisted in the backend (table `pricing_versions` + storage bucket). */
 
+/** Types of pricing base kept in parallel, each with its own version history. */
+export const PRICING_BASE_TYPES = ["brasindice", "simpro", "cbhpm"] as const;
+
+export type PricingBaseType = (typeof PRICING_BASE_TYPES)[number];
+
+const PRICING_BASE_TYPE_LABELS: Record<PricingBaseType, string> = {
+  brasindice: "Brasíndice",
+  simpro: "SIMPRO",
+  cbhpm: "CBHPM",
+};
+
+/** Label shown in the UI for a base type. */
+export function pricingBaseTypeLabel(type: PricingBaseType): string {
+  return PRICING_BASE_TYPE_LABELS[type];
+}
+
+/** Narrows a persisted value to a known base type, defaulting to Brasíndice. */
+export function toPricingBaseType(value: string | null | undefined): PricingBaseType {
+  return (PRICING_BASE_TYPES as readonly string[]).includes(value ?? "")
+    ? (value as PricingBaseType)
+    : "brasindice";
+}
+
+/**
+ * Infers the base type from the file name while the modal has no explicit
+ * selector for it (the form fields are adjusted separately).
+ */
+export function inferPricingBaseType(fileName: string): PricingBaseType {
+  const normalized = fileName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+  if (normalized.includes("simpro")) return "simpro";
+  if (normalized.includes("cbhpm")) return "cbhpm";
+  return "brasindice";
+}
+
 export interface PricingVersionFile {
   name: string;
   /** Storage path inside the `pricing-versions` bucket. */
@@ -12,12 +49,15 @@ export interface PricingVersion {
   /** ISO timestamp of the upload. */
   createdAt: string;
   createdBy: string;
+  baseType: PricingBaseType;
   file: PricingVersionFile;
 }
 
 /** Data collected in the form before the version is persisted. */
 export interface NewPricingVersionInput {
   file: File;
+  /** Optional while the modal has no base type selector. */
+  baseType?: PricingBaseType;
 }
 
 /** Formats an ISO timestamp as "dd/MM/yyyy HH:mm" in the local timezone. */
@@ -31,4 +71,16 @@ export function formatVersionDateTime(iso: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+/**
+ * Ids of the newest version of each base type ("Atual"), given versions ordered
+ * from newest to oldest.
+ */
+export function currentVersionIdsByType(versions: PricingVersion[]): Set<string> {
+  const current = new Map<PricingBaseType, string>();
+  for (const version of versions) {
+    if (!current.has(version.baseType)) current.set(version.baseType, version.id);
+  }
+  return new Set(current.values());
 }
