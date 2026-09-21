@@ -316,12 +316,12 @@ export function ContractsPage() {
                             fields={[
                               { label: "CNPJ", value: contract.cnpj || "—" },
                               {
-                                label: "Validade",
-                                value: formatIsoToBr(contract.validUntil) || "—",
-                              },
-                              {
                                 label: "Contrato",
                                 value: <ContractFileName name={contract.file.name} />,
+                              },
+                              {
+                                label: "Validade",
+                                value: formatIsoToBr(contract.validUntil) || "—",
                               },
                             ]}
                           />
