@@ -228,7 +228,6 @@ export function PricingBasePage() {
                     <Button type="button" onClick={() => setModalOpen(true)}>
                       <Plus className="size-4" aria-hidden="true" />
                       Nova versão
-
                     </Button>
                   }
                 />
