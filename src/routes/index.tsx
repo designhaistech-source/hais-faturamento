@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CircleDollarSign, FileText } from "lucide-react";
+import { Database, FileText } from "lucide-react";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteFooter } from "@/components/site-footer";
@@ -40,7 +40,7 @@ const FEATURES = [
     action: "Acessar",
   },
   {
-    icon: CircleDollarSign,
+    icon: Database,
     title: "Base de precificação",
     description:
       "Cadastre e consulte as versões da base de valores utilizada na análise do faturamento.",
