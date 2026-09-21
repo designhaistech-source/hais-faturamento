@@ -197,20 +197,24 @@ export function PricingBasePage() {
                       <DataTableBody>
                         {paginatedVersions.map((version) => (
                           <DataTableRow key={version.id}>
-                            <DataTableCell className="max-w-96">
-                              <div className="flex min-w-0 items-center gap-2">
-                                <VersionFileName name={version.file.name} />
-                                {version.id === currentVersionId && (
+                            <DataTableCell>
+                              <div className="flex items-center gap-2">
+                                <span>{pricingBaseTypeLabel(version.baseType)}</span>
+                                {currentVersionIds.has(version.id) && (
                                   <Badge variant="success-soft" size="sm" className="shrink-0">
                                     Atual
                                   </Badge>
                                 )}
                               </div>
                             </DataTableCell>
+                            <DataTableCell className="max-w-96">
+                              <VersionFileName name={version.file.name} />
+                            </DataTableCell>
                             <DataTableCell>{version.createdBy}</DataTableCell>
                             <DataTableCell>
                               {formatVersionDateTime(version.createdAt)}
                             </DataTableCell>
+
                             <DataTableCell className="text-right">
                               <VersionActions version={version} />
                             </DataTableCell>
