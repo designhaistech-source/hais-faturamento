@@ -77,6 +77,12 @@ export function PricingBasePage() {
   const [simulateEmpty, setSimulateEmpty] = useState(false);
   const versions = simulateEmpty ? [] : storedVersions;
   const currentVersionIds = useMemo(() => currentVersionIdsByType(versions), [versions]);
+  /** Tipos que já possuem versão cadastrada (independe da simulação de estado vazio). */
+  const existingBaseTypes = useMemo(
+    () => Array.from(new Set(storedVersions.map((version) => version.baseType))),
+    [storedVersions],
+  );
+
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
