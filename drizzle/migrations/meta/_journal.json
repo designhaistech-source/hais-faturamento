@@ -29,6 +29,13 @@
       "when": 1789738201426,
       "tag": "0003_create_pricing_versions",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789995371070,
+      "tag": "0004_add_pricing_version_base_type",
+      "breakpoints": true
     }
   ]
 }

@@ -49,6 +49,7 @@ export type Database = {
       }
       pricing_versions: {
         Row: {
+          base_type: string
           created_at: string
           created_by: string
           file_name: string
@@ -57,6 +58,7 @@ export type Database = {
           id: string
         }
         Insert: {
+          base_type?: string
           created_at?: string
           created_by: string
           file_name: string
@@ -65,6 +67,7 @@ export type Database = {
           id?: string
         }
         Update: {
+          base_type?: string
           created_at?: string
           created_by?: string
           file_name?: string
