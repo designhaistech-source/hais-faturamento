@@ -195,11 +195,9 @@ export function PricingBasePage() {
                       <DataTableBody>
                         {paginatedVersions.map((version) => (
                           <DataTableRow key={version.id}>
-                            <DataTableCell>
-                              <div className="flex items-center gap-2">
-                                <Badge variant="info-soft" size="sm" className="shrink-0">
-                                  {pricingBaseTypeLabel(version.baseType)}
-                                </Badge>
+                            <DataTableCell className="max-w-96">
+                              <div className="flex min-w-0 items-center gap-2">
+                                <VersionFileName name={version.file.name} />
                                 {currentVersionIds.has(version.id) && (
                                   <Badge variant="success-soft" size="sm" className="shrink-0">
                                     Atual
@@ -207,8 +205,10 @@ export function PricingBasePage() {
                                 )}
                               </div>
                             </DataTableCell>
-                            <DataTableCell className="max-w-96">
-                              <VersionFileName name={version.file.name} />
+                            <DataTableCell>
+                              <Badge variant="info-soft" size="sm" className="shrink-0">
+                                {pricingBaseTypeLabel(version.baseType)}
+                              </Badge>
                             </DataTableCell>
                             <DataTableCell>{version.createdBy}</DataTableCell>
                             <DataTableCell>
