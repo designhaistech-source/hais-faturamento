@@ -255,7 +255,6 @@ export function NewPricingVersionModal({
             </div>
           </div>
         )}
-
       </form>
     </AppModal>
   );
