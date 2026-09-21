@@ -73,6 +73,8 @@ export function NewPricingVersionModal({
   }
 
   function reset() {
+    setBaseType("");
+    setBaseTypeTouched(false);
     setFile(null);
     setFileTouched(false);
     setInvalidFileMessage(null);
@@ -86,11 +88,13 @@ export function NewPricingVersionModal({
 
   function submit() {
     setFileTouched(true);
-    if (!file) return;
-    onCreate({ file });
+    setBaseTypeTouched(true);
+    if (!file || baseType === "") return;
+    onCreate({ file, baseType });
     reset();
     onOpenChange(false);
   }
+
 
   return (
     <AppModal
