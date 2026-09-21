@@ -197,7 +197,9 @@ export function PricingBasePage() {
                           <DataTableRow key={version.id}>
                             <DataTableCell>
                               <div className="flex items-center gap-2">
-                                <span>{pricingBaseTypeLabel(version.baseType)}</span>
+                                <Badge variant="info-soft" size="sm" className="shrink-0">
+                                  {pricingBaseTypeLabel(version.baseType)}
+                                </Badge>
                                 {currentVersionIds.has(version.id) && (
                                   <Badge variant="success-soft" size="sm" className="shrink-0">
                                     Atual
@@ -228,9 +230,9 @@ export function PricingBasePage() {
                         <DataTableCardHeader
                           title={
                             <>
-                              <span className="shrink-0">
+                              <Badge variant="info-soft" size="sm" className="shrink-0">
                                 {pricingBaseTypeLabel(version.baseType)}
-                              </span>
+                              </Badge>
                               {currentVersionIds.has(version.id) && (
                                 <Badge variant="success-soft" size="sm" className="shrink-0">
                                   Atual
