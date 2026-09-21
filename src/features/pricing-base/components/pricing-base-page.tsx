@@ -47,7 +47,7 @@ import {
   pricingVersionsQueryKey,
 } from "../data/pricing-versions-service";
 
-const COLUMNS = ["Tipo da base", "Arquivo", "Cadastrado por", "Data do cadastro", "Ações"] as const;
+const COLUMNS = ["Arquivo", "Tipo da base", "Cadastrado por", "Data do cadastro", "Ações"] as const;
 
 async function downloadVersionFile(version: PricingVersion) {
   try {
