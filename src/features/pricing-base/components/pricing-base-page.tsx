@@ -311,8 +311,10 @@ export function PricingBasePage() {
       <NewPricingVersionModal
         open={modalOpen}
         onOpenChange={setModalOpen}
+        existingBaseTypes={existingBaseTypes}
         onCreate={(input) => createMutation.mutate(input)}
       />
+
 
       <ConfirmDialog
         open={clearOpen}
