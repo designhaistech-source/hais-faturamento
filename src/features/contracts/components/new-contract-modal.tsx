@@ -241,7 +241,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
               >
                 <Upload className="size-5 text-muted-foreground" aria-hidden="true" />
                 <p className="text-sm text-muted-foreground">
-                  Arraste o arquivo aqui ou selecione do computador.
+                  Arraste e solte o arquivo aqui
                 </p>
                 <Button
                   type="button"
