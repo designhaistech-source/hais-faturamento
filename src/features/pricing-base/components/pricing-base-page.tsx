@@ -232,7 +232,89 @@ export function PricingBasePage() {
                   }
                 />
               ) : (
-                <DataTable>
+                <>
+                  <FilterCard
+                    id="pricing-versions-filters"
+                    variant="bar"
+                    activeCount={activeCount}
+                    onClear={handleClearFilters}
+                    clearDisabled={!hasFilters}
+                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_12rem_21rem_auto] lg:gap-4"
+                  >
+                    <SearchField
+                      id="pricing-versions-search"
+                      label="Buscar"
+                      fieldClassName="sm:col-span-2 lg:col-span-1"
+                      placeholder="Buscar por nome do arquivo"
+                      value={search}
+                      clearable
+                      onChange={(event) => {
+                        setSearch(event.target.value);
+                        setPage(1);
+                      }}
+                      onClear={() => {
+                        setSearch("");
+                        setPage(1);
+                      }}
+                    />
+                    <SelectField
+                      id="pricing-versions-base-type"
+                      label="Tipo da base"
+                      value={baseTypeFilter}
+                      options={baseTypeOptions}
+                      onValueChange={(value) => {
+                        setBaseTypeFilter(value as "all" | PricingBaseType);
+                        setPage(1);
+                      }}
+                    />
+                    <fieldset className="min-w-0 space-y-1.5 sm:col-span-2 sm:space-y-2 lg:col-span-1">
+                      <legend className="text-xs font-medium leading-snug text-muted-foreground">
+                        Data do cadastro
+                      </legend>
+                      <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
+                        <span className="shrink-0 text-xs text-muted-foreground">De</span>
+                        <Input
+                          id="pricing-versions-created-from"
+                          type="date"
+                          aria-label="Data do cadastro de"
+                          className="min-w-0 flex-1"
+                          value={createdFrom}
+                          max={createdTo || undefined}
+                          onChange={(event) => {
+                            setCreatedFrom(event.target.value);
+                            setPage(1);
+                          }}
+                        />
+                        <span className="shrink-0 text-xs text-muted-foreground">até</span>
+                        <Input
+                          id="pricing-versions-created-to"
+                          type="date"
+                          aria-label="Data do cadastro até"
+                          className="min-w-0 flex-1"
+                          value={createdTo}
+                          min={createdFrom || undefined}
+                          onChange={(event) => {
+                            setCreatedTo(event.target.value);
+                            setPage(1);
+                          }}
+                        />
+                      </div>
+                    </fieldset>
+                  </FilterCard>
+
+                  {filteredVersions.length === 0 ? (
+                    <EmptyStateCard
+                      icon={<CircleDollarSign className="size-10" aria-hidden="true" />}
+                      title="Nenhuma versão encontrada"
+                      description="Ajuste os filtros para ver outros resultados."
+                      action={
+                        <Button type="button" variant="outline" onClick={handleClearFilters}>
+                          Limpar filtros
+                        </Button>
+                      }
+                    />
+                  ) : (
+                    <DataTable>
                   <DataTableDesktop>
                     <DataTableRoot>
                       <DataTableHeader>
