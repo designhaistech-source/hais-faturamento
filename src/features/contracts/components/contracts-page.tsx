@@ -274,80 +274,83 @@ export function ContractsPage() {
                       Contratos cadastrados
                     </h2>
                     <DataTable>
-                    <DataTableDesktop>
-                      <DataTableRoot>
-                        <DataTableHeader>
-                          <tr>
-                            {COLUMNS.map((column) => (
-                              <DataTableHead
-                                key={column}
-                                className={column === "Ações" ? "text-right" : undefined}
-                              >
-                                {column}
-                              </DataTableHead>
+                      <DataTableDesktop>
+                        <DataTableRoot>
+                          <DataTableHeader>
+                            <tr>
+                              {COLUMNS.map((column) => (
+                                <DataTableHead
+                                  key={column}
+                                  className={column === "Ações" ? "text-right" : undefined}
+                                >
+                                  {column}
+                                </DataTableHead>
+                              ))}
+                            </tr>
+                          </DataTableHeader>
+                          <DataTableBody>
+                            {paginatedContracts.map((contract) => (
+                              <DataTableRow key={contract.id}>
+                                <DataTableCell className="font-medium">
+                                  {contract.company}
+                                </DataTableCell>
+                                <DataTableCell className="font-mono">
+                                  {contract.cnpj || "—"}
+                                </DataTableCell>
+                                <DataTableCell className="max-w-72">
+                                  <ContractFileName name={contract.file.name} />
+                                </DataTableCell>
+                                <DataTableCell>
+                                  {formatIsoToBr(contract.validUntil) || "—"}
+                                </DataTableCell>
+                                <DataTableCell className="text-right">
+                                  <ContractActions
+                                    contract={contract}
+                                    onView={setPreviewContract}
+                                  />
+                                </DataTableCell>
+                              </DataTableRow>
                             ))}
-                          </tr>
-                        </DataTableHeader>
-                        <DataTableBody>
-                          {paginatedContracts.map((contract) => (
-                            <DataTableRow key={contract.id}>
-                              <DataTableCell className="font-medium">
-                                {contract.company}
-                              </DataTableCell>
-                              <DataTableCell className="font-mono">
-                                {contract.cnpj || "—"}
-                              </DataTableCell>
-                              <DataTableCell className="max-w-72">
-                                <ContractFileName name={contract.file.name} />
-                              </DataTableCell>
-                              <DataTableCell>
-                                {formatIsoToBr(contract.validUntil) || "—"}
-                              </DataTableCell>
-                              <DataTableCell className="text-right">
-                                <ContractActions contract={contract} onView={setPreviewContract} />
-                              </DataTableCell>
-                            </DataTableRow>
-                          ))}
-                        </DataTableBody>
-                      </DataTableRoot>
-                    </DataTableDesktop>
+                          </DataTableBody>
+                        </DataTableRoot>
+                      </DataTableDesktop>
 
-                    <DataTableCardList divided>
-                      {paginatedContracts.map((contract) => (
-                        <DataTableCard key={contract.id} flat>
-                          <DataTableCardHeader title={contract.company} />
-                          <DataTableCardFields
-                            fields={[
-                              { label: "CNPJ", value: contract.cnpj || "—" },
-                              {
-                                label: "Contrato",
-                                value: <ContractFileName name={contract.file.name} />,
-                              },
-                              {
-                                label: "Validade",
-                                value: formatIsoToBr(contract.validUntil) || "—",
-                              },
-                            ]}
-                          />
-                          <DataTableCardActions className="justify-end">
-                            <ContractActions contract={contract} onView={setPreviewContract} />
-                          </DataTableCardActions>
-                        </DataTableCard>
-                      ))}
-                    </DataTableCardList>
+                      <DataTableCardList divided>
+                        {paginatedContracts.map((contract) => (
+                          <DataTableCard key={contract.id} flat>
+                            <DataTableCardHeader title={contract.company} />
+                            <DataTableCardFields
+                              fields={[
+                                { label: "CNPJ", value: contract.cnpj || "—" },
+                                {
+                                  label: "Contrato",
+                                  value: <ContractFileName name={contract.file.name} />,
+                                },
+                                {
+                                  label: "Validade",
+                                  value: formatIsoToBr(contract.validUntil) || "—",
+                                },
+                              ]}
+                            />
+                            <DataTableCardActions className="justify-end">
+                              <ContractActions contract={contract} onView={setPreviewContract} />
+                            </DataTableCardActions>
+                          </DataTableCard>
+                        ))}
+                      </DataTableCardList>
 
-                    <TablePagination
-                      id="contracts"
-                      totalItems={filteredContracts.length}
-                      page={currentPage}
-                      pageSize={pageSize}
-                      onPageChange={setPage}
-                      onPageSizeChange={(size) => {
-                        setPageSize(size);
-                        setPage(1);
-                      }}
-                      className="px-4 pb-4"
-                    />
+                      <TablePagination
+                        id="contracts"
+                        totalItems={filteredContracts.length}
+                        page={currentPage}
+                        pageSize={pageSize}
+                        onPageChange={setPage}
+                        onPageSizeChange={(size) => {
+                          setPageSize(size);
+                          setPage(1);
+                        }}
+                        className="px-4 pb-4"
+                      />
                     </DataTable>
                   </div>
                 )}
