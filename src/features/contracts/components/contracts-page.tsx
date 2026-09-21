@@ -269,7 +269,11 @@ export function ContractsPage() {
                     }
                   />
                 ) : (
-                  <DataTable>
+                  <div className="mt-5 space-y-3">
+                    <h2 className="font-display text-base font-semibold tracking-tight text-foreground">
+                      Contratos cadastrados
+                    </h2>
+                    <DataTable>
                     <DataTableDesktop>
                       <DataTableRoot>
                         <DataTableHeader>
