@@ -83,7 +83,6 @@ export function PricingBasePage() {
     [storedVersions],
   );
 
-
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
@@ -320,7 +319,6 @@ export function PricingBasePage() {
         existingBaseTypes={existingBaseTypes}
         onCreate={(input) => createMutation.mutate(input)}
       />
-
 
       <ConfirmDialog
         open={clearOpen}

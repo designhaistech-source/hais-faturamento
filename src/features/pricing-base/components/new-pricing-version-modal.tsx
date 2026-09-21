@@ -50,7 +50,6 @@ export function NewPricingVersionModal({
     baseTypeTouched && baseType === "" ? "Selecione o tipo da base." : undefined;
   const replacesCurrent = baseType !== "" && existingBaseTypes.includes(baseType);
 
-
   function handleSelectedFile(selected: File | null) {
     setFileTouched(true);
     if (!selected) {
@@ -95,7 +94,6 @@ export function NewPricingVersionModal({
     onOpenChange(false);
   }
 
-
   return (
     <AppModal
       open={open}
@@ -136,7 +134,6 @@ export function NewPricingVersionModal({
         />
 
         <Field
-
           id="pricing-version-file"
           label="Arquivo CSV"
           required
@@ -251,7 +248,6 @@ export function NewPricingVersionModal({
             {`A nova versão substituirá a versão atual de ${pricingBaseTypeLabel(baseType as PricingBaseType)} nas próximas análises. A versão anterior continuará disponível no histórico.`}
           </p>
         )}
-
       </form>
     </AppModal>
   );
