@@ -310,99 +310,103 @@ export function PricingBasePage() {
                         Histórico de versões
                       </h2>
                       <DataTable>
-                      <DataTableDesktop>
-                        <DataTableRoot>
-                          <DataTableHeader>
-                            <tr>
-                              {COLUMNS.map((column) => (
-                                <DataTableHead
-                                  key={column}
-                                  className={column === "Ações" ? "text-right" : undefined}
-                                >
-                                  {column}
-                                </DataTableHead>
+                        <DataTableDesktop>
+                          <DataTableRoot>
+                            <DataTableHeader>
+                              <tr>
+                                {COLUMNS.map((column) => (
+                                  <DataTableHead
+                                    key={column}
+                                    className={column === "Ações" ? "text-right" : undefined}
+                                  >
+                                    {column}
+                                  </DataTableHead>
+                                ))}
+                              </tr>
+                            </DataTableHeader>
+                            <DataTableBody>
+                              {paginatedVersions.map((version) => (
+                                <DataTableRow key={version.id}>
+                                  <DataTableCell className="max-w-96">
+                                    <div className="flex min-w-0 items-center gap-2">
+                                      <VersionFileName name={version.file.name} />
+                                      {currentVersionIds.has(version.id) && (
+                                        <Badge
+                                          variant="success-soft"
+                                          size="sm"
+                                          className="shrink-0"
+                                        >
+                                          Atual
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </DataTableCell>
+                                  <DataTableCell>
+                                    <Badge variant="info-soft" size="sm" className="shrink-0">
+                                      {pricingBaseTypeLabel(version.baseType)}
+                                    </Badge>
+                                  </DataTableCell>
+                                  <DataTableCell>{version.createdBy}</DataTableCell>
+                                  <DataTableCell>
+                                    {formatVersionDateTime(version.createdAt)}
+                                  </DataTableCell>
+
+                                  <DataTableCell className="text-right">
+                                    <VersionActions version={version} />
+                                  </DataTableCell>
+                                </DataTableRow>
                               ))}
-                            </tr>
-                          </DataTableHeader>
-                          <DataTableBody>
-                            {paginatedVersions.map((version) => (
-                              <DataTableRow key={version.id}>
-                                <DataTableCell className="max-w-96">
-                                  <div className="flex min-w-0 items-center gap-2">
-                                    <VersionFileName name={version.file.name} />
+                            </DataTableBody>
+                          </DataTableRoot>
+                        </DataTableDesktop>
+
+                        <DataTableCardList divided>
+                          {paginatedVersions.map((version) => (
+                            <DataTableCard key={version.id} flat>
+                              <DataTableCardHeader
+                                title={
+                                  <>
+                                    <Badge variant="info-soft" size="sm" className="shrink-0">
+                                      {pricingBaseTypeLabel(version.baseType)}
+                                    </Badge>
                                     {currentVersionIds.has(version.id) && (
                                       <Badge variant="success-soft" size="sm" className="shrink-0">
                                         Atual
                                       </Badge>
                                     )}
-                                  </div>
-                                </DataTableCell>
-                                <DataTableCell>
-                                  <Badge variant="info-soft" size="sm" className="shrink-0">
-                                    {pricingBaseTypeLabel(version.baseType)}
-                                  </Badge>
-                                </DataTableCell>
-                                <DataTableCell>{version.createdBy}</DataTableCell>
-                                <DataTableCell>
-                                  {formatVersionDateTime(version.createdAt)}
-                                </DataTableCell>
+                                  </>
+                                }
+                                subtitle={version.file.name}
+                              />
+                              <DataTableCardFields
+                                fields={[
+                                  { label: "Cadastrado por", value: version.createdBy },
+                                  {
+                                    label: "Data do cadastro",
+                                    value: formatVersionDateTime(version.createdAt),
+                                  },
+                                ]}
+                              />
 
-                                <DataTableCell className="text-right">
-                                  <VersionActions version={version} />
-                                </DataTableCell>
-                              </DataTableRow>
-                            ))}
-                          </DataTableBody>
-                        </DataTableRoot>
-                      </DataTableDesktop>
+                              <DataTableCardActions className="justify-end">
+                                <VersionActions version={version} />
+                              </DataTableCardActions>
+                            </DataTableCard>
+                          ))}
+                        </DataTableCardList>
 
-                      <DataTableCardList divided>
-                        {paginatedVersions.map((version) => (
-                          <DataTableCard key={version.id} flat>
-                            <DataTableCardHeader
-                              title={
-                                <>
-                                  <Badge variant="info-soft" size="sm" className="shrink-0">
-                                    {pricingBaseTypeLabel(version.baseType)}
-                                  </Badge>
-                                  {currentVersionIds.has(version.id) && (
-                                    <Badge variant="success-soft" size="sm" className="shrink-0">
-                                      Atual
-                                    </Badge>
-                                  )}
-                                </>
-                              }
-                              subtitle={version.file.name}
-                            />
-                            <DataTableCardFields
-                              fields={[
-                                { label: "Cadastrado por", value: version.createdBy },
-                                {
-                                  label: "Data do cadastro",
-                                  value: formatVersionDateTime(version.createdAt),
-                                },
-                              ]}
-                            />
-
-                            <DataTableCardActions className="justify-end">
-                              <VersionActions version={version} />
-                            </DataTableCardActions>
-                          </DataTableCard>
-                        ))}
-                      </DataTableCardList>
-
-                      <TablePagination
-                        id="pricing-versions"
-                        totalItems={filteredVersions.length}
-                        page={currentPage}
-                        pageSize={pageSize}
-                        onPageChange={setPage}
-                        onPageSizeChange={(size) => {
-                          setPageSize(size);
-                          setPage(1);
-                        }}
-                        className="px-4 pb-4"
-                      />
+                        <TablePagination
+                          id="pricing-versions"
+                          totalItems={filteredVersions.length}
+                          page={currentPage}
+                          pageSize={pageSize}
+                          onPageChange={setPage}
+                          onPageSizeChange={(size) => {
+                            setPageSize(size);
+                            setPage(1);
+                          }}
+                          className="px-4 pb-4"
+                        />
                       </DataTable>
                     </div>
                   )}
