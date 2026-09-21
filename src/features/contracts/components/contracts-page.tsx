@@ -317,9 +317,10 @@ export function ContractsPage() {
 
                       <DataTableCardList divided>
                         {paginatedContracts.map((contract) => (
-                          <DataTableCard key={contract.id} flat>
+                          <DataTableCard key={contract.id} flat className="space-y-1.5 py-2.5">
                             <DataTableCardHeader title={contract.company} />
                             <DataTableCardFields
+                              className="gap-x-4 gap-y-1"
                               fields={[
                                 { label: "CNPJ", value: contract.cnpj || "—" },
                                 {
@@ -332,7 +333,7 @@ export function ContractsPage() {
                                 },
                               ]}
                             />
-                            <DataTableCardActions className="justify-end">
+                            <DataTableCardActions className="-mt-0.5 justify-end">
                               <ContractActions contract={contract} onView={setPreviewContract} />
                             </DataTableCardActions>
                           </DataTableCard>
