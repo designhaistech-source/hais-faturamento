@@ -363,7 +363,7 @@ export function PricingBasePage() {
 
                         <DataTableCardList divided>
                           {paginatedVersions.map((version) => (
-                            <DataTableCard key={version.id} flat>
+                            <DataTableCard key={version.id} flat className="space-y-1.5 py-2.5">
                               <DataTableCardHeader
                                 title={
                                   <>
@@ -380,6 +380,7 @@ export function PricingBasePage() {
                                 subtitle={version.file.name}
                               />
                               <DataTableCardFields
+                                className="gap-x-4 gap-y-1"
                                 fields={[
                                   { label: "Cadastrado por", value: version.createdBy },
                                   {
@@ -389,7 +390,7 @@ export function PricingBasePage() {
                                 ]}
                               />
 
-                              <DataTableCardActions className="justify-end">
+                              <DataTableCardActions className="-mt-0.5 justify-end">
                                 <VersionActions version={version} />
                               </DataTableCardActions>
                             </DataTableCard>
