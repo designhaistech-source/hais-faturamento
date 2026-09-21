@@ -293,11 +293,11 @@ export function ContractsPage() {
                               <DataTableCell className="font-mono">
                                 {contract.cnpj || "—"}
                               </DataTableCell>
-                              <DataTableCell>
-                                {formatIsoToBr(contract.validUntil) || "—"}
-                              </DataTableCell>
                               <DataTableCell className="max-w-72">
                                 <ContractFileName name={contract.file.name} />
+                              </DataTableCell>
+                              <DataTableCell>
+                                {formatIsoToBr(contract.validUntil) || "—"}
                               </DataTableCell>
                               <DataTableCell className="text-right">
                                 <ContractActions contract={contract} onView={setPreviewContract} />
