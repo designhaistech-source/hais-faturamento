@@ -7,7 +7,6 @@ import {
   type PricingVersion,
 } from "./pricing-versions";
 
-
 const BUCKET = "pricing-versions";
 /** Validade das URLs assinadas geradas para baixar o arquivo. */
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
@@ -75,7 +74,6 @@ export async function createPricingVersion(input: NewPricingVersionInput): Promi
   });
   if (error) throw error;
 }
-
 
 /** Ferramenta provisória de testes: apaga todas as versões e seus arquivos. */
 export async function deleteAllPricingVersions(): Promise<void> {
