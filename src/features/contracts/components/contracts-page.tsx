@@ -348,7 +348,8 @@ export function ContractsPage() {
                       }}
                       className="px-4 pb-4"
                     />
-                  </DataTable>
+                    </DataTable>
+                  </div>
                 )}
               </>
             )}
