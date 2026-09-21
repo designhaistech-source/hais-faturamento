@@ -239,7 +239,9 @@ export function PricingBasePage() {
                     activeCount={activeCount}
                     onClear={handleClearFilters}
                     clearDisabled={!hasFilters}
-                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_12rem_21rem_auto] lg:gap-4"
+                    // Colunas flexíveis no lg para a barra caber em uma única linha —
+                    // mesma altura visual da barra de filtros de Contratos.
+                    barColumnsClassName="lg:grid-cols-[minmax(7rem,1fr)_9rem_minmax(15rem,21rem)_auto] lg:gap-3 xl:grid-cols-[minmax(0,1fr)_12rem_21rem_auto] xl:gap-4"
                   >
                     <SearchField
                       id="pricing-versions-search"
