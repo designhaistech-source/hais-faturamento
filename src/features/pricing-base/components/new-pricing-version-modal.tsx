@@ -2,35 +2,53 @@ import { useRef, useState } from "react";
 import { CircleDollarSign, Info, Paperclip, Trash2, Upload } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
-import { Field } from "@/components/form-field";
+import { Field, SelectField, type SelectOption } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import type { NewPricingVersionInput } from "../data/pricing-versions";
+import {
+  PRICING_BASE_TYPES,
+  pricingBaseTypeLabel,
+  type NewPricingVersionInput,
+  type PricingBaseType,
+} from "../data/pricing-versions";
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+
+const BASE_TYPE_OPTIONS: SelectOption[] = PRICING_BASE_TYPES.map((type) => ({
+  value: type,
+  label: pricingBaseTypeLabel(type),
+}));
 
 interface NewPricingVersionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreate: (version: NewPricingVersionInput) => void;
+  /** Tipos de base que já possuem ao menos uma versão cadastrada. */
+  existingBaseTypes?: readonly PricingBaseType[];
 }
 
-/** Cadastro de uma nova versão da base de precificação (somente arquivo CSV). */
+/** Cadastro de uma nova versão da base de precificação (tipo da base + arquivo CSV). */
 export function NewPricingVersionModal({
   open,
   onOpenChange,
   onCreate,
+  existingBaseTypes = [],
 }: NewPricingVersionModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [baseType, setBaseType] = useState<PricingBaseType | "">("");
+  const [baseTypeTouched, setBaseTypeTouched] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [fileTouched, setFileTouched] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [invalidFileMessage, setInvalidFileMessage] = useState<string | null>(null);
 
-  const canSubmit = Boolean(file);
+  const canSubmit = Boolean(file) && baseType !== "";
   const fileError =
     invalidFileMessage ?? (fileTouched && !file ? "Selecione o arquivo CSV da base." : undefined);
+  const baseTypeError =
+    baseTypeTouched && baseType === "" ? "Selecione o tipo da base." : undefined;
+  const replacesCurrent = baseType !== "" && existingBaseTypes.includes(baseType);
 
   function handleSelectedFile(selected: File | null) {
     setFileTouched(true);
@@ -54,6 +72,8 @@ export function NewPricingVersionModal({
   }
 
   function reset() {
+    setBaseType("");
+    setBaseTypeTouched(false);
     setFile(null);
     setFileTouched(false);
     setInvalidFileMessage(null);
@@ -67,8 +87,9 @@ export function NewPricingVersionModal({
 
   function submit() {
     setFileTouched(true);
-    if (!file) return;
-    onCreate({ file });
+    setBaseTypeTouched(true);
+    if (!file || baseType === "") return;
+    onCreate({ file, baseType });
     reset();
     onOpenChange(false);
   }
@@ -98,6 +119,20 @@ export function NewPricingVersionModal({
           submit();
         }}
       >
+        <SelectField
+          id="pricing-version-base-type"
+          label="Tipo da base"
+          required
+          placeholder="Selecione o tipo da base"
+          options={BASE_TYPE_OPTIONS}
+          value={baseType === "" ? undefined : baseType}
+          error={baseTypeError}
+          onValueChange={(value) => {
+            setBaseTypeTouched(true);
+            setBaseType(value as PricingBaseType);
+          }}
+        />
+
         <Field
           id="pricing-version-file"
           label="Arquivo CSV"
@@ -207,10 +242,12 @@ export function NewPricingVersionModal({
           </div>
         </Field>
 
-        <p className="flex items-start gap-2 text-xs text-muted-foreground">
-          <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />A nova versão substituirá
-          a atual nas próximas análises. A versão atual continuará disponível no histórico.
-        </p>
+        {replacesCurrent && (
+          <p className="flex items-start gap-2 text-xs text-muted-foreground">
+            <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+            {`A nova versão substituirá a versão atual de ${pricingBaseTypeLabel(baseType as PricingBaseType)} nas próximas análises. A versão anterior continuará disponível no histórico.`}
+          </p>
+        )}
       </form>
     </AppModal>
   );
