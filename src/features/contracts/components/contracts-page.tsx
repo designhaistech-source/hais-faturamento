@@ -47,7 +47,7 @@ import {
   prefetchContractFile,
 } from "../data/contracts-service";
 
-const COLUMNS = ["Empresa", "CNPJ", "Validade", "Contrato", "Ações"] as const;
+const COLUMNS = ["Empresa", "CNPJ", "Contrato", "Validade", "Ações"] as const;
 
 async function downloadContractFile(contract: Contract) {
   try {
