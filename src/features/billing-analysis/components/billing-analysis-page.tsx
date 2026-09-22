@@ -207,7 +207,7 @@ export function BillingAnalysisPage() {
       <NewBillingAnalysisModal
         open={modalOpen}
         onOpenChange={setModalOpen}
-        onSubmit={(file) => void handleSubmit(file)}
+        onSubmit={(input) => void handleSubmit(input)}
       />
     </TooltipProvider>
   );
