@@ -416,6 +416,14 @@ export function ContractsPage() {
         onDownload={(contract) => void downloadContractFile(contract)}
       />
 
+      <ContractRulesModal
+        contract={rulesContract}
+        open={rulesContract !== null}
+        onOpenChange={(next) => {
+          if (!next) setRulesContract(null);
+        }}
+      />
+
       <ConfirmDialog
         open={clearOpen}
         onOpenChange={setClearOpen}
@@ -445,16 +453,33 @@ function ContractFileName({ name }: { name: string }) {
   );
 }
 
-/** Ações da linha: apenas visualizar e baixar, identificadas por tooltip. */
+/** Ações da linha: visualizar, baixar e revisar as regras, identificadas por tooltip. */
 function ContractActions({
   contract,
   onView,
+  onRules,
 }: {
   contract: Contract;
   onView: (contract: Contract) => void;
+  onRules: (contract: Contract) => void;
 }) {
   return (
     <div className="inline-flex items-center gap-1">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={`Regras de remuneração do contrato de ${contract.company}`}
+            onClick={() => onRules(contract)}
+          >
+            <Scale className="size-4" aria-hidden="true" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Regras de remuneração</TooltipContent>
+      </Tooltip>
+
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
