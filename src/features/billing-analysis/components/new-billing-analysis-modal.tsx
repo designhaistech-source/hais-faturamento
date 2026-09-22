@@ -99,8 +99,10 @@ export function NewBillingAnalysisModal({
 
   function submit() {
     setFileTouched(true);
-    if (!file) return;
-    onSubmit?.(file);
+    setContractTouched(true);
+    const contract = contracts.find((item) => item.id === contractId);
+    if (!file || !contract) return;
+    onSubmit?.({ file, contractId: contract.id, contractCompany: contract.company });
     reset();
     onOpenChange(false);
   }
