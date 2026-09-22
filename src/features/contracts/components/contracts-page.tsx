@@ -321,6 +321,9 @@ export function ContractsPage() {
                                 <DataTableCell>
                                   {formatIsoToBr(contract.validUntil) || "—"}
                                 </DataTableCell>
+                                <DataTableCell>
+                                  <ContractRulesStatusBadge status={rulesStatusOf(contract.id)} />
+                                </DataTableCell>
                                 <DataTableCell className="text-right">
                                   <ContractActions
                                     contract={contract}
