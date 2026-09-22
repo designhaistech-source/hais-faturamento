@@ -93,7 +93,7 @@ export async function saveContractRules(
       valid_from: rule.validFrom ? rule.validFrom : null,
       valid_to: rule.validTo ? rule.validTo : null,
       source_excerpt: rule.sourceExcerpt,
-      reviewed: true,
+      reviewed,
     })),
   );
   if (error) throw error;
