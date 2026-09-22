@@ -113,6 +113,7 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
     mutationFn: () => saveContractRules(contractId, rules),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: contractRulesQueryKey(contractId) });
+      await queryClient.invalidateQueries({ queryKey: contractRulesStatusQueryKey });
       toast.success("Regras do contrato salvas.");
       onOpenChange(false);
     },
