@@ -51,7 +51,12 @@ function firstTagValue(document: Document, tagNames: readonly string[]): string 
 }
 
 const PROVIDER_TAGS = ["nomeContratado", "nomePrestador", "razaoSocial"] as const;
-const PROVIDER_CNPJ_TAGS = ["cnpjContratado", "CNPJ", "cnpj", "codigoPrestadorNaOperadora"] as const;
+const PROVIDER_CNPJ_TAGS = [
+  "cnpjContratado",
+  "CNPJ",
+  "cnpj",
+  "codigoPrestadorNaOperadora",
+] as const;
 const HEALTH_PLAN_TAGS = ["nomeOperadora", "razaoSocialOperadora"] as const;
 const HEALTH_PLAN_ANS_TAGS = ["registroANS", "numeroRegistroANS"] as const;
 
