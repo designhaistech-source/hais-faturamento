@@ -132,6 +132,24 @@ export function NewBillingAnalysisModal({
           submit();
         }}
       >
+        <SelectField
+          id="billing-analysis-contract"
+          label="Contrato"
+          required
+          placeholder="Selecione um contrato"
+          options={contractOptions}
+          disabled={contracts.length === 0}
+          // line-height 1 do trigger cortava o texto no mobile: usa leading normal.
+          triggerClassName="text-base/normal sm:text-sm/normal [&>span]:line-clamp-none [&>span]:block [&>span]:truncate"
+          value={contractId === "" ? undefined : contractId}
+          error={contractError}
+          hint={contractHint}
+          onValueChange={(value) => {
+            setContractTouched(true);
+            setContractId(value);
+          }}
+        />
+
         <Field
           id="billing-analysis-file"
           label="Arquivo XML"
