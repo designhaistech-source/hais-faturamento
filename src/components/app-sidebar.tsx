@@ -3,6 +3,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutGrid,
   FileText,
+  FileSearch,
   Database,
   HelpCircle,
   CircleUser,
@@ -64,7 +65,13 @@ function BrandMark({ className }: { className?: string }) {
   );
 }
 
-export type ItemKey = "inicio" | "contratos" | "base-precificacao" | "design-system" | "icones";
+export type ItemKey =
+  | "inicio"
+  | "contratos"
+  | "base-precificacao"
+  | "analise-faturamento"
+  | "design-system"
+  | "icones";
 
 export function AppSidebar({ activeKey }: { activeKey: ItemKey }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -243,6 +250,16 @@ function SidebarNav({
           collapsed={collapsed}
           onNavigate={onNavigate}
         />
+        <SidebarItem
+          icon={FileSearch}
+          label="Análise de faturamento"
+          to="/analise-faturamento"
+          active={activeKey === "analise-faturamento"}
+          hint="Análise de arquivos XML TISS para identificar divergências nos valores faturados."
+          collapsed={collapsed}
+          onNavigate={onNavigate}
+        />
+
       </SidebarGroup>
     </nav>
   );
