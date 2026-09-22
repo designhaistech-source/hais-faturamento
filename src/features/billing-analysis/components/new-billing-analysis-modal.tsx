@@ -46,6 +46,7 @@ export function NewBillingAnalysisModal({
   const [contractTouched, setContractTouched] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [invalidFileMessage, setInvalidFileMessage] = useState<string | null>(null);
+  const [rulesModalOpen, setRulesModalOpen] = useState(false);
 
   const contractsQuery = useQuery<Contract[]>({
     queryKey: contractsQueryKey,
@@ -57,8 +58,19 @@ export function NewBillingAnalysisModal({
     () => contracts.map((contract) => ({ value: contract.id, label: contract.company })),
     [contracts],
   );
+  const selectedContract = contracts.find((item) => item.id === contractId) ?? null;
 
-  const canSubmit = Boolean(file) && contractId !== "";
+  const rulesQuery = useQuery<ContractRule[]>({
+    queryKey: contractRulesQueryKey(contractId),
+    queryFn: () => listContractRules(contractId),
+    enabled: open && contractId !== "",
+  });
+  const rules = rulesQuery.data;
+  const rulesReady =
+    rules !== undefined && rules.length > 0 && rules.every((rule) => rule.reviewed);
+  const showRulesWarning = contractId !== "" && rules !== undefined && !rulesReady;
+
+  const canSubmit = Boolean(file) && contractId !== "" && rulesReady;
   const fileError =
     invalidFileMessage ?? (fileTouched && !file ? "Selecione o arquivo XML TISS." : undefined);
   const contractError =
@@ -69,7 +81,10 @@ export function NewBillingAnalysisModal({
       ? "Não foi possível carregar os contratos."
       : contracts.length === 0
         ? "Nenhum contrato cadastrado."
-        : undefined;
+        : contractId !== "" && rulesQuery.isPending
+          ? "Verificando as regras de remuneração…"
+          : undefined;
+
 
   function handleSelectedFile(selected: File | null) {
     setFileTouched(true);
