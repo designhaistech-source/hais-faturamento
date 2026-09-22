@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { FileSearch, Plus } from "lucide-react";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -7,15 +8,15 @@ import { AppBreadcrumb } from "@/components/app-breadcrumb";
 import { Button } from "@/components/ui/button";
 import { EmptyStateCard } from "@/components/empty-state-card";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { NewBillingAnalysisModal } from "./new-billing-analysis-modal";
 
 /**
  * Análise de faturamento: página inicial da funcionalidade.
- * O fluxo de envio do XML TISS será conectado aos botões "Nova análise"
- * em uma etapa posterior.
+ * O processamento do XML TISS será implementado em uma etapa posterior.
  */
 export function BillingAnalysisPage() {
-  /** Placeholder do fluxo de envio do XML TISS (implementação futura). */
-  const handleNewAnalysis = () => {};
+  const [modalOpen, setModalOpen] = useState(false);
+  const handleNewAnalysis = () => setModalOpen(true);
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -53,6 +54,8 @@ export function BillingAnalysisPage() {
           <SiteFooter />
         </div>
       </div>
+
+      <NewBillingAnalysisModal open={modalOpen} onOpenChange={setModalOpen} />
     </TooltipProvider>
   );
 }
