@@ -63,10 +63,13 @@ export function BillingAnalysisPage() {
     [analyses, currentPage, pageSize],
   );
 
-  async function handleSubmit(file: File) {
+  async function handleSubmit(input: NewBillingAnalysisInput) {
+    const { file } = input;
     const parties = await readAnalysisPartiesFromXml(file);
     const analysis: BillingAnalysis = {
       id: crypto.randomUUID(),
+      contractId: input.contractId,
+      contractCompany: input.contractCompany,
       fileName: file.name,
       provider: parties.provider,
       healthPlan: parties.healthPlan,
