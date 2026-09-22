@@ -47,8 +47,14 @@ import {
   listContracts,
   prefetchContractFile,
 } from "../data/contracts-service";
+import { contractRulesStatusLabel, type ContractRulesStatus } from "../data/contract-rules";
+import {
+  contractRulesStatusQueryKey,
+  listContractRulesStatuses,
+} from "../data/contract-rules-service";
+import { Badge } from "@/components/ui/badge";
 
-const COLUMNS = ["Empresa", "CNPJ", "Contrato", "Validade", "Ações"] as const;
+const COLUMNS = ["Empresa", "CNPJ", "Contrato", "Validade", "Regras", "Ações"] as const;
 
 async function downloadContractFile(contract: Contract) {
   try {
@@ -77,6 +83,16 @@ export function ContractsPage() {
     queryFn: listContracts,
   });
   const storedContracts = contractsQuery.data ?? [];
+
+  /** Situação real das regras de cada contrato (extraídas, pendentes ou revisadas). */
+  const rulesStatusQuery = useQuery({
+    queryKey: contractRulesStatusQueryKey,
+    queryFn: listContractRulesStatuses,
+  });
+  const rulesStatuses = rulesStatusQuery.data;
+  const rulesStatusOf = (contractId: string): ContractRulesStatus | null =>
+    rulesStatuses ? (rulesStatuses[contractId] ?? "not_extracted") : null;
+
   /** Ferramenta provisória de testes: simula a página sem contratos, sem alterar dados. */
   const [simulateEmpty, setSimulateEmpty] = useState(false);
   const contracts = simulateEmpty ? [] : storedContracts;
@@ -305,6 +321,9 @@ export function ContractsPage() {
                                 <DataTableCell>
                                   {formatIsoToBr(contract.validUntil) || "—"}
                                 </DataTableCell>
+                                <DataTableCell>
+                                  <ContractRulesStatusBadge status={rulesStatusOf(contract.id)} />
+                                </DataTableCell>
                                 <DataTableCell className="text-right">
                                   <ContractActions
                                     contract={contract}
@@ -333,6 +352,12 @@ export function ContractsPage() {
                                 {
                                   label: "Validade",
                                   value: formatIsoToBr(contract.validUntil) || "—",
+                                },
+                                {
+                                  label: "Regras",
+                                  value: (
+                                    <ContractRulesStatusBadge status={rulesStatusOf(contract.id)} />
+                                  ),
                                 },
                               ]}
                             />
@@ -433,6 +458,27 @@ export function ContractsPage() {
         onConfirm={() => clearMutation.mutate()}
       />
     </TooltipProvider>
+  );
+}
+
+/**
+ * Situação das regras de remuneração do contrato. O texto sozinho identifica o
+ * estado; a cor apenas reforça (o estado inicial é neutro, não um erro).
+ */
+function ContractRulesStatusBadge({ status }: { status: ContractRulesStatus | null }) {
+  if (status === null) {
+    return <span className="text-sm text-muted-foreground">—</span>;
+  }
+  const variant =
+    status === "reviewed"
+      ? "success-soft"
+      : status === "pending_review"
+        ? "info-soft"
+        : "secondary";
+  return (
+    <Badge variant={variant} size="md">
+      {contractRulesStatusLabel(status)}
+    </Badge>
   );
 }
 

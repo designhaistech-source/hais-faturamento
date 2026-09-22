@@ -1,9 +1,36 @@
 import { supabase } from "@/integrations/supabase/client";
 
-import { toContractRuleBase, type ContractRule, type ContractRuleDraft } from "./contract-rules";
+import {
+  contractRulesStatusOf,
+  toContractRuleBase,
+  type ContractRule,
+  type ContractRuleDraft,
+  type ContractRulesStatus,
+} from "./contract-rules";
 
 export const contractRulesQueryKey = (contractId: string) =>
   ["contract-rules", contractId] as const;
+
+export const contractRulesStatusQueryKey = ["contract-rules-status"] as const;
+
+/** Situação das regras de todos os contratos, para a listagem de Contratos. */
+export async function listContractRulesStatuses(): Promise<Record<string, ContractRulesStatus>> {
+  const { data, error } = await supabase.from("contract_rules").select("contract_id, reviewed");
+  if (error) throw error;
+
+  const grouped = new Map<string, { reviewed: boolean }[]>();
+  for (const row of data ?? []) {
+    const current = grouped.get(row.contract_id) ?? [];
+    current.push({ reviewed: row.reviewed });
+    grouped.set(row.contract_id, current);
+  }
+
+  const statuses: Record<string, ContractRulesStatus> = {};
+  for (const [contractId, rules] of grouped) {
+    statuses[contractId] = contractRulesStatusOf(rules);
+  }
+  return statuses;
+}
 
 function toNumber(value: unknown, fallback: number): number {
   const parsed = typeof value === "number" ? value : Number(value);
@@ -36,11 +63,16 @@ export async function listContractRules(contractId: string): Promise<ContractRul
   }));
 }
 
-/** Substitui todas as regras do contrato pelas regras revisadas no formulário. */
+/**
+ * Substitui todas as regras do contrato. `reviewed` distingue as regras apenas
+ * extraídas pela IA (revisão pendente) das confirmadas pela pessoa usuária.
+ */
 export async function saveContractRules(
   contractId: string,
   rules: ContractRuleDraft[],
+  options: { reviewed?: boolean } = {},
 ): Promise<void> {
+  const reviewed = options.reviewed ?? true;
   const { error: deleteError } = await supabase
     .from("contract_rules")
     .delete()
@@ -61,7 +93,7 @@ export async function saveContractRules(
       valid_from: rule.validFrom ? rule.validFrom : null,
       valid_to: rule.validTo ? rule.validTo : null,
       source_excerpt: rule.sourceExcerpt,
-      reviewed: true,
+      reviewed,
     })),
   );
   if (error) throw error;

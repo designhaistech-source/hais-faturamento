@@ -10,8 +10,10 @@ import { cn } from "@/lib/utils";
 import {
   ContractRulesModal,
   contractRulesQueryKey,
+  contractRulesStatusQueryKey,
   contractsQueryKey,
   listContractRules,
+  listContractRulesStatuses,
   listContracts,
   type Contract,
   type ContractRule,
@@ -53,9 +55,28 @@ export function NewBillingAnalysisModal({
     enabled: open,
   });
   const contracts = contractsQuery.data ?? [];
+
+  /** Situação das regras de cada contrato: identifica quem já está pronto para análise. */
+  const statusesQuery = useQuery({
+    queryKey: contractRulesStatusQueryKey,
+    queryFn: listContractRulesStatuses,
+    enabled: open,
+  });
+  const statuses = statusesQuery.data;
+
   const contractOptions = useMemo<SelectOption[]>(
-    () => contracts.map((contract) => ({ value: contract.id, label: contract.company })),
-    [contracts],
+    () =>
+      contracts.map((contract) => {
+        const status = statuses ? (statuses[contract.id] ?? "not_extracted") : null;
+        return {
+          value: contract.id,
+          label:
+            status !== null && status !== "reviewed"
+              ? `${contract.company} — regras pendentes de revisão`
+              : contract.company,
+        };
+      }),
+    [contracts, statuses],
   );
   const selectedContract = contracts.find((item) => item.id === contractId) ?? null;
 
