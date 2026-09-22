@@ -86,7 +86,7 @@ export function NewBillingAnalysisModal({
             Cancelar
           </Button>
           <Button type="button" size="sm" disabled={!canSubmit} onClick={submit}>
-            Analisar faturamento
+            Analisar
           </Button>
         </>
       }
