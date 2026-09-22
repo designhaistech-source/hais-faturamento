@@ -86,6 +86,8 @@ export function NewBillingAnalysisModal({
   function reset() {
     setFile(null);
     setFileTouched(false);
+    setContractId("");
+    setContractTouched(false);
     setInvalidFileMessage(null);
     if (inputRef.current) inputRef.current.value = "";
   }
