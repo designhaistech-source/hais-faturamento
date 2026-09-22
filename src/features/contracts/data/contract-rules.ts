@@ -56,6 +56,25 @@ export interface ContractRule extends ContractRuleDraft {
   reviewed: boolean;
 }
 
+/** Situação das regras de remuneração de um contrato. */
+export type ContractRulesStatus = "not_extracted" | "pending_review" | "reviewed";
+
+const CONTRACT_RULES_STATUS_LABELS: Record<ContractRulesStatus, string> = {
+  not_extracted: "Não extraídas",
+  pending_review: "Revisão pendente",
+  reviewed: "Revisadas",
+};
+
+export function contractRulesStatusLabel(status: ContractRulesStatus): string {
+  return CONTRACT_RULES_STATUS_LABELS[status];
+}
+
+/** Situação derivada das regras salvas: nunca definida apenas visualmente. */
+export function contractRulesStatusOf(rules: Pick<ContractRule, "reviewed">[]): ContractRulesStatus {
+  if (rules.length === 0) return "not_extracted";
+  return rules.every((rule) => rule.reviewed) ? "reviewed" : "pending_review";
+}
+
 export function emptyContractRuleDraft(): ContractRuleDraft {
   return {
     category: "",
