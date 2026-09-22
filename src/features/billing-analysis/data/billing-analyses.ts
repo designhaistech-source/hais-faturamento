@@ -47,7 +47,16 @@ function firstTagValue(document: Document, tagNames: readonly string[]): string 
 }
 
 const PROVIDER_TAGS = ["nomeContratado", "nomePrestador", "razaoSocial"] as const;
-const HEALTH_PLAN_TAGS = ["nomeOperadora", "registroANS"] as const;
+const PROVIDER_CNPJ_TAGS = ["cnpjContratado", "CNPJ", "cnpj", "codigoPrestadorNaOperadora"] as const;
+const HEALTH_PLAN_TAGS = ["nomeOperadora", "razaoSocialOperadora"] as const;
+const HEALTH_PLAN_ANS_TAGS = ["registroANS", "numeroRegistroANS"] as const;
+
+/** Formata 14 dígitos como CNPJ (00.000.000/0000-00); retorna null se não houver 14 dígitos. */
+function formatCnpj(value: string): string | null {
+  const digits = value.replace(/\D/g, "");
+  if (digits.length !== 14) return null;
+  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+}
 
 /** Extrai prestador e operadora de um XML TISS enviado pelo usuário. */
 export async function readAnalysisPartiesFromXml(file: File): Promise<{
@@ -60,10 +69,17 @@ export async function readAnalysisPartiesFromXml(file: File): Promise<{
     if (parsed.getElementsByTagName("parsererror").length > 0) {
       return { provider: UNIDENTIFIED_LABEL, healthPlan: UNIDENTIFIED_LABEL };
     }
-    return {
-      provider: firstTagValue(parsed, PROVIDER_TAGS) ?? UNIDENTIFIED_LABEL,
-      healthPlan: firstTagValue(parsed, HEALTH_PLAN_TAGS) ?? UNIDENTIFIED_LABEL,
-    };
+
+    const providerName = firstTagValue(parsed, PROVIDER_TAGS);
+    const providerCnpj = firstTagValue(parsed, PROVIDER_CNPJ_TAGS);
+    const provider =
+      providerName ?? (providerCnpj ? formatCnpj(providerCnpj) : null) ?? UNIDENTIFIED_LABEL;
+
+    const healthPlanName = firstTagValue(parsed, HEALTH_PLAN_TAGS);
+    const ansCode = firstTagValue(parsed, HEALTH_PLAN_ANS_TAGS)?.replace(/\D/g, "");
+    const healthPlan = healthPlanName ?? (ansCode ? `ANS ${ansCode}` : null) ?? UNIDENTIFIED_LABEL;
+
+    return { provider, healthPlan };
   } catch {
     return { provider: UNIDENTIFIED_LABEL, healthPlan: UNIDENTIFIED_LABEL };
   }
