@@ -121,12 +121,14 @@ export function findRuleForItem(
   const byCategory = candidates.find((rule) => {
     const ruleCategory = rule.category.trim().toLowerCase();
     if (ruleCategory === "" || category === "") return false;
-    return ruleCategory === category || category.includes(ruleCategory) || ruleCategory.includes(category);
+    return (
+      ruleCategory === category ||
+      category.includes(ruleCategory) ||
+      ruleCategory.includes(category)
+    );
   });
   if (byCategory) return byCategory;
 
   /** Regra geral: sem códigos e sem categoria específica. */
-  return (
-    candidates.find((rule) => rule.codes.trim() === "" && rule.category.trim() === "") ?? null
-  );
+  return candidates.find((rule) => rule.codes.trim() === "" && rule.category.trim() === "") ?? null;
 }

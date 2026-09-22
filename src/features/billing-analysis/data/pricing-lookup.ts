@@ -4,7 +4,10 @@ import {
   downloadPricingVersionBlob,
   listPricingVersions,
 } from "@/features/pricing-base/data/pricing-versions-service";
-import type { PricingBaseType, PricingVersion } from "@/features/pricing-base/data/pricing-versions";
+import type {
+  PricingBaseType,
+  PricingVersion,
+} from "@/features/pricing-base/data/pricing-versions";
 
 import { parseNumber } from "./tiss-xml";
 
@@ -47,7 +50,10 @@ function splitLine(line: string, delimiter: string): string[] {
 
 /** Chave usada na consulta: sem separadores e sem zeros à esquerda. */
 export function normalizeCode(code: string): string {
-  const cleaned = code.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const cleaned = code
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
   return cleaned.replace(/^0+(?=\d)/, "");
 }
 

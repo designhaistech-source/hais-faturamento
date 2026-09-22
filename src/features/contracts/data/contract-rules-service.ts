@@ -1,10 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-import {
-  toContractRuleBase,
-  type ContractRule,
-  type ContractRuleDraft,
-} from "./contract-rules";
+import { toContractRuleBase, type ContractRule, type ContractRuleDraft } from "./contract-rules";
 
 export const contractRulesQueryKey = (contractId: string) =>
   ["contract-rules", contractId] as const;

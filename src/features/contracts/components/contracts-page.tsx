@@ -306,7 +306,7 @@ export function ContractsPage() {
                                   {formatIsoToBr(contract.validUntil) || "—"}
                                 </DataTableCell>
                                 <DataTableCell className="text-right">
-                                   <ContractActions
+                                  <ContractActions
                                     contract={contract}
                                     onView={setPreviewContract}
                                     onRules={setRulesContract}

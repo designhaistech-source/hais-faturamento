@@ -20,7 +20,11 @@ import {
   toContractRuleBase,
   type ContractRuleDraft,
 } from "../data/contract-rules";
-import { contractRulesQueryKey, listContractRules, saveContractRules } from "../data/contract-rules-service";
+import {
+  contractRulesQueryKey,
+  listContractRules,
+  saveContractRules,
+} from "../data/contract-rules-service";
 import { readContractText } from "../data/contract-text";
 
 const BASE_OPTIONS: SelectOption[] = CONTRACT_RULE_BASES.map((base) => ({
@@ -58,7 +62,11 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
   useEffect(() => {
     if (!open) return;
     if (!rulesQuery.data) return;
-    setRules(rulesQuery.data.map(({ id: _id, contractId: _contractId, reviewed: _reviewed, ...draft }) => draft));
+    setRules(
+      rulesQuery.data.map(
+        ({ id: _id, contractId: _contractId, reviewed: _reviewed, ...draft }) => draft,
+      ),
+    );
   }, [open, rulesQuery.data]);
 
   const extractMutation = useMutation({

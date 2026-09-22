@@ -30,7 +30,10 @@ import {
   DataTableRow,
 } from "@/components/data-table";
 
-import { NewBillingAnalysisModal, type NewBillingAnalysisInput } from "./new-billing-analysis-modal";
+import {
+  NewBillingAnalysisModal,
+  type NewBillingAnalysisInput,
+} from "./new-billing-analysis-modal";
 import {
   analysisResultBadgeVariant,
   analysisResultLabel,
@@ -87,9 +90,7 @@ export function BillingAnalysisPage() {
     },
     onError: async (cause: unknown) => {
       await queryClient.invalidateQueries({ queryKey: billingAnalysesQueryKey });
-      toast.error(
-        cause instanceof Error ? cause.message : "Não foi possível concluir a análise.",
-      );
+      toast.error(cause instanceof Error ? cause.message : "Não foi possível concluir a análise.");
     },
   });
 
@@ -282,7 +283,10 @@ function AnalysisResultBadge({ analysis }: { analysis: BillingAnalysis }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span tabIndex={0} className="inline-flex rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <span
+          tabIndex={0}
+          className="inline-flex rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
           <Badge variant={analysisResultBadgeVariant(analysis)} size="sm" className="shrink-0">
             {analysisResultLabel(analysis)}
           </Badge>

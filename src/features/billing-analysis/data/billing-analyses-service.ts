@@ -146,8 +146,7 @@ export async function runBillingAnalysis(input: RunBillingAnalysisInput): Promis
     await completeAnalysis(analysisId, result.totals);
     return analysisId;
   } catch (cause) {
-    const message =
-      cause instanceof Error ? cause.message : "Não foi possível concluir a análise.";
+    const message = cause instanceof Error ? cause.message : "Não foi possível concluir a análise.";
     await failAnalysis(analysisId, message);
     throw cause;
   }
