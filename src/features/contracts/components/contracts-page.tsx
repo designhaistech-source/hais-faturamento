@@ -353,6 +353,12 @@ export function ContractsPage() {
                                   label: "Validade",
                                   value: formatIsoToBr(contract.validUntil) || "—",
                                 },
+                                {
+                                  label: "Regras",
+                                  value: (
+                                    <ContractRulesStatusBadge status={rulesStatusOf(contract.id)} />
+                                  ),
+                                },
                               ]}
                             />
                             <DataTableCardActions className="-mt-0.5 justify-end">
