@@ -461,6 +461,23 @@ export function ContractsPage() {
   );
 }
 
+/**
+ * Situação das regras de remuneração do contrato. O texto sozinho identifica o
+ * estado; a cor apenas reforça (o estado inicial é neutro, não um erro).
+ */
+function ContractRulesStatusBadge({ status }: { status: ContractRulesStatus | null }) {
+  if (status === null) {
+    return <span className="text-sm text-muted-foreground">—</span>;
+  }
+  const variant =
+    status === "reviewed" ? "success-soft" : status === "pending_review" ? "info-soft" : "secondary";
+  return (
+    <Badge variant={variant} size="md">
+      {contractRulesStatusLabel(status)}
+    </Badge>
+  );
+}
+
 /** Nome do arquivo truncado, com o valor completo em tooltip (mouse e teclado). */
 function ContractFileName({ name }: { name: string }) {
   return (
