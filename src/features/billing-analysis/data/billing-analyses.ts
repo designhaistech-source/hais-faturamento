@@ -110,9 +110,16 @@ export async function readAnalysisPartiesFromXml(file: File): Promise<{
 export function analysisResultLabel(analysis: BillingAnalysis): string {
   if (analysis.status === "processing") return "Processando";
   if (analysis.status === "failed") return "Não concluída";
-  const count = analysis.divergenceCount;
-  if (count === 0) return "Sem divergências";
-  return `${count} ${count === 1 ? "divergência" : "divergências"}`;
+
+  const divergences = analysis.divergenceCount;
+  const unanalyzed = analysis.unanalyzedCount;
+  const divergenceLabel = `${divergences} ${divergences === 1 ? "divergência" : "divergências"}`;
+  const unanalyzedLabel = `${unanalyzed} não ${unanalyzed === 1 ? "analisado" : "analisados"}`;
+
+  if (divergences > 0 && unanalyzed > 0) return `${divergenceLabel} · ${unanalyzedLabel}`;
+  if (divergences > 0) return divergenceLabel;
+  if (unanalyzed > 0) return unanalyzedLabel;
+  return "Sem divergências";
 }
 
 /** Variante do Badge usada para cada estado do resultado. */
@@ -121,5 +128,9 @@ export function analysisResultBadgeVariant(
 ): "warning-soft" | "success-soft" | "destructive-soft" {
   if (analysis.status === "processing") return "warning-soft";
   if (analysis.status === "failed") return "destructive-soft";
-  return analysis.divergenceCount > 0 ? "destructive-soft" : "success-soft";
+  if (analysis.divergenceCount > 0) return "destructive-soft";
+  // Itens não analisados não são sucesso: nunca equivalem a "sem divergência".
+  if (analysis.unanalyzedCount > 0) return "warning-soft";
+  return "success-soft";
 }
+

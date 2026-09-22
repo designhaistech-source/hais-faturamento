@@ -124,6 +124,12 @@ export interface RunBillingAnalysisInput {
  * bases de precificação cadastradas e persiste o resultado item por item.
  */
 export async function runBillingAnalysis(input: RunBillingAnalysisInput): Promise<string> {
+  // A análise só roda com regras contratuais já revisadas e salvas.
+  const contractRules = await listContractRules(input.contractId);
+  if (contractRules.length === 0 || !contractRules.every((rule) => rule.reviewed)) {
+    throw new Error("Este contrato ainda não possui regras de remuneração revisadas.");
+  }
+
   const xml = await parseTissXml(input.file);
   const parties = readAnalysisPartiesFromXmlDocument(xml);
   const items = readTissItems(xml);
@@ -135,6 +141,7 @@ export async function runBillingAnalysis(input: RunBillingAnalysisInput): Promis
     provider: parties.provider,
     healthPlan: parties.healthPlan,
   });
+
 
   try {
     const [rules, bases] = await Promise.all([
