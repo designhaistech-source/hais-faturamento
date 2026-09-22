@@ -83,6 +83,16 @@ export function ContractsPage() {
     queryFn: listContracts,
   });
   const storedContracts = contractsQuery.data ?? [];
+
+  /** Situação real das regras de cada contrato (extraídas, pendentes ou revisadas). */
+  const rulesStatusQuery = useQuery({
+    queryKey: contractRulesStatusQueryKey,
+    queryFn: listContractRulesStatuses,
+  });
+  const rulesStatuses = rulesStatusQuery.data;
+  const rulesStatusOf = (contractId: string): ContractRulesStatus | null =>
+    rulesStatuses ? (rulesStatuses[contractId] ?? "not_extracted") : null;
+
   /** Ferramenta provisória de testes: simula a página sem contratos, sem alterar dados. */
   const [simulateEmpty, setSimulateEmpty] = useState(false);
   const contracts = simulateEmpty ? [] : storedContracts;
