@@ -36,6 +36,32 @@ export async function createPricingVersionFileUrl(
   return data.signedUrl;
 }
 
+/** Cache em memória (por sessão) dos arquivos já baixados do storage. */
+const pricingBlobCache = new Map<string, Promise<Blob>>();
+
+/** Baixa o CSV da versão para uso nas análises de faturamento. */
+export function downloadPricingVersionBlob(path: string): Promise<Blob> {
+  const cached = pricingBlobCache.get(path);
+  if (cached) return cached;
+
+  const request = supabase.storage
+    .from(BUCKET)
+    .download(path)
+    .then(({ data, error }) => {
+      if (error || !data) {
+        throw error ?? new Error("Não foi possível carregar o arquivo da versão.");
+      }
+      return data;
+    })
+    .catch((cause: unknown) => {
+      pricingBlobCache.delete(path);
+      throw cause;
+    });
+
+  pricingBlobCache.set(path, request);
+  return request;
+}
+
 /** Versões da base de precificação, da mais recente para a mais antiga. */
 export async function listPricingVersions(): Promise<PricingVersion[]> {
   const { data, error } = await supabase
