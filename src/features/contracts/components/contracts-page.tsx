@@ -47,8 +47,14 @@ import {
   listContracts,
   prefetchContractFile,
 } from "../data/contracts-service";
+import { contractRulesStatusLabel, type ContractRulesStatus } from "../data/contract-rules";
+import {
+  contractRulesStatusQueryKey,
+  listContractRulesStatuses,
+} from "../data/contract-rules-service";
+import { Badge } from "@/components/ui/badge";
 
-const COLUMNS = ["Empresa", "CNPJ", "Contrato", "Validade", "Ações"] as const;
+const COLUMNS = ["Empresa", "CNPJ", "Contrato", "Validade", "Regras", "Ações"] as const;
 
 async function downloadContractFile(contract: Contract) {
   try {
