@@ -14,6 +14,192 @@ export type Database = {
   }
   public: {
     Tables: {
+      billing_analyses: {
+        Row: {
+          analyzed_at: string
+          billed_total: number
+          completed_at: string | null
+          contract_company: string
+          contract_id: string | null
+          divergence_count: number
+          error_message: string | null
+          expected_total: number
+          file_name: string
+          health_plan: string
+          id: string
+          item_count: number
+          provider: string
+          status: string
+          unanalyzed_count: number
+        }
+        Insert: {
+          analyzed_at?: string
+          billed_total?: number
+          completed_at?: string | null
+          contract_company?: string
+          contract_id?: string | null
+          divergence_count?: number
+          error_message?: string | null
+          expected_total?: number
+          file_name: string
+          health_plan?: string
+          id?: string
+          item_count?: number
+          provider?: string
+          status?: string
+          unanalyzed_count?: number
+        }
+        Update: {
+          analyzed_at?: string
+          billed_total?: number
+          completed_at?: string | null
+          contract_company?: string
+          contract_id?: string | null
+          divergence_count?: number
+          error_message?: string | null
+          expected_total?: number
+          file_name?: string
+          health_plan?: string
+          id?: string
+          item_count?: number
+          provider?: string
+          status?: string
+          unanalyzed_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_analyses_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_analysis_items: {
+        Row: {
+          analysis_id: string
+          code: string
+          created_at: string
+          description: string
+          difference: number | null
+          executed_at: string | null
+          expected_value: number | null
+          id: string
+          line_number: number
+          quantity: number
+          reason: string | null
+          reference_value: number | null
+          rule_description: string | null
+          source: string
+          status: string
+          total_value: number | null
+          unit_value: number | null
+        }
+        Insert: {
+          analysis_id: string
+          code?: string
+          created_at?: string
+          description?: string
+          difference?: number | null
+          executed_at?: string | null
+          expected_value?: number | null
+          id?: string
+          line_number?: number
+          quantity?: number
+          reason?: string | null
+          reference_value?: number | null
+          rule_description?: string | null
+          source?: string
+          status?: string
+          total_value?: number | null
+          unit_value?: number | null
+        }
+        Update: {
+          analysis_id?: string
+          code?: string
+          created_at?: string
+          description?: string
+          difference?: number | null
+          executed_at?: string | null
+          expected_value?: number | null
+          id?: string
+          line_number?: number
+          quantity?: number
+          reason?: string | null
+          reference_value?: number | null
+          rule_description?: string | null
+          source?: string
+          status?: string
+          total_value?: number | null
+          unit_value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_analysis_items_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "billing_analyses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_rules: {
+        Row: {
+          adjustment_percent: number
+          base_type: string
+          category: string
+          codes: string
+          contract_id: string
+          created_at: string
+          factor: number
+          id: string
+          negotiated_value: number | null
+          reviewed: boolean
+          source_excerpt: string
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          adjustment_percent?: number
+          base_type?: string
+          category?: string
+          codes?: string
+          contract_id: string
+          created_at?: string
+          factor?: number
+          id?: string
+          negotiated_value?: number | null
+          reviewed?: boolean
+          source_excerpt?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          adjustment_percent?: number
+          base_type?: string
+          category?: string
+          codes?: string
+          contract_id?: string
+          created_at?: string
+          factor?: number
+          id?: string
+          negotiated_value?: number | null
+          reviewed?: boolean
+          source_excerpt?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_rules_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contracts: {
         Row: {
           cnpj: string
