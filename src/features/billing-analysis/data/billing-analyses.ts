@@ -4,6 +4,10 @@ export type BillingAnalysisStatus = "processing" | "completed";
 
 export interface BillingAnalysis {
   id: string;
+  /** Contrato selecionado para a análise (usado depois no processamento). */
+  contractId: string;
+  /** Empresa do contrato selecionado, mantida para exibição. */
+  contractCompany: string;
   /** Nome do arquivo XML enviado. */
   fileName: string;
   /** Prestador identificado no XML TISS. */
@@ -47,7 +51,12 @@ function firstTagValue(document: Document, tagNames: readonly string[]): string 
 }
 
 const PROVIDER_TAGS = ["nomeContratado", "nomePrestador", "razaoSocial"] as const;
-const PROVIDER_CNPJ_TAGS = ["cnpjContratado", "CNPJ", "cnpj", "codigoPrestadorNaOperadora"] as const;
+const PROVIDER_CNPJ_TAGS = [
+  "cnpjContratado",
+  "CNPJ",
+  "cnpj",
+  "codigoPrestadorNaOperadora",
+] as const;
 const HEALTH_PLAN_TAGS = ["nomeOperadora", "razaoSocialOperadora"] as const;
 const HEALTH_PLAN_ANS_TAGS = ["registroANS", "numeroRegistroANS"] as const;
 

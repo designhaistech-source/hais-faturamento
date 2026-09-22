@@ -26,7 +26,10 @@ import {
   DataTableRow,
 } from "@/components/data-table";
 
-import { NewBillingAnalysisModal } from "./new-billing-analysis-modal";
+import {
+  NewBillingAnalysisModal,
+  type NewBillingAnalysisInput,
+} from "./new-billing-analysis-modal";
 import {
   analysisResultBadgeVariant,
   analysisResultLabel,
@@ -63,10 +66,13 @@ export function BillingAnalysisPage() {
     [analyses, currentPage, pageSize],
   );
 
-  async function handleSubmit(file: File) {
+  async function handleSubmit(input: NewBillingAnalysisInput) {
+    const { file } = input;
     const parties = await readAnalysisPartiesFromXml(file);
     const analysis: BillingAnalysis = {
       id: crypto.randomUUID(),
+      contractId: input.contractId,
+      contractCompany: input.contractCompany,
       fileName: file.name,
       provider: parties.provider,
       healthPlan: parties.healthPlan,
@@ -201,7 +207,7 @@ export function BillingAnalysisPage() {
       <NewBillingAnalysisModal
         open={modalOpen}
         onOpenChange={setModalOpen}
-        onSubmit={(file) => void handleSubmit(file)}
+        onSubmit={(input) => void handleSubmit(input)}
       />
     </TooltipProvider>
   );

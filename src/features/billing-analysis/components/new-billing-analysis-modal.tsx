@@ -1,22 +1,30 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { FileSearch, Paperclip, Trash2, Upload } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
-import { Field } from "@/components/form-field";
+import { Field, SelectField, type SelectOption } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { contractsQueryKey, listContracts, type Contract } from "@/features/contracts";
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+
+export interface NewBillingAnalysisInput {
+  file: File;
+  contractId: string;
+  contractCompany: string;
+}
 
 interface NewBillingAnalysisModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Envio do XML: o processamento da análise será implementado depois. */
-  onSubmit?: (file: File) => void;
+  /** Envio do XML + contrato: o processamento da análise será implementado depois. */
+  onSubmit?: (input: NewBillingAnalysisInput) => void;
 }
 
-/** Envio do arquivo XML TISS para uma nova análise de faturamento (apenas interface). */
+/** Envio do arquivo XML TISS e do contrato usado na análise de faturamento. */
 export function NewBillingAnalysisModal({
   open,
   onOpenChange,
@@ -25,12 +33,34 @@ export function NewBillingAnalysisModal({
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [fileTouched, setFileTouched] = useState(false);
+  const [contractId, setContractId] = useState("");
+  const [contractTouched, setContractTouched] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [invalidFileMessage, setInvalidFileMessage] = useState<string | null>(null);
 
-  const canSubmit = Boolean(file);
+  const contractsQuery = useQuery<Contract[]>({
+    queryKey: contractsQueryKey,
+    queryFn: listContracts,
+    enabled: open,
+  });
+  const contracts = contractsQuery.data ?? [];
+  const contractOptions = useMemo<SelectOption[]>(
+    () => contracts.map((contract) => ({ value: contract.id, label: contract.company })),
+    [contracts],
+  );
+
+  const canSubmit = Boolean(file) && contractId !== "";
   const fileError =
     invalidFileMessage ?? (fileTouched && !file ? "Selecione o arquivo XML TISS." : undefined);
+  const contractError =
+    contractTouched && contractId === "" ? "Selecione o contrato da análise." : undefined;
+  const contractHint = contractsQuery.isPending
+    ? "Carregando contratos…"
+    : contractsQuery.isError
+      ? "Não foi possível carregar os contratos."
+      : contracts.length === 0
+        ? "Nenhum contrato cadastrado."
+        : undefined;
 
   function handleSelectedFile(selected: File | null) {
     setFileTouched(true);
@@ -56,6 +86,8 @@ export function NewBillingAnalysisModal({
   function reset() {
     setFile(null);
     setFileTouched(false);
+    setContractId("");
+    setContractTouched(false);
     setInvalidFileMessage(null);
     if (inputRef.current) inputRef.current.value = "";
   }
@@ -67,8 +99,10 @@ export function NewBillingAnalysisModal({
 
   function submit() {
     setFileTouched(true);
-    if (!file) return;
-    onSubmit?.(file);
+    setContractTouched(true);
+    const contract = contracts.find((item) => item.id === contractId);
+    if (!file || !contract) return;
+    onSubmit?.({ file, contractId: contract.id, contractCompany: contract.company });
     reset();
     onOpenChange(false);
   }
@@ -98,6 +132,24 @@ export function NewBillingAnalysisModal({
           submit();
         }}
       >
+        <SelectField
+          id="billing-analysis-contract"
+          label="Contrato"
+          required
+          placeholder="Selecione um contrato"
+          options={contractOptions}
+          disabled={contracts.length === 0}
+          // line-height 1 do trigger cortava o texto no mobile: usa leading normal.
+          triggerClassName="text-base/normal sm:text-sm/normal [&>span]:line-clamp-none [&>span]:block [&>span]:truncate"
+          value={contractId === "" ? undefined : contractId}
+          error={contractError}
+          hint={contractHint}
+          onValueChange={(value) => {
+            setContractTouched(true);
+            setContractId(value);
+          }}
+        />
+
         <Field
           id="billing-analysis-file"
           label="Arquivo XML"
