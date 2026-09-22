@@ -125,7 +125,7 @@ export function NewBillingAnalysisModal({
     setFileTouched(true);
     setContractTouched(true);
     const contract = contracts.find((item) => item.id === contractId);
-    if (!file || !contract) return;
+    if (!file || !contract || !rulesReady) return;
     onSubmit?.({ file, contractId: contract.id, contractCompany: contract.company });
     reset();
     onOpenChange(false);
@@ -173,6 +173,39 @@ export function NewBillingAnalysisModal({
             setContractId(value);
           }}
         />
+
+        {showRulesWarning ? (
+          <div
+            role="status"
+            className="flex items-start gap-3 rounded-xl border border-warning/30 bg-warning-muted px-4 py-3"
+          >
+            <AlertTriangle
+              className="mt-0.5 size-4 shrink-0 text-warning-strong"
+              aria-hidden="true"
+            />
+            <div className="min-w-0 space-y-2">
+              <div className="space-y-0.5">
+                <p className="text-sm font-medium text-foreground">
+                  Este contrato ainda não possui regras de remuneração revisadas.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Revise as regras do contrato antes de utilizá-lo em uma análise.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!selectedContract}
+                onClick={() => setRulesModalOpen(true)}
+              >
+                Revisar regras
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+
 
         <Field
           id="billing-analysis-file"
