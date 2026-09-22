@@ -112,7 +112,7 @@ export function NewBillingAnalysisModal({
       open={open}
       onOpenChange={(next) => (next ? onOpenChange(true) : close())}
       title="Nova análise de faturamento"
-      description="Envie o arquivo XML TISS que deseja analisar."
+      description="Selecione o contrato e envie o arquivo XML TISS que deseja analisar."
       icon={<FileSearch className="size-5" aria-hidden="true" />}
       footer={
         <>
