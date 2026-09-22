@@ -39,7 +39,7 @@ export function BillingAnalysisPage() {
               <EmptyStateCard
                 icon={<FileSearch className="size-10" aria-hidden="true" />}
                 title="Nenhuma análise realizada"
-                description="Envie um arquivo XML TISS para realizar a primeira análise de faturamento."
+                description="Envie um arquivo XML TISS para começar."
                 action={
                   <Button type="button" onClick={handleNewAnalysis}>
                     <Plus className="size-4" aria-hidden="true" />
