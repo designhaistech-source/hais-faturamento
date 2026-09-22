@@ -1,12 +1,11 @@
 /** Análises de faturamento realizadas a partir de arquivos XML TISS. */
 
-export type BillingAnalysisStatus = "processing" | "completed";
+export type BillingAnalysisStatus = "processing" | "completed" | "failed";
 
 export interface BillingAnalysis {
   id: string;
-  /** Contrato selecionado para a análise (usado depois no processamento). */
+  /** Contrato usado na análise. */
   contractId: string;
-  /** Empresa do contrato selecionado, mantida para exibição. */
   contractCompany: string;
   /** Nome do arquivo XML enviado. */
   fileName: string;
@@ -17,8 +16,14 @@ export interface BillingAnalysis {
   /** ISO timestamp do momento da análise. */
   analyzedAt: string;
   status: BillingAnalysisStatus;
-  /** Quantidade de divergências encontradas (apenas quando concluída). */
-  divergenceCount?: number;
+  /** Itens faturados lidos no XML. */
+  itemCount: number;
+  /** Itens com diferença entre o valor faturado e o valor esperado. */
+  divergenceCount: number;
+  /** Itens sem regra, sem base ou sem informação suficiente para o cálculo. */
+  unanalyzedCount: number;
+  /** Motivo quando o processamento falhou. */
+  errorMessage: string | null;
 }
 
 /** Texto exibido quando o XML não informa o dado. */
@@ -51,12 +56,7 @@ function firstTagValue(document: Document, tagNames: readonly string[]): string 
 }
 
 const PROVIDER_TAGS = ["nomeContratado", "nomePrestador", "razaoSocial"] as const;
-const PROVIDER_CNPJ_TAGS = [
-  "cnpjContratado",
-  "CNPJ",
-  "cnpj",
-  "codigoPrestadorNaOperadora",
-] as const;
+const PROVIDER_CNPJ_TAGS = ["cnpjContratado", "CNPJ", "cnpj", "codigoPrestadorNaOperadora"] as const;
 const HEALTH_PLAN_TAGS = ["nomeOperadora", "razaoSocialOperadora"] as const;
 const HEALTH_PLAN_ANS_TAGS = ["registroANS", "numeroRegistroANS"] as const;
 
@@ -65,6 +65,23 @@ function formatCnpj(value: string): string | null {
   const digits = value.replace(/\D/g, "");
   if (digits.length !== 14) return null;
   return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+}
+
+/** Extrai prestador e operadora de um XML TISS já analisado. */
+export function readAnalysisPartiesFromXmlDocument(parsed: Document): {
+  provider: string;
+  healthPlan: string;
+} {
+  const providerName = firstTagValue(parsed, PROVIDER_TAGS);
+  const providerCnpj = firstTagValue(parsed, PROVIDER_CNPJ_TAGS);
+  const provider =
+    providerName ?? (providerCnpj ? formatCnpj(providerCnpj) : null) ?? UNIDENTIFIED_LABEL;
+
+  const healthPlanName = firstTagValue(parsed, HEALTH_PLAN_TAGS);
+  const ansCode = firstTagValue(parsed, HEALTH_PLAN_ANS_TAGS)?.replace(/\D/g, "");
+  const healthPlan = healthPlanName ?? (ansCode ? `ANS ${ansCode}` : null) ?? UNIDENTIFIED_LABEL;
+
+  return { provider, healthPlan };
 }
 
 /** Extrai prestador e operadora de um XML TISS enviado pelo usuário. */
@@ -78,17 +95,7 @@ export async function readAnalysisPartiesFromXml(file: File): Promise<{
     if (parsed.getElementsByTagName("parsererror").length > 0) {
       return { provider: UNIDENTIFIED_LABEL, healthPlan: UNIDENTIFIED_LABEL };
     }
-
-    const providerName = firstTagValue(parsed, PROVIDER_TAGS);
-    const providerCnpj = firstTagValue(parsed, PROVIDER_CNPJ_TAGS);
-    const provider =
-      providerName ?? (providerCnpj ? formatCnpj(providerCnpj) : null) ?? UNIDENTIFIED_LABEL;
-
-    const healthPlanName = firstTagValue(parsed, HEALTH_PLAN_TAGS);
-    const ansCode = firstTagValue(parsed, HEALTH_PLAN_ANS_TAGS)?.replace(/\D/g, "");
-    const healthPlan = healthPlanName ?? (ansCode ? `ANS ${ansCode}` : null) ?? UNIDENTIFIED_LABEL;
-
-    return { provider, healthPlan };
+    return readAnalysisPartiesFromXmlDocument(parsed);
   } catch {
     return { provider: UNIDENTIFIED_LABEL, healthPlan: UNIDENTIFIED_LABEL };
   }
@@ -97,7 +104,8 @@ export async function readAnalysisPartiesFromXml(file: File): Promise<{
 /** Rótulo do resultado da análise para exibição no badge de status. */
 export function analysisResultLabel(analysis: BillingAnalysis): string {
   if (analysis.status === "processing") return "Processando";
-  const count = analysis.divergenceCount ?? 0;
+  if (analysis.status === "failed") return "Não concluída";
+  const count = analysis.divergenceCount;
   if (count === 0) return "Sem divergências";
   return `${count} ${count === 1 ? "divergência" : "divergências"}`;
 }
@@ -107,5 +115,6 @@ export function analysisResultBadgeVariant(
   analysis: BillingAnalysis,
 ): "warning-soft" | "success-soft" | "destructive-soft" {
   if (analysis.status === "processing") return "warning-soft";
-  return (analysis.divergenceCount ?? 0) > 0 ? "destructive-soft" : "success-soft";
+  if (analysis.status === "failed") return "destructive-soft";
+  return analysis.divergenceCount > 0 ? "destructive-soft" : "success-soft";
 }
