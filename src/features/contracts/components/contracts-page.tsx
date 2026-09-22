@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Eye, EyeOff, FileText, Plus, Trash2 } from "lucide-react";
+import { Download, Eye, EyeOff, FileText, Plus, Scale, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -37,6 +37,7 @@ import {
 import { formatIsoToBr } from "@/lib/date";
 import { NewContractModal } from "./new-contract-modal";
 import { ContractPreviewModal } from "./contract-preview-modal";
+import { ContractRulesModal } from "./contract-rules-modal";
 import type { Contract, NewContractInput } from "../data/contracts";
 import {
   contractsQueryKey,
@@ -67,6 +68,7 @@ export function ContractsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
   const [previewContract, setPreviewContract] = useState<Contract | null>(null);
+  const [rulesContract, setRulesContract] = useState<Contract | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -307,6 +309,7 @@ export function ContractsPage() {
                                   <ContractActions
                                     contract={contract}
                                     onView={setPreviewContract}
+                                    onRules={setRulesContract}
                                   />
                                 </DataTableCell>
                               </DataTableRow>
@@ -334,7 +337,11 @@ export function ContractsPage() {
                               ]}
                             />
                             <DataTableCardActions className="-mt-0.5 justify-end">
-                              <ContractActions contract={contract} onView={setPreviewContract} />
+                              <ContractActions
+                                contract={contract}
+                                onView={setPreviewContract}
+                                onRules={setRulesContract}
+                              />
                             </DataTableCardActions>
                           </DataTableCard>
                         ))}
@@ -409,6 +416,14 @@ export function ContractsPage() {
         onDownload={(contract) => void downloadContractFile(contract)}
       />
 
+      <ContractRulesModal
+        contract={rulesContract}
+        open={rulesContract !== null}
+        onOpenChange={(next) => {
+          if (!next) setRulesContract(null);
+        }}
+      />
+
       <ConfirmDialog
         open={clearOpen}
         onOpenChange={setClearOpen}
@@ -438,16 +453,33 @@ function ContractFileName({ name }: { name: string }) {
   );
 }
 
-/** Ações da linha: apenas visualizar e baixar, identificadas por tooltip. */
+/** Ações da linha: visualizar, baixar e revisar as regras, identificadas por tooltip. */
 function ContractActions({
   contract,
   onView,
+  onRules,
 }: {
   contract: Contract;
   onView: (contract: Contract) => void;
+  onRules: (contract: Contract) => void;
 }) {
   return (
     <div className="inline-flex items-center gap-1">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={`Regras de remuneração do contrato de ${contract.company}`}
+            onClick={() => onRules(contract)}
+          >
+            <Scale className="size-4" aria-hidden="true" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Regras de remuneração</TooltipContent>
+      </Tooltip>
+
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

@@ -36,6 +36,13 @@
       "when": 1789995371070,
       "tag": "0004_add_pricing_version_base_type",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790102858381,
+      "tag": "0005_create_billing_analysis",
+      "breakpoints": true
     }
   ]
 }

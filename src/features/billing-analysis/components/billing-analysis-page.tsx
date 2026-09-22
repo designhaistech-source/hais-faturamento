@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Eye, FileSearch, Plus } from "lucide-react";
+import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteFooter } from "@/components/site-footer";
@@ -8,6 +10,8 @@ import { AppBreadcrumb } from "@/components/app-breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyStateCard } from "@/components/empty-state-card";
+import { ErrorState, TableSkeleton } from "@/components/data-state";
+import { SurfaceCard } from "@/components/surface-card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/table-pagination";
 import {
@@ -34,12 +38,17 @@ import {
   analysisResultBadgeVariant,
   analysisResultLabel,
   formatAnalysisDateTime,
-  readAnalysisPartiesFromXml,
   type BillingAnalysis,
 } from "../data/billing-analyses";
+import {
+  billingAnalysesQueryKey,
+  listBillingAnalyses,
+  runBillingAnalysis,
+} from "../data/billing-analyses-service";
 
 const COLUMNS = [
   "Arquivo",
+  "Contrato",
   "Prestador",
   "Operadora",
   "Data da análise",
@@ -48,14 +57,21 @@ const COLUMNS = [
 ] as const;
 
 /**
- * Análise de faturamento: cabeçalho, listagem das análises e envio do XML TISS.
- * O processamento do XML e o resultado detalhado serão implementados depois.
+ * Análise de faturamento: envio do XML TISS, processamento com as regras do
+ * contrato e as bases de precificação cadastradas, e listagem das análises.
  */
 export function BillingAnalysisPage() {
   const [modalOpen, setModalOpen] = useState(false);
-  const [analyses, setAnalyses] = useState<BillingAnalysis[]>([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+
+  const queryClient = useQueryClient();
+
+  const analysesQuery = useQuery({
+    queryKey: billingAnalysesQueryKey,
+    queryFn: listBillingAnalyses,
+  });
+  const analyses = analysesQuery.data ?? [];
 
   const handleNewAnalysis = () => setModalOpen(true);
 
@@ -66,21 +82,21 @@ export function BillingAnalysisPage() {
     [analyses, currentPage, pageSize],
   );
 
-  async function handleSubmit(input: NewBillingAnalysisInput) {
-    const { file } = input;
-    const parties = await readAnalysisPartiesFromXml(file);
-    const analysis: BillingAnalysis = {
-      id: crypto.randomUUID(),
-      contractId: input.contractId,
-      contractCompany: input.contractCompany,
-      fileName: file.name,
-      provider: parties.provider,
-      healthPlan: parties.healthPlan,
-      analyzedAt: new Date().toISOString(),
-      status: "processing",
-    };
-    setAnalyses((previous) => [analysis, ...previous]);
+  const analyzeMutation = useMutation({
+    mutationFn: (input: NewBillingAnalysisInput) => runBillingAnalysis(input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: billingAnalysesQueryKey });
+      toast.success("Análise concluída.");
+    },
+    onError: async (cause: unknown) => {
+      await queryClient.invalidateQueries({ queryKey: billingAnalysesQueryKey });
+      toast.error(cause instanceof Error ? cause.message : "Não foi possível concluir a análise.");
+    },
+  });
+
+  function handleSubmit(input: NewBillingAnalysisInput) {
     setPage(1);
+    analyzeMutation.mutate(input);
   }
 
   return (
@@ -94,7 +110,12 @@ export function BillingAnalysisPage() {
               title="Análise de faturamento"
               description="Analise arquivos XML TISS e identifique divergências nos valores faturados."
               actions={
-                <Button type="button" className="w-full sm:w-auto" onClick={handleNewAnalysis}>
+                <Button
+                  type="button"
+                  className="w-full sm:w-auto"
+                  disabled={analyzeMutation.isPending}
+                  onClick={handleNewAnalysis}
+                >
                   <Plus className="size-4" aria-hidden="true" />
                   Nova análise
                 </Button>
@@ -102,7 +123,19 @@ export function BillingAnalysisPage() {
             />
 
             <section className="space-y-4">
-              {analyses.length === 0 ? (
+              {analysesQuery.isPending ? (
+                <SurfaceCard padding="none">
+                  <TableSkeleton rows={4} columns={6} />
+                </SurfaceCard>
+              ) : analysesQuery.isError ? (
+                <SurfaceCard padding="md">
+                  <ErrorState
+                    title="Não foi possível carregar as análises"
+                    description="Tente novamente em alguns instantes."
+                    onRetry={() => void analysesQuery.refetch()}
+                  />
+                </SurfaceCard>
+              ) : analyses.length === 0 ? (
                 <EmptyStateCard
                   icon={<FileSearch className="size-10" aria-hidden="true" />}
                   title="Nenhuma análise realizada"
@@ -137,9 +170,10 @@ export function BillingAnalysisPage() {
                         <DataTableBody>
                           {paginatedAnalyses.map((analysis) => (
                             <DataTableRow key={analysis.id}>
-                              <DataTableCell className="max-w-80">
+                              <DataTableCell className="max-w-72">
                                 <AnalysisFileName name={analysis.fileName} />
                               </DataTableCell>
+                              <DataTableCell>{analysis.contractCompany || "—"}</DataTableCell>
                               <DataTableCell>{analysis.provider}</DataTableCell>
                               <DataTableCell>{analysis.healthPlan}</DataTableCell>
                               <DataTableCell>
@@ -167,6 +201,7 @@ export function BillingAnalysisPage() {
                           <DataTableCardFields
                             className="gap-x-4 gap-y-1"
                             fields={[
+                              { label: "Contrato", value: analysis.contractCompany || "—" },
                               { label: "Prestador", value: analysis.provider },
                               { label: "Operadora", value: analysis.healthPlan },
                               {
@@ -207,7 +242,7 @@ export function BillingAnalysisPage() {
       <NewBillingAnalysisModal
         open={modalOpen}
         onOpenChange={setModalOpen}
-        onSubmit={(input) => void handleSubmit(input)}
+        onSubmit={handleSubmit}
       />
     </TooltipProvider>
   );
@@ -230,16 +265,39 @@ function AnalysisFileName({ name }: { name: string }) {
   );
 }
 
-/** Resultado da análise: divergências encontradas, sem divergências ou processando. */
+/** Resultado da análise, com o detalhe dos itens não analisados em tooltip. */
 function AnalysisResultBadge({ analysis }: { analysis: BillingAnalysis }) {
+  const detail =
+    analysis.status === "failed"
+      ? (analysis.errorMessage ?? "A análise não pôde ser concluída.")
+      : analysis.status === "completed"
+        ? `${analysis.itemCount} ${analysis.itemCount === 1 ? "item lido" : "itens lidos"}${
+            analysis.unanalyzedCount > 0
+              ? ` · ${analysis.unanalyzedCount} não ${
+                  analysis.unanalyzedCount === 1 ? "analisado" : "analisados"
+                }`
+              : ""
+          }`
+        : "Processando o arquivo enviado.";
+
   return (
-    <Badge variant={analysisResultBadgeVariant(analysis)} size="sm" className="shrink-0">
-      {analysisResultLabel(analysis)}
-    </Badge>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span
+          tabIndex={0}
+          className="inline-flex rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Badge variant={analysisResultBadgeVariant(analysis)} size="sm" className="shrink-0">
+            {analysisResultLabel(analysis)}
+          </Badge>
+        </span>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-80">{detail}</TooltipContent>
+    </Tooltip>
   );
 }
 
-/** Ações da linha: visualizar o resultado detalhado (implementação posterior). */
+/** Ações da linha: visualizar o resultado detalhado (interface na próxima etapa). */
 function AnalysisActions({ analysis }: { analysis: BillingAnalysis }) {
   return (
     <div className="inline-flex items-center gap-1">
