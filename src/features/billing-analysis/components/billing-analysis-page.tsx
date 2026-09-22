@@ -26,7 +26,10 @@ import {
   DataTableRow,
 } from "@/components/data-table";
 
-import { NewBillingAnalysisModal } from "./new-billing-analysis-modal";
+import {
+  NewBillingAnalysisModal,
+  type NewBillingAnalysisInput,
+} from "./new-billing-analysis-modal";
 import {
   analysisResultBadgeVariant,
   analysisResultLabel,
