@@ -1,13 +1,22 @@
 import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { FileSearch, Paperclip, Trash2, Upload } from "lucide-react";
+import { AlertTriangle, FileSearch, Paperclip, Trash2, Upload } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
 import { Field, SelectField, type SelectOption } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { contractsQueryKey, listContracts, type Contract } from "@/features/contracts";
+import {
+  ContractRulesModal,
+  contractRulesQueryKey,
+  contractsQueryKey,
+  listContractRules,
+  listContracts,
+  type Contract,
+  type ContractRule,
+} from "@/features/contracts";
+
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
