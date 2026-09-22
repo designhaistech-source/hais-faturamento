@@ -132,7 +132,9 @@ export function NewBillingAnalysisModal({
   }
 
   return (
-    <AppModal
+    <>
+      <AppModal
+
       open={open}
       onOpenChange={(next) => (next ? onOpenChange(true) : close())}
       title="Nova análise de faturamento"
