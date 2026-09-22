@@ -314,6 +314,16 @@ export function NewBillingAnalysisModal({
           </div>
         </Field>
       </form>
-    </AppModal>
+      </AppModal>
+
+      {selectedContract ? (
+        <ContractRulesModal
+          contract={selectedContract}
+          open={rulesModalOpen}
+          onOpenChange={setRulesModalOpen}
+        />
+      ) : null}
+    </>
   );
 }
+
