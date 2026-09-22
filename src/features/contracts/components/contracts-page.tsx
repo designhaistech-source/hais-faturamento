@@ -68,6 +68,7 @@ export function ContractsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
   const [previewContract, setPreviewContract] = useState<Contract | null>(null);
+  const [rulesContract, setRulesContract] = useState<Contract | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -305,9 +306,10 @@ export function ContractsPage() {
                                   {formatIsoToBr(contract.validUntil) || "—"}
                                 </DataTableCell>
                                 <DataTableCell className="text-right">
-                                  <ContractActions
+                                   <ContractActions
                                     contract={contract}
                                     onView={setPreviewContract}
+                                    onRules={setRulesContract}
                                   />
                                 </DataTableCell>
                               </DataTableRow>
@@ -335,7 +337,11 @@ export function ContractsPage() {
                               ]}
                             />
                             <DataTableCardActions className="-mt-0.5 justify-end">
-                              <ContractActions contract={contract} onView={setPreviewContract} />
+                              <ContractActions
+                                contract={contract}
+                                onView={setPreviewContract}
+                                onRules={setRulesContract}
+                              />
                             </DataTableCardActions>
                           </DataTableCard>
                         ))}
