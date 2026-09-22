@@ -142,7 +142,6 @@ export async function runBillingAnalysis(input: RunBillingAnalysisInput): Promis
     healthPlan: parties.healthPlan,
   });
 
-
   try {
     const [rules, bases] = await Promise.all([
       listContractRules(input.contractId),

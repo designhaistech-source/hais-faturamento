@@ -133,4 +133,3 @@ export function analysisResultBadgeVariant(
   if (analysis.unanalyzedCount > 0) return "warning-soft";
   return "success-soft";
 }
-

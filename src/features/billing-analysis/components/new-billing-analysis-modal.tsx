@@ -17,7 +17,6 @@ import {
   type ContractRule,
 } from "@/features/contracts";
 
-
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
 export interface NewBillingAnalysisInput {
@@ -85,7 +84,6 @@ export function NewBillingAnalysisModal({
           ? "Verificando as regras de remuneração…"
           : undefined;
 
-
   function handleSelectedFile(selected: File | null) {
     setFileTouched(true);
     if (!selected) {
@@ -134,188 +132,185 @@ export function NewBillingAnalysisModal({
   return (
     <>
       <AppModal
-
-      open={open}
-      onOpenChange={(next) => (next ? onOpenChange(true) : close())}
-      title="Nova análise de faturamento"
-      description="Selecione o contrato e envie o arquivo XML TISS que deseja analisar."
-      icon={<FileSearch className="size-5" aria-hidden="true" />}
-      footer={
-        <>
-          <Button type="button" variant="outline" size="sm" onClick={close}>
-            Cancelar
-          </Button>
-          <Button type="button" size="sm" disabled={!canSubmit} onClick={submit}>
-            Analisar
-          </Button>
-        </>
-      }
-    >
-      <form
-        className="space-y-4"
-        onSubmit={(event) => {
-          event.preventDefault();
-          submit();
-        }}
+        open={open}
+        onOpenChange={(next) => (next ? onOpenChange(true) : close())}
+        title="Nova análise de faturamento"
+        description="Selecione o contrato e envie o arquivo XML TISS que deseja analisar."
+        icon={<FileSearch className="size-5" aria-hidden="true" />}
+        footer={
+          <>
+            <Button type="button" variant="outline" size="sm" onClick={close}>
+              Cancelar
+            </Button>
+            <Button type="button" size="sm" disabled={!canSubmit} onClick={submit}>
+              Analisar
+            </Button>
+          </>
+        }
       >
-        <SelectField
-          id="billing-analysis-contract"
-          label="Contrato"
-          required
-          placeholder="Selecione um contrato"
-          options={contractOptions}
-          disabled={contracts.length === 0}
-          // line-height 1 do trigger cortava o texto no mobile: usa leading normal.
-          triggerClassName="text-base/normal sm:text-sm/normal [&>span]:line-clamp-none [&>span]:block [&>span]:truncate"
-          value={contractId === "" ? undefined : contractId}
-          error={contractError}
-          hint={contractHint}
-          onValueChange={(value) => {
-            setContractTouched(true);
-            setContractId(value);
+        <form
+          className="space-y-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            submit();
           }}
-        />
-
-        {showRulesWarning ? (
-          <div
-            role="status"
-            className="flex items-start gap-3 rounded-xl border border-warning/30 bg-warning-muted px-4 py-3"
-          >
-            <AlertTriangle
-              className="mt-0.5 size-4 shrink-0 text-warning-strong"
-              aria-hidden="true"
-            />
-            <div className="min-w-0 space-y-2">
-              <div className="space-y-0.5">
-                <p className="text-sm font-medium text-foreground">
-                  Este contrato ainda não possui regras de remuneração revisadas.
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Revise as regras do contrato antes de utilizá-lo em uma análise.
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={!selectedContract}
-                onClick={() => setRulesModalOpen(true)}
-              >
-                Revisar regras
-              </Button>
-            </div>
-          </div>
-        ) : null}
-
-
-
-        <Field
-          id="billing-analysis-file"
-          label="Arquivo XML"
-          required
-          error={fileError}
-          hint="XML • Máx. 10 MB"
-          injectChildProps={false}
         >
-          <div
-            className="min-w-0"
-            onDragEnter={(event) => {
-              event.preventDefault();
-              setDragActive(true);
+          <SelectField
+            id="billing-analysis-contract"
+            label="Contrato"
+            required
+            placeholder="Selecione um contrato"
+            options={contractOptions}
+            disabled={contracts.length === 0}
+            // line-height 1 do trigger cortava o texto no mobile: usa leading normal.
+            triggerClassName="text-base/normal sm:text-sm/normal [&>span]:line-clamp-none [&>span]:block [&>span]:truncate"
+            value={contractId === "" ? undefined : contractId}
+            error={contractError}
+            hint={contractHint}
+            onValueChange={(value) => {
+              setContractTouched(true);
+              setContractId(value);
             }}
-            onDragOver={(event) => {
-              event.preventDefault();
-              setDragActive(true);
-            }}
-            onDragLeave={(event) => {
-              if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
-              setDragActive(false);
-            }}
-            onDrop={(event) => {
-              event.preventDefault();
-              setDragActive(false);
-              const dropped = event.dataTransfer.files?.[0];
-              if (!dropped) return;
-              handleSelectedFile(dropped);
-              if (inputRef.current) inputRef.current.value = "";
-            }}
-          >
-            <input
-              ref={inputRef}
-              id="billing-analysis-file"
-              type="file"
-              accept=".xml,text/xml,application/xml"
-              className="sr-only"
-              onChange={(event) => handleSelectedFile(event.target.files?.[0] ?? null)}
-            />
+          />
 
-            {file ? (
-              <div
-                className={cn(
-                  "flex min-w-0 flex-wrap items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-3 transition-colors",
-                  dragActive && "border-primary bg-primary-muted",
-                )}
-              >
-                <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                <TooltipProvider delayDuration={150}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span
-                        tabIndex={0}
-                        className="min-w-0 flex-1 truncate rounded-sm text-sm text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                      >
-                        {file.name}
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-80 break-all">{file.name}</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <div className="flex shrink-0 items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => inputRef.current?.click()}
-                  >
-                    Substituir
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => {
-                      handleSelectedFile(null);
-                      if (inputRef.current) inputRef.current.value = "";
-                    }}
-                  >
-                    <Trash2 className="size-4" aria-hidden="true" />
-                    Remover
-                  </Button>
+          {showRulesWarning ? (
+            <div
+              role="status"
+              className="flex items-start gap-3 rounded-xl border border-warning/30 bg-warning-muted px-4 py-3"
+            >
+              <AlertTriangle
+                className="mt-0.5 size-4 shrink-0 text-warning-strong"
+                aria-hidden="true"
+              />
+              <div className="min-w-0 space-y-2">
+                <div className="space-y-0.5">
+                  <p className="text-sm font-medium text-foreground">
+                    Este contrato ainda não possui regras de remuneração revisadas.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Revise as regras do contrato antes de utilizá-lo em uma análise.
+                  </p>
                 </div>
-              </div>
-            ) : (
-              <div
-                className={cn(
-                  "flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-6 text-center transition-colors",
-                  dragActive && "border-primary bg-primary-muted",
-                )}
-              >
-                <Upload className="size-5 text-muted-foreground" aria-hidden="true" />
-                <p className="text-sm text-muted-foreground">Arraste e solte o arquivo aqui</p>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => inputRef.current?.click()}
+                  disabled={!selectedContract}
+                  onClick={() => setRulesModalOpen(true)}
                 >
-                  Selecionar arquivo
+                  Revisar regras
                 </Button>
               </div>
-            )}
-          </div>
-        </Field>
-      </form>
+            </div>
+          ) : null}
+
+          <Field
+            id="billing-analysis-file"
+            label="Arquivo XML"
+            required
+            error={fileError}
+            hint="XML • Máx. 10 MB"
+            injectChildProps={false}
+          >
+            <div
+              className="min-w-0"
+              onDragEnter={(event) => {
+                event.preventDefault();
+                setDragActive(true);
+              }}
+              onDragOver={(event) => {
+                event.preventDefault();
+                setDragActive(true);
+              }}
+              onDragLeave={(event) => {
+                if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+                setDragActive(false);
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                setDragActive(false);
+                const dropped = event.dataTransfer.files?.[0];
+                if (!dropped) return;
+                handleSelectedFile(dropped);
+                if (inputRef.current) inputRef.current.value = "";
+              }}
+            >
+              <input
+                ref={inputRef}
+                id="billing-analysis-file"
+                type="file"
+                accept=".xml,text/xml,application/xml"
+                className="sr-only"
+                onChange={(event) => handleSelectedFile(event.target.files?.[0] ?? null)}
+              />
+
+              {file ? (
+                <div
+                  className={cn(
+                    "flex min-w-0 flex-wrap items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-3 transition-colors",
+                    dragActive && "border-primary bg-primary-muted",
+                  )}
+                >
+                  <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <TooltipProvider delayDuration={150}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span
+                          tabIndex={0}
+                          className="min-w-0 flex-1 truncate rounded-sm text-sm text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                        >
+                          {file.name}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-80 break-all">{file.name}</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => inputRef.current?.click()}
+                    >
+                      Substituir
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => {
+                        handleSelectedFile(null);
+                        if (inputRef.current) inputRef.current.value = "";
+                      }}
+                    >
+                      <Trash2 className="size-4" aria-hidden="true" />
+                      Remover
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className={cn(
+                    "flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-6 text-center transition-colors",
+                    dragActive && "border-primary bg-primary-muted",
+                  )}
+                >
+                  <Upload className="size-5 text-muted-foreground" aria-hidden="true" />
+                  <p className="text-sm text-muted-foreground">Arraste e solte o arquivo aqui</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => inputRef.current?.click()}
+                  >
+                    Selecionar arquivo
+                  </Button>
+                </div>
+              )}
+            </div>
+          </Field>
+        </form>
       </AppModal>
 
       {selectedContract ? (
@@ -328,4 +323,3 @@ export function NewBillingAnalysisModal({
     </>
   );
 }
-
