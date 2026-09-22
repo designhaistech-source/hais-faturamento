@@ -77,26 +77,29 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
       if (contractText.length < 40) {
         throw new Error("Não foi possível ler o texto do arquivo do contrato.");
       }
-      return extractContractRules({ data: { contractText } });
+      const extracted = await extractContractRules({ data: { contractText } });
+      const drafts: ContractRuleDraft[] = extracted.map((rule) => ({
+        category: rule.category,
+        baseType: toContractRuleBase(rule.baseType),
+        codes: rule.codes,
+        factor: Number.isFinite(rule.factor) ? rule.factor : 1,
+        adjustmentPercent: Number.isFinite(rule.adjustmentPercent) ? rule.adjustmentPercent : 0,
+        negotiatedValue: rule.negotiatedValue,
+        validFrom: rule.validFrom,
+        validTo: rule.validTo,
+        sourceExcerpt: rule.sourceExcerpt,
+      }));
+      /** Regras extraídas ficam salvas como revisão pendente até a confirmação. */
+      if (drafts.length > 0) await saveContractRules(contractId, drafts, { reviewed: false });
+      return drafts;
     },
-    onSuccess: (extracted) => {
-      if (extracted.length === 0) {
+    onSuccess: async (drafts) => {
+      if (drafts.length === 0) {
         toast.info("Nenhuma regra de remuneração foi identificada no contrato.");
         return;
       }
-      setRules(
-        extracted.map((rule) => ({
-          category: rule.category,
-          baseType: toContractRuleBase(rule.baseType),
-          codes: rule.codes,
-          factor: Number.isFinite(rule.factor) ? rule.factor : 1,
-          adjustmentPercent: Number.isFinite(rule.adjustmentPercent) ? rule.adjustmentPercent : 0,
-          negotiatedValue: rule.negotiatedValue,
-          validFrom: rule.validFrom,
-          validTo: rule.validTo,
-          sourceExcerpt: rule.sourceExcerpt,
-        })),
-      );
+      setRules(drafts);
+      await queryClient.invalidateQueries({ queryKey: contractRulesStatusQueryKey });
       toast.success("Regras identificadas. Revise antes de salvar.");
     },
     onError: (cause: unknown) => {
