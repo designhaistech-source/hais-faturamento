@@ -470,7 +470,11 @@ function ContractRulesStatusBadge({ status }: { status: ContractRulesStatus | nu
     return <span className="text-sm text-muted-foreground">—</span>;
   }
   const variant =
-    status === "reviewed" ? "success-soft" : status === "pending_review" ? "info-soft" : "secondary";
+    status === "reviewed"
+      ? "success-soft"
+      : status === "pending_review"
+        ? "info-soft"
+        : "secondary";
   return (
     <Badge variant={variant} size="md">
       {contractRulesStatusLabel(status)}

@@ -70,7 +70,9 @@ export function contractRulesStatusLabel(status: ContractRulesStatus): string {
 }
 
 /** Situação derivada das regras salvas: nunca definida apenas visualmente. */
-export function contractRulesStatusOf(rules: Pick<ContractRule, "reviewed">[]): ContractRulesStatus {
+export function contractRulesStatusOf(
+  rules: Pick<ContractRule, "reviewed">[],
+): ContractRulesStatus {
   if (rules.length === 0) return "not_extracted";
   return rules.every((rule) => rule.reviewed) ? "reviewed" : "pending_review";
 }
