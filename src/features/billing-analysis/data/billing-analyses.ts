@@ -4,6 +4,10 @@ export type BillingAnalysisStatus = "processing" | "completed";
 
 export interface BillingAnalysis {
   id: string;
+  /** Contrato selecionado para a análise (usado depois no processamento). */
+  contractId: string;
+  /** Empresa do contrato selecionado, mantida para exibição. */
+  contractCompany: string;
   /** Nome do arquivo XML enviado. */
   fileName: string;
   /** Prestador identificado no XML TISS. */
