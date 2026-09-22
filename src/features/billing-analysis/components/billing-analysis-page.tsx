@@ -28,11 +28,7 @@ export function BillingAnalysisPage() {
               title="Análise de faturamento"
               description="Analise arquivos XML TISS e identifique divergências nos valores faturados."
               actions={
-                <Button
-                  type="button"
-                  className="w-full sm:w-auto"
-                  onClick={handleNewAnalysis}
-                >
+                <Button type="button" className="w-full sm:w-auto" onClick={handleNewAnalysis}>
                   <Plus className="size-4" aria-hidden="true" />
                   Nova análise
                 </Button>

@@ -66,12 +66,7 @@ function BrandMark({ className }: { className?: string }) {
 }
 
 export type ItemKey =
-  | "inicio"
-  | "contratos"
-  | "base-precificacao"
-  | "analise-faturamento"
-  | "design-system"
-  | "icones";
+  "inicio" | "contratos" | "base-precificacao" | "analise-faturamento" | "design-system" | "icones";
 
 export function AppSidebar({ activeKey }: { activeKey: ItemKey }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -259,7 +254,6 @@ function SidebarNav({
           collapsed={collapsed}
           onNavigate={onNavigate}
         />
-
       </SidebarGroup>
     </nav>
   );
