@@ -191,9 +191,7 @@ export function NewBillingAnalysisModal({
                 )}
               >
                 <Upload className="size-5 text-muted-foreground" aria-hidden="true" />
-                <p className="text-sm text-muted-foreground">
-                  Arraste o arquivo aqui ou selecione um arquivo.
-                </p>
+                <p className="text-sm text-muted-foreground">Arraste e solte o arquivo aqui</p>
                 <Button
                   type="button"
                   variant="outline"
