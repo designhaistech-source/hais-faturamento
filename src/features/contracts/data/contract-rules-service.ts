@@ -63,11 +63,16 @@ export async function listContractRules(contractId: string): Promise<ContractRul
   }));
 }
 
-/** Substitui todas as regras do contrato pelas regras revisadas no formulário. */
+/**
+ * Substitui todas as regras do contrato. `reviewed` distingue as regras apenas
+ * extraídas pela IA (revisão pendente) das confirmadas pela pessoa usuária.
+ */
 export async function saveContractRules(
   contractId: string,
   rules: ContractRuleDraft[],
+  options: { reviewed?: boolean } = {},
 ): Promise<void> {
+  const reviewed = options.reviewed ?? true;
   const { error: deleteError } = await supabase
     .from("contract_rules")
     .delete()
