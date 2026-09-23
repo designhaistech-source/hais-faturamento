@@ -152,11 +152,30 @@ export function ContractsPage() {
     setPage(1);
   }
 
+  /**
+   * A leitura das regras começa sozinha após o cadastro, em segundo plano, sem
+   * bloquear a listagem. A coluna Regras acompanha o andamento.
+   */
+  async function startRulesExtraction(contract: Contract) {
+    try {
+      const drafts = await extractContractRulesFor(contract);
+      await queryClient.invalidateQueries({ queryKey: contractRulesStatusQueryKey });
+      if (drafts.length === 0) {
+        toast.info(`Nenhuma regra de remuneração foi identificada em ${contract.company}.`);
+        return;
+      }
+      toast.success(`Regras de ${contract.company} identificadas. Revise antes de usar.`);
+    } catch {
+      toast.error(`Não foi possível ler as regras do contrato de ${contract.company}.`);
+    }
+  }
+
   const createMutation = useMutation({
     mutationFn: (input: NewContractInput) => createContract(input),
-    onSuccess: async () => {
+    onSuccess: async (contract) => {
       await queryClient.invalidateQueries({ queryKey: contractsQueryKey });
       toast.success("Contrato cadastrado com sucesso.");
+      void startRulesExtraction(contract);
     },
     onError: () => {
       toast.error("Não foi possível cadastrar o contrato.");
