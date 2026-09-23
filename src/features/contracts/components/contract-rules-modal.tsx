@@ -145,35 +145,44 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
           <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button
-            type="button"
-            size="sm"
-            disabled={saveMutation.isPending}
-            onClick={() => saveMutation.mutate()}
-          >
-            Salvar regras
-          </Button>
+          {hasRules && (
+            <Button
+              type="button"
+              size="sm"
+              disabled={saveMutation.isPending}
+              onClick={() => saveMutation.mutate()}
+            >
+              Salvar e concluir revisão
+            </Button>
+          )}
         </>
       }
     >
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm text-muted-foreground">
-            {rules.length === 0
-              ? "Nenhuma regra cadastrada para este contrato."
-              : `${rules.length} ${rules.length === 1 ? "regra cadastrada" : "regras cadastradas"}.`}
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={extractMutation.isPending || !contract}
-            onClick={() => extractMutation.mutate()}
-          >
-            <Sparkles className="size-4" aria-hidden="true" />
-            {extractMutation.isPending ? "Lendo o contrato…" : "Ler regras do contrato"}
-          </Button>
-        </div>
+        {hasRules && (
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-foreground">
+                {`${rules.length} ${rules.length === 1 ? "regra identificada" : "regras identificadas"}`}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Revise as informações extraídas do contrato antes de utilizá-las nas análises de
+                faturamento.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={extractMutation.isPending || !contract}
+              onClick={() => setConfirmReextract(true)}
+            >
+              <Sparkles className="size-4" aria-hidden="true" />
+              {extractMutation.isPending ? "Lendo o contrato…" : "Extrair novamente"}
+            </Button>
+          </div>
+        )}
+
 
         {rulesQuery.isPending && open ? (
           <div className="space-y-2">
