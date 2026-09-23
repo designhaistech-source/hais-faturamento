@@ -59,13 +59,18 @@ export interface ContractRule extends ContractRuleDraft {
 /** Situação das regras de remuneração de um contrato. */
 export type ContractRulesStatus = "not_extracted" | "pending_review" | "reviewed";
 
-const CONTRACT_RULES_STATUS_LABELS: Record<ContractRulesStatus, string> = {
+/** Situação exibida na listagem, incluindo a leitura em andamento e a falha. */
+export type ContractRulesDisplayStatus = ContractRulesStatus | "extracting" | "failed";
+
+const CONTRACT_RULES_STATUS_LABELS: Record<ContractRulesDisplayStatus, string> = {
   not_extracted: "Não extraídas",
   pending_review: "Revisão pendente",
   reviewed: "Revisadas",
+  extracting: "Analisando...",
+  failed: "Falha na análise",
 };
 
-export function contractRulesStatusLabel(status: ContractRulesStatus): string {
+export function contractRulesStatusLabel(status: ContractRulesDisplayStatus): string {
   return CONTRACT_RULES_STATUS_LABELS[status];
 }
 
