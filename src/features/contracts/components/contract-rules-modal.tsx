@@ -256,7 +256,7 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
               description="Tente novamente em alguns instantes."
               onRetry={() => void rulesQuery.refetch()}
             />
-          ) : hasFailed && !hasRules ? (
+          ) : hasFailed ? (
             <ErrorState
               title="Falha na análise do contrato"
               description="Não foi possível identificar as regras deste contrato. Tente a leitura novamente ou adicione as regras manualmente."
