@@ -195,6 +195,34 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
             description="Tente novamente em alguns instantes."
             onRetry={() => void rulesQuery.refetch()}
           />
+        ) : !hasRules ? (
+          <EmptyState
+            icon={<Scale className="size-10" aria-hidden="true" />}
+            title="Nenhuma regra de remuneração identificada"
+            description="Use a IA para identificar as regras presentes no contrato ou adicione uma regra manualmente."
+            action={
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={extractMutation.isPending || !contract}
+                  onClick={() => extractMutation.mutate()}
+                >
+                  <Sparkles className="size-4" aria-hidden="true" />
+                  {extractMutation.isPending ? "Lendo o contrato…" : "Ler regras do contrato"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRules((previous) => [...previous, emptyContractRuleDraft()])}
+                >
+                  <Plus className="size-4" aria-hidden="true" />
+                  Adicionar regra manualmente
+                </Button>
+              </div>
+            }
+          />
         ) : (
           <div className="space-y-3">
             {rules.map((rule, index) => (
