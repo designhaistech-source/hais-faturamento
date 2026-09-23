@@ -236,6 +236,26 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
         }
       >
         <div className="space-y-4">
+          {extractedCount !== null && !isExtracting && (
+            <Alert
+              variant="success"
+              role="status"
+              aria-live="polite"
+              className={cn(
+                "transition-opacity duration-500 motion-reduce:transition-none",
+                feedbackVisible ? "opacity-100" : "opacity-0",
+              )}
+            >
+              <CircleCheck className="size-4" aria-hidden="true" />
+              <AlertTitle>Extração concluída</AlertTitle>
+              <AlertDescription>
+                {extractedCount === 1
+                  ? "1 regra de remuneração foi identificada."
+                  : `${extractedCount} regras de remuneração foram identificadas.`}{" "}
+                Confira as informações antes de concluir a revisão.
+              </AlertDescription>
+            </Alert>
+          )}
           {hasRules && !isExtracting && (
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="space-y-1">
