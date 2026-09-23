@@ -496,7 +496,7 @@ export function ContractsPage() {
  * Situação das regras de remuneração do contrato. O texto sozinho identifica o
  * estado; a cor apenas reforça (o estado inicial é neutro, não um erro).
  */
-function ContractRulesStatusBadge({ status }: { status: ContractRulesStatus | null }) {
+function ContractRulesStatusBadge({ status }: { status: ContractRulesDisplayStatus | null }) {
   if (status === null) {
     return <span className="text-sm text-muted-foreground">—</span>;
   }
@@ -505,7 +505,11 @@ function ContractRulesStatusBadge({ status }: { status: ContractRulesStatus | nu
       ? "success-soft"
       : status === "pending_review"
         ? "info-soft"
-        : "secondary";
+        : status === "extracting"
+          ? "warning-soft"
+          : status === "failed"
+            ? "destructive-soft"
+            : "secondary";
   return (
     <Badge variant={variant} size="md">
       {contractRulesStatusLabel(status)}
