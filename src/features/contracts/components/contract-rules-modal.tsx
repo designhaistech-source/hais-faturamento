@@ -109,7 +109,6 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
       setRules(drafts);
       await queryClient.invalidateQueries({ queryKey: contractRulesQueryKey(contractId) });
       await queryClient.invalidateQueries({ queryKey: contractRulesStatusQueryKey });
-      toast.success("Regras identificadas. Confira antes de concluir a revisão.");
     },
     onError: (cause: unknown) => {
       toast.error(
@@ -125,7 +124,7 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
       await queryClient.invalidateQueries({ queryKey: contractRulesQueryKey(contractId) });
       await queryClient.invalidateQueries({ queryKey: contractRulesStatusQueryKey });
       setSavedRules(rules);
-      toast.success(isReviewed ? "Alterações salvas." : "Revisão das regras concluída.");
+      toast.success(isReviewed ? "Alterações salvas." : "Revisão concluída com sucesso.");
       onOpenChange(false);
     },
     onError: () => {
@@ -162,6 +161,8 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
   }
 
   function handleOpenChange(next: boolean) {
+    /** Durante a extração o modal não fecha (Esc, clique fora ou X). */
+    if (!next && isExtracting) return;
     if (!next && hasUnsavedChanges) {
       setConfirmDiscard(true);
       return;
@@ -174,6 +175,7 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
       <AppModal
         open={open}
         onOpenChange={handleOpenChange}
+        hideCloseButton={isExtracting}
         size="lg"
         title="Regras de remuneração"
         icon={<Scale className="size-5" aria-hidden="true" />}
