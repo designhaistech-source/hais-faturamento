@@ -346,16 +346,19 @@ export function ContractsPage() {
                                 <DataTableCell>
                                   {formatIsoToBr(contract.validUntil) || "—"}
                                 </DataTableCell>
-                                 <DataTableCell>
-                                   <ContractRulesStatusBadge
-                                     status={rulesStatusOf(contract.id)}
-                                     contract={contract}
-                                     onOpen={setRulesContract}
-                                   />
-                                 </DataTableCell>
-                                 <DataTableCell className="text-right">
-                                   <ContractActions contract={contract} onView={setPreviewContract} />
-                                 </DataTableCell>
+                                <DataTableCell>
+                                  <ContractRulesStatusBadge
+                                    status={rulesStatusOf(contract.id)}
+                                    contract={contract}
+                                    onOpen={setRulesContract}
+                                  />
+                                </DataTableCell>
+                                <DataTableCell className="text-right">
+                                  <ContractActions
+                                    contract={contract}
+                                    onView={setPreviewContract}
+                                  />
+                                </DataTableCell>
                               </DataTableRow>
                             ))}
                           </DataTableBody>
@@ -380,19 +383,19 @@ export function ContractsPage() {
                                 },
                                 {
                                   label: "Regras",
-                                   value: (
-                                     <ContractRulesStatusBadge
-                                       status={rulesStatusOf(contract.id)}
-                                       contract={contract}
-                                       onOpen={setRulesContract}
-                                     />
-                                   ),
-                                 },
-                               ]}
-                             />
-                             <DataTableCardActions className="-mt-0.5 justify-end">
-                               <ContractActions contract={contract} onView={setPreviewContract} />
-                             </DataTableCardActions>
+                                  value: (
+                                    <ContractRulesStatusBadge
+                                      status={rulesStatusOf(contract.id)}
+                                      contract={contract}
+                                      onOpen={setRulesContract}
+                                    />
+                                  ),
+                                },
+                              ]}
+                            />
+                            <DataTableCardActions className="-mt-0.5 justify-end">
+                              <ContractActions contract={contract} onView={setPreviewContract} />
+                            </DataTableCardActions>
                           </DataTableCard>
                         ))}
                       </DataTableCardList>
