@@ -76,7 +76,7 @@ export async function listContracts(): Promise<Contract[]> {
   }));
 }
 
-export async function createContract(input: NewContractInput): Promise<void> {
+export async function createContract(input: NewContractInput): Promise<Contract> {
   const path = `${crypto.randomUUID()}-${sanitizeFileName(input.file.name)}`;
 
   const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, input.file, {
@@ -84,15 +84,31 @@ export async function createContract(input: NewContractInput): Promise<void> {
   });
   if (uploadError) throw uploadError;
 
-  const { error } = await supabase.from("contracts").insert({
-    company: input.company,
-    cnpj: input.cnpj,
-    valid_until: input.validUntil ? input.validUntil : null,
-    file_name: input.file.name,
-    file_path: path,
-    file_type: input.file.type,
-  });
-  if (error) throw error;
+  const { data, error } = await supabase
+    .from("contracts")
+    .insert({
+      company: input.company,
+      cnpj: input.cnpj,
+      valid_until: input.validUntil ? input.validUntil : null,
+      file_name: input.file.name,
+      file_path: path,
+      file_type: input.file.type,
+    })
+    .select("id, company, cnpj, valid_until, file_name, file_path, file_type")
+    .single();
+  if (error || !data) throw error ?? new Error("Não foi possível cadastrar o contrato.");
+
+  return {
+    id: data.id,
+    company: data.company,
+    cnpj: data.cnpj ?? "",
+    validUntil: data.valid_until ?? "",
+    file: {
+      name: data.file_name,
+      path: data.file_path,
+      type: data.file_type ?? "",
+    },
+  };
 }
 
 /** Antecipa o download do arquivo (hover/foco) para a pré-visualização abrir imediata. */

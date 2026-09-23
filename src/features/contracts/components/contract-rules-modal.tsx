@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Scale, Sparkles, Trash2 } from "lucide-react";
+import { Check, Pencil, Plus, Scale, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppModal } from "@/components/app-modal";
@@ -11,13 +11,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { EmptyState, ErrorState } from "@/components/data-state";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { extractContractRules } from "@/lib/contract-rules.functions";
 
 import type { Contract } from "../data/contracts";
 import {
   CONTRACT_RULE_BASES,
   contractRuleBaseLabel,
+  contractRuleTitle,
   emptyContractRuleDraft,
+  formatContractRuleValidity,
+  summarizeContractRule,
   toContractRuleBase,
   type ContractRuleDraft,
 } from "../data/contract-rules";
@@ -27,7 +29,11 @@ import {
   listContractRules,
   saveContractRules,
 } from "../data/contract-rules-service";
-import { readContractText } from "../data/contract-text";
+import {
+  clearContractExtractionState,
+  extractContractRulesFor,
+  useContractExtractionStates,
+} from "../data/contract-extraction";
 
 const BASE_OPTIONS: SelectOption[] = CONTRACT_RULE_BASES.map((base) => ({
   value: base,
@@ -46,12 +52,14 @@ function parseDecimal(value: string, fallback: number): number {
 }
 
 /**
- * Regras de remuneração do contrato: leitura automática do arquivo, revisão
- * pelo usuário e gravação para uso nas análises de faturamento.
+ * Revisão das regras de remuneração: lista compacta do que a IA identificou no
+ * contrato, com edição sob demanda dos campos técnicos de cada regra.
  */
 export function ContractRulesModal({ contract, open, onOpenChange }: ContractRulesModalProps) {
   const queryClient = useQueryClient();
   const contractId = contract?.id ?? "";
+  const extractionStates = useContractExtractionStates();
+  const extractionState = contractId ? extractionStates[contractId] : undefined;
 
   const rulesQuery = useQuery({
     queryKey: contractRulesQueryKey(contractId),
@@ -60,6 +68,7 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
   });
 
   const [rules, setRules] = useState<ContractRuleDraft[]>([]);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [confirmReextract, setConfirmReextract] = useState(false);
   const hasRules = rules.length > 0;
 
@@ -73,37 +82,25 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
     );
   }, [open, rulesQuery.data]);
 
+  useEffect(() => {
+    if (!open) setEditingIndex(null);
+  }, [open]);
+
   const extractMutation = useMutation({
     mutationFn: async () => {
       if (!contract) throw new Error("Contrato não selecionado.");
-      const contractText = await readContractText(contract);
-      if (contractText.length < 40) {
-        throw new Error("Não foi possível ler o texto do arquivo do contrato.");
-      }
-      const extracted = await extractContractRules({ data: { contractText } });
-      const drafts: ContractRuleDraft[] = extracted.map((rule) => ({
-        category: rule.category,
-        baseType: toContractRuleBase(rule.baseType),
-        codes: rule.codes,
-        factor: Number.isFinite(rule.factor) ? rule.factor : 1,
-        adjustmentPercent: Number.isFinite(rule.adjustmentPercent) ? rule.adjustmentPercent : 0,
-        negotiatedValue: rule.negotiatedValue,
-        validFrom: rule.validFrom,
-        validTo: rule.validTo,
-        sourceExcerpt: rule.sourceExcerpt,
-      }));
-      /** Regras extraídas ficam salvas como revisão pendente até a confirmação. */
-      if (drafts.length > 0) await saveContractRules(contractId, drafts, { reviewed: false });
-      return drafts;
+      return extractContractRulesFor(contract);
     },
     onSuccess: async (drafts) => {
+      setEditingIndex(null);
       if (drafts.length === 0) {
         toast.info("Nenhuma regra de remuneração foi identificada no contrato.");
         return;
       }
       setRules(drafts);
+      await queryClient.invalidateQueries({ queryKey: contractRulesQueryKey(contractId) });
       await queryClient.invalidateQueries({ queryKey: contractRulesStatusQueryKey });
-      toast.success("Regras identificadas. Revise antes de salvar.");
+      toast.success("Regras identificadas. Confira antes de concluir a revisão.");
     },
     onError: (cause: unknown) => {
       toast.error(
@@ -115,9 +112,10 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
   const saveMutation = useMutation({
     mutationFn: () => saveContractRules(contractId, rules),
     onSuccess: async () => {
+      clearContractExtractionState(contractId);
       await queryClient.invalidateQueries({ queryKey: contractRulesQueryKey(contractId) });
       await queryClient.invalidateQueries({ queryKey: contractRulesStatusQueryKey });
-      toast.success("Regras do contrato salvas.");
+      toast.success("Revisão das regras concluída.");
       onOpenChange(false);
     },
     onError: () => {
@@ -130,6 +128,21 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
       previous.map((rule, position) => (position === index ? { ...rule, ...patch } : rule)),
     );
   }
+
+  function removeRule(index: number) {
+    setRules((previous) => previous.filter((_, position) => position !== index));
+    setEditingIndex(null);
+  }
+
+  function addRule() {
+    setRules((previous) => {
+      setEditingIndex(previous.length);
+      return [...previous, emptyContractRuleDraft()];
+    });
+  }
+
+  const isExtracting = extractionState === "extracting" || extractMutation.isPending;
+  const hasFailed = extractionState === "failed" && !extractMutation.isPending;
 
   return (
     <>
@@ -156,7 +169,7 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
                 disabled={saveMutation.isPending}
                 onClick={() => saveMutation.mutate()}
               >
-                Salvar e concluir revisão
+                Concluir revisão
               </Button>
             )}
           </>
@@ -170,33 +183,47 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
                   {`${rules.length} ${rules.length === 1 ? "regra identificada" : "regras identificadas"}`}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Revise as informações extraídas do contrato antes de utilizá-las nas análises de
-                  faturamento.
+                  Confira as regras identificadas no contrato antes de concluir a revisão.
                 </p>
               </div>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={extractMutation.isPending || !contract}
+                disabled={isExtracting || !contract}
                 onClick={() => setConfirmReextract(true)}
               >
                 <Sparkles className="size-4" aria-hidden="true" />
-                {extractMutation.isPending ? "Lendo o contrato…" : "Extrair novamente"}
+                {isExtracting ? "Lendo o contrato…" : "Extrair novamente"}
               </Button>
             </div>
           )}
 
-          {rulesQuery.isPending && open ? (
+          {isExtracting && !hasRules ? (
             <div className="space-y-2">
-              <Skeleton className="h-24 w-full" />
-              <Skeleton className="h-24 w-full" />
+              <p className="text-sm text-muted-foreground">
+                Lendo o contrato e identificando as regras de remuneração…
+              </p>
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </div>
+          ) : rulesQuery.isPending && open ? (
+            <div className="space-y-2">
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
             </div>
           ) : rulesQuery.isError ? (
             <ErrorState
               title="Não foi possível carregar as regras"
               description="Tente novamente em alguns instantes."
               onRetry={() => void rulesQuery.refetch()}
+            />
+          ) : hasFailed && !hasRules ? (
+            <ErrorState
+              title="Falha na análise do contrato"
+              description="Não foi possível identificar as regras deste contrato. Tente a leitura novamente ou adicione as regras manualmente."
+              retryLabel="Tentar novamente"
+              onRetry={() => extractMutation.mutate()}
             />
           ) : !hasRules ? (
             <EmptyState
@@ -208,18 +235,13 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
                   <Button
                     type="button"
                     size="sm"
-                    disabled={extractMutation.isPending || !contract}
+                    disabled={isExtracting || !contract}
                     onClick={() => extractMutation.mutate()}
                   >
                     <Sparkles className="size-4" aria-hidden="true" />
-                    {extractMutation.isPending ? "Lendo o contrato…" : "Ler regras do contrato"}
+                    {isExtracting ? "Lendo o contrato…" : "Ler regras do contrato"}
                   </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setRules((previous) => [...previous, emptyContractRuleDraft()])}
-                  >
+                  <Button type="button" variant="outline" size="sm" onClick={addRule}>
                     <Plus className="size-4" aria-hidden="true" />
                     Adicionar regra manualmente
                   </Button>
@@ -228,128 +250,170 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
             />
           ) : (
             <div className="space-y-3">
-              {rules.map((rule, index) => (
-                <div
-                  key={index}
-                  className="space-y-3 rounded-xl border border-border bg-muted/40 p-4"
-                >
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <Field id={`rule-category-${index}`} label="Categoria de cobrança">
-                      <Input
-                        value={rule.category}
-                        placeholder="Ex.: medicamentos"
-                        onChange={(event) => updateRule(index, { category: event.target.value })}
-                      />
-                    </Field>
-                    <SelectField
-                      id={`rule-base-${index}`}
-                      label="Referência"
-                      value={rule.baseType}
-                      options={BASE_OPTIONS}
-                      triggerClassName="[&>span]:leading-normal [&>span]:line-clamp-none"
-                      onValueChange={(value) =>
-                        updateRule(index, { baseType: toContractRuleBase(value) })
-                      }
-                    />
-                    <Field
-                      id={`rule-codes-${index}`}
-                      label="Códigos específicos"
-                      hint="Separados por vírgula; vazio aplica a toda a categoria."
-                    >
-                      <Input
-                        value={rule.codes}
-                        onChange={(event) => updateRule(index, { codes: event.target.value })}
-                      />
-                    </Field>
-                    <Field id={`rule-factor-${index}`} label="Fator">
-                      <Input
-                        inputMode="decimal"
-                        value={String(rule.factor)}
-                        onChange={(event) =>
-                          updateRule(index, { factor: parseDecimal(event.target.value, 1) })
-                        }
-                      />
-                    </Field>
-                    <Field
-                      id={`rule-adjustment-${index}`}
-                      label="Desconto ou acréscimo (%)"
-                      hint="Desconto com sinal negativo."
-                    >
-                      <Input
-                        inputMode="decimal"
-                        value={String(rule.adjustmentPercent)}
-                        onChange={(event) =>
-                          updateRule(index, {
-                            adjustmentPercent: parseDecimal(event.target.value, 0),
-                          })
-                        }
-                      />
-                    </Field>
-                    <Field id={`rule-negotiated-${index}`} label="Valor negociado (R$)">
-                      <Input
-                        inputMode="decimal"
-                        value={rule.negotiatedValue === null ? "" : String(rule.negotiatedValue)}
-                        onChange={(event) =>
-                          updateRule(index, {
-                            negotiatedValue:
-                              event.target.value.trim() === ""
-                                ? null
-                                : parseDecimal(event.target.value, 0),
-                          })
-                        }
-                      />
-                    </Field>
-                    <Field id={`rule-valid-from-${index}`} label="Vigência de">
-                      <Input
-                        type="date"
-                        value={rule.validFrom}
-                        onChange={(event) => updateRule(index, { validFrom: event.target.value })}
-                      />
-                    </Field>
-                    <Field id={`rule-valid-to-${index}`} label="Vigência até">
-                      <Input
-                        type="date"
-                        value={rule.validTo}
-                        onChange={(event) => updateRule(index, { validTo: event.target.value })}
-                      />
-                    </Field>
-                  </div>
+              {rules.map((rule, index) => {
+                const editing = editingIndex === index;
+                const summary = summarizeContractRule(rule);
+                const validity = formatContractRuleValidity(rule);
 
-                  <Field
-                    id={`rule-excerpt-${index}`}
-                    label="Trecho do contrato"
-                    hint="Usado apenas para conferência."
+                return (
+                  <div
+                    key={index}
+                    className="space-y-3 rounded-xl border border-border bg-muted/40 p-4"
                   >
-                    <Textarea
-                      rows={2}
-                      value={rule.sourceExcerpt}
-                      onChange={(event) => updateRule(index, { sourceExcerpt: event.target.value })}
-                    />
-                  </Field>
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0 space-y-0.5">
+                        <p className="text-sm font-medium text-foreground">
+                          {contractRuleTitle(rule)}
+                        </p>
+                        {summary && <p className="text-sm text-muted-foreground">{summary}</p>}
+                        {validity && (
+                          <p className="font-mono text-xs text-muted-foreground">{validity}</p>
+                        )}
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditingIndex(editing ? null : index)}
+                        >
+                          {editing ? (
+                            <>
+                              <Check className="size-4" aria-hidden="true" />
+                              Salvar regra
+                            </>
+                          ) : (
+                            <>
+                              <Pencil className="size-4" aria-hidden="true" />
+                              Editar
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => removeRule(index)}
+                        >
+                          <Trash2 className="size-4" aria-hidden="true" />
+                          Remover
+                        </Button>
+                      </div>
+                    </div>
 
-                  <div className="flex justify-end">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() =>
-                        setRules((previous) => previous.filter((_, position) => position !== index))
-                      }
-                    >
-                      <Trash2 className="size-4" aria-hidden="true" />
-                      Remover regra
-                    </Button>
+                    {editing && (
+                      <div className="space-y-3 border-t border-border pt-3">
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <Field id={`rule-category-${index}`} label="Categoria de cobrança">
+                            <Input
+                              value={rule.category}
+                              placeholder="Ex.: medicamentos"
+                              onChange={(event) =>
+                                updateRule(index, { category: event.target.value })
+                              }
+                            />
+                          </Field>
+                          <SelectField
+                            id={`rule-base-${index}`}
+                            label="Referência"
+                            value={rule.baseType}
+                            options={BASE_OPTIONS}
+                            triggerClassName="[&>span]:leading-normal [&>span]:line-clamp-none"
+                            onValueChange={(value) =>
+                              updateRule(index, { baseType: toContractRuleBase(value) })
+                            }
+                          />
+                          <Field
+                            id={`rule-codes-${index}`}
+                            label="Códigos específicos"
+                            hint="Separados por vírgula; vazio aplica a toda a categoria."
+                          >
+                            <Input
+                              value={rule.codes}
+                              onChange={(event) => updateRule(index, { codes: event.target.value })}
+                            />
+                          </Field>
+                          <Field id={`rule-factor-${index}`} label="Fator">
+                            <Input
+                              inputMode="decimal"
+                              value={String(rule.factor)}
+                              onChange={(event) =>
+                                updateRule(index, { factor: parseDecimal(event.target.value, 1) })
+                              }
+                            />
+                          </Field>
+                          <Field
+                            id={`rule-adjustment-${index}`}
+                            label="Desconto ou acréscimo (%)"
+                            hint="Desconto com sinal negativo."
+                          >
+                            <Input
+                              inputMode="decimal"
+                              value={String(rule.adjustmentPercent)}
+                              onChange={(event) =>
+                                updateRule(index, {
+                                  adjustmentPercent: parseDecimal(event.target.value, 0),
+                                })
+                              }
+                            />
+                          </Field>
+                          <Field id={`rule-negotiated-${index}`} label="Valor negociado (R$)">
+                            <Input
+                              inputMode="decimal"
+                              value={
+                                rule.negotiatedValue === null ? "" : String(rule.negotiatedValue)
+                              }
+                              onChange={(event) =>
+                                updateRule(index, {
+                                  negotiatedValue:
+                                    event.target.value.trim() === ""
+                                      ? null
+                                      : parseDecimal(event.target.value, 0),
+                                })
+                              }
+                            />
+                          </Field>
+                          <Field id={`rule-valid-from-${index}`} label="Vigência de">
+                            <Input
+                              type="date"
+                              value={rule.validFrom}
+                              onChange={(event) =>
+                                updateRule(index, { validFrom: event.target.value })
+                              }
+                            />
+                          </Field>
+                          <Field id={`rule-valid-to-${index}`} label="Vigência até">
+                            <Input
+                              type="date"
+                              value={rule.validTo}
+                              onChange={(event) =>
+                                updateRule(index, { validTo: event.target.value })
+                              }
+                            />
+                          </Field>
+                        </div>
+
+                        <Field
+                          id={`rule-excerpt-${index}`}
+                          label="Trecho do contrato"
+                          hint="Origem da informação identificada pela IA."
+                        >
+                          <Textarea
+                            rows={2}
+                            value={rule.sourceExcerpt}
+                            onChange={(event) =>
+                              updateRule(index, { sourceExcerpt: event.target.value })
+                            }
+                          />
+                        </Field>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setRules((previous) => [...previous, emptyContractRuleDraft()])}
-              >
+              <Button type="button" variant="outline" size="sm" onClick={addRule}>
                 <Plus className="size-4" aria-hidden="true" />
                 Adicionar regra
               </Button>

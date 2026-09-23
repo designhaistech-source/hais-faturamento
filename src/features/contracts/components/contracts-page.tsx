@@ -47,11 +47,12 @@ import {
   listContracts,
   prefetchContractFile,
 } from "../data/contracts-service";
-import { contractRulesStatusLabel, type ContractRulesStatus } from "../data/contract-rules";
+import { contractRulesStatusLabel, type ContractRulesDisplayStatus } from "../data/contract-rules";
 import {
   contractRulesStatusQueryKey,
   listContractRulesStatuses,
 } from "../data/contract-rules-service";
+import { extractContractRulesFor, useContractExtractionStates } from "../data/contract-extraction";
 import { Badge } from "@/components/ui/badge";
 
 const COLUMNS = ["Prestador", "CNPJ", "Contrato", "Validade", "Regras", "Ações"] as const;
@@ -90,8 +91,13 @@ export function ContractsPage() {
     queryFn: listContractRulesStatuses,
   });
   const rulesStatuses = rulesStatusQuery.data;
-  const rulesStatusOf = (contractId: string): ContractRulesStatus | null =>
-    rulesStatuses ? (rulesStatuses[contractId] ?? "not_extracted") : null;
+  /** Leitura automática em andamento/falha do contrato recém-cadastrado. */
+  const extractionStates = useContractExtractionStates();
+  const rulesStatusOf = (contractId: string): ContractRulesDisplayStatus | null => {
+    const extraction = extractionStates[contractId];
+    if (extraction) return extraction;
+    return rulesStatuses ? (rulesStatuses[contractId] ?? "not_extracted") : null;
+  };
 
   /** Ferramenta provisória de testes: simula a página sem contratos, sem alterar dados. */
   const [simulateEmpty, setSimulateEmpty] = useState(false);
@@ -140,11 +146,30 @@ export function ContractsPage() {
     setPage(1);
   }
 
+  /**
+   * A leitura das regras começa sozinha após o cadastro, em segundo plano, sem
+   * bloquear a listagem. A coluna Regras acompanha o andamento.
+   */
+  async function startRulesExtraction(contract: Contract) {
+    try {
+      const drafts = await extractContractRulesFor(contract);
+      await queryClient.invalidateQueries({ queryKey: contractRulesStatusQueryKey });
+      if (drafts.length === 0) {
+        toast.info(`Nenhuma regra de remuneração foi identificada em ${contract.company}.`);
+        return;
+      }
+      toast.success(`Regras de ${contract.company} identificadas. Revise antes de usar.`);
+    } catch {
+      toast.error(`Não foi possível ler as regras do contrato de ${contract.company}.`);
+    }
+  }
+
   const createMutation = useMutation({
     mutationFn: (input: NewContractInput) => createContract(input),
-    onSuccess: async () => {
+    onSuccess: async (contract) => {
       await queryClient.invalidateQueries({ queryKey: contractsQueryKey });
       toast.success("Contrato cadastrado com sucesso.");
+      void startRulesExtraction(contract);
     },
     onError: () => {
       toast.error("Não foi possível cadastrar o contrato.");
@@ -465,7 +490,7 @@ export function ContractsPage() {
  * Situação das regras de remuneração do contrato. O texto sozinho identifica o
  * estado; a cor apenas reforça (o estado inicial é neutro, não um erro).
  */
-function ContractRulesStatusBadge({ status }: { status: ContractRulesStatus | null }) {
+function ContractRulesStatusBadge({ status }: { status: ContractRulesDisplayStatus | null }) {
   if (status === null) {
     return <span className="text-sm text-muted-foreground">—</span>;
   }
@@ -474,7 +499,11 @@ function ContractRulesStatusBadge({ status }: { status: ContractRulesStatus | nu
       ? "success-soft"
       : status === "pending_review"
         ? "info-soft"
-        : "secondary";
+        : status === "extracting"
+          ? "warning-soft"
+          : status === "failed"
+            ? "destructive-soft"
+            : "secondary";
   return (
     <Badge variant={variant} size="md">
       {contractRulesStatusLabel(status)}
