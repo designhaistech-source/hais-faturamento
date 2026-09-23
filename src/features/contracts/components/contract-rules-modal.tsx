@@ -68,18 +68,27 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
   });
 
   const [rules, setRules] = useState<ContractRuleDraft[]>([]);
+  const [savedRules, setSavedRules] = useState<ContractRuleDraft[]>([]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [confirmReextract, setConfirmReextract] = useState(false);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
   const hasRules = rules.length > 0;
+
+  /** Contrato já revisado: o modal abre como consulta, não como nova revisão. */
+  const isReviewed =
+    rulesQuery.data !== undefined &&
+    rulesQuery.data.length > 0 &&
+    rulesQuery.data.every((rule) => rule.reviewed);
+  const hasUnsavedChanges = JSON.stringify(rules) !== JSON.stringify(savedRules);
 
   useEffect(() => {
     if (!open) return;
     if (!rulesQuery.data) return;
-    setRules(
-      rulesQuery.data.map(
-        ({ id: _id, contractId: _contractId, reviewed: _reviewed, ...draft }) => draft,
-      ),
+    const drafts = rulesQuery.data.map(
+      ({ id: _id, contractId: _contractId, reviewed: _reviewed, ...draft }) => draft,
     );
+    setRules(drafts);
+    setSavedRules(drafts);
   }, [open, rulesQuery.data]);
 
   useEffect(() => {
@@ -115,7 +124,8 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
       clearContractExtractionState(contractId);
       await queryClient.invalidateQueries({ queryKey: contractRulesQueryKey(contractId) });
       await queryClient.invalidateQueries({ queryKey: contractRulesStatusQueryKey });
-      toast.success("Revisão das regras concluída.");
+      setSavedRules(rules);
+      toast.success(isReviewed ? "Alterações salvas." : "Revisão das regras concluída.");
       onOpenChange(false);
     },
     onError: () => {
@@ -143,36 +153,63 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
 
   const isExtracting = extractionState === "extracting" || extractMutation.isPending;
   const hasFailed = extractionState === "failed" && !extractMutation.isPending;
+  /** Consulta: contrato revisado e sem alterações pendentes nesta sessão. */
+  const isConsulting = isReviewed && !hasUnsavedChanges;
+
+  function discardChanges() {
+    setRules(savedRules);
+    setEditingIndex(null);
+  }
+
+  function handleOpenChange(next: boolean) {
+    if (!next && hasUnsavedChanges) {
+      setConfirmDiscard(true);
+      return;
+    }
+    onOpenChange(next);
+  }
 
   return (
     <>
       <AppModal
         open={open}
-        onOpenChange={onOpenChange}
+        onOpenChange={handleOpenChange}
         size="lg"
         title="Regras de remuneração"
-        description={
-          contract
-            ? `Confira as regras usadas nas análises do contrato de ${contract.company}.`
-            : "Confira as regras usadas nas análises deste contrato."
-        }
         icon={<Scale className="size-5" aria-hidden="true" />}
         footer={
-          <>
+          isConsulting ? (
             <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
-              Cancelar
+              Fechar
             </Button>
-            {hasRules && (
+          ) : (
+            <>
               <Button
                 type="button"
+                variant="outline"
                 size="sm"
-                disabled={saveMutation.isPending}
-                onClick={() => saveMutation.mutate()}
+                onClick={() => {
+                  if (isReviewed) {
+                    discardChanges();
+                    return;
+                  }
+                  handleOpenChange(false);
+                }}
               >
-                Concluir revisão
+                {isReviewed ? "Cancelar alterações" : "Cancelar"}
               </Button>
-            )}
-          </>
+              {hasRules && (
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={saveMutation.isPending}
+                  onClick={() => saveMutation.mutate()}
+                >
+                  {isReviewed ? "Salvar alterações" : "Concluir revisão"}
+                </Button>
+              )}
+            </>
+          )
         }
       >
         <div className="space-y-4">
@@ -180,10 +217,14 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-foreground">
-                  {`${rules.length} ${rules.length === 1 ? "regra identificada" : "regras identificadas"}`}
+                  {isReviewed
+                    ? `${rules.length} ${rules.length === 1 ? "regra de remuneração" : "regras de remuneração"}`
+                    : `${rules.length} ${rules.length === 1 ? "regra identificada" : "regras identificadas"}`}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Confira as regras identificadas no contrato antes de concluir a revisão.
+                  {isReviewed
+                    ? "Consulte as regras utilizadas nas análises deste contrato."
+                    : "Confira as regras identificadas no contrato antes de concluir a revisão."}
                 </p>
               </div>
               <Button
@@ -432,6 +473,20 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
         onConfirm={() => {
           setConfirmReextract(false);
           extractMutation.mutate();
+        }}
+      />
+
+      <ConfirmDialog
+        open={confirmDiscard}
+        onOpenChange={setConfirmDiscard}
+        tone="warning"
+        title="Descartar as alterações?"
+        description="As alterações feitas nas regras deste contrato não foram salvas e serão perdidas."
+        confirmLabel="Descartar alterações"
+        onConfirm={() => {
+          setConfirmDiscard(false);
+          discardChanges();
+          onOpenChange(false);
         }}
       />
     </>
