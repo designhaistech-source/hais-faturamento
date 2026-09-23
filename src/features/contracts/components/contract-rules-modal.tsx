@@ -68,18 +68,27 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
   });
 
   const [rules, setRules] = useState<ContractRuleDraft[]>([]);
+  const [savedRules, setSavedRules] = useState<ContractRuleDraft[]>([]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [confirmReextract, setConfirmReextract] = useState(false);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
   const hasRules = rules.length > 0;
+
+  /** Contrato já revisado: o modal abre como consulta, não como nova revisão. */
+  const isReviewed =
+    rulesQuery.data !== undefined &&
+    rulesQuery.data.length > 0 &&
+    rulesQuery.data.every((rule) => rule.reviewed);
+  const hasUnsavedChanges = JSON.stringify(rules) !== JSON.stringify(savedRules);
 
   useEffect(() => {
     if (!open) return;
     if (!rulesQuery.data) return;
-    setRules(
-      rulesQuery.data.map(
-        ({ id: _id, contractId: _contractId, reviewed: _reviewed, ...draft }) => draft,
-      ),
+    const drafts = rulesQuery.data.map(
+      ({ id: _id, contractId: _contractId, reviewed: _reviewed, ...draft }) => draft,
     );
+    setRules(drafts);
+    setSavedRules(drafts);
   }, [open, rulesQuery.data]);
 
   useEffect(() => {
