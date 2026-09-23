@@ -60,6 +60,8 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
   });
 
   const [rules, setRules] = useState<ContractRuleDraft[]>([]);
+  const [confirmReextract, setConfirmReextract] = useState(false);
+  const hasRules = rules.length > 0;
 
   useEffect(() => {
     if (!open) return;
