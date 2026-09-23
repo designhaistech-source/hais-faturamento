@@ -8,7 +8,7 @@ import { Field, SelectField, type SelectOption } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { EmptyState, ErrorState } from "@/components/data-state";
+import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -178,7 +178,7 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
         title="Regras de remuneração"
         icon={<Scale className="size-5" aria-hidden="true" />}
         footer={
-          isConsulting ? (
+          isExtracting ? undefined : isConsulting ? (
             <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
               Fechar
             </Button>
@@ -213,7 +213,7 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
         }
       >
         <div className="space-y-4">
-          {hasRules && (
+          {hasRules && !isExtracting && (
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-foreground">
@@ -240,14 +240,11 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
             </div>
           )}
 
-          {isExtracting && !hasRules ? (
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Lendo o contrato e identificando as regras de remuneração…
-              </p>
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-16 w-full" />
-            </div>
+          {isExtracting ? (
+            <LoadingState
+              title="Analisando o contrato"
+              description="Estamos identificando as regras de remuneração. Isso pode levar alguns instantes."
+            />
           ) : rulesQuery.isPending && open ? (
             <div className="space-y-2">
               <Skeleton className="h-16 w-full" />
@@ -259,7 +256,7 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
               description="Tente novamente em alguns instantes."
               onRetry={() => void rulesQuery.refetch()}
             />
-          ) : hasFailed && !hasRules ? (
+          ) : hasFailed ? (
             <ErrorState
               title="Falha na análise do contrato"
               description="Não foi possível identificar as regras deste contrato. Tente a leitura novamente ou adicione as regras manualmente."
