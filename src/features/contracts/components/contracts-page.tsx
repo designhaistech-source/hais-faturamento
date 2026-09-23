@@ -97,8 +97,13 @@ export function ContractsPage() {
     queryFn: listContractRulesStatuses,
   });
   const rulesStatuses = rulesStatusQuery.data;
-  const rulesStatusOf = (contractId: string): ContractRulesStatus | null =>
-    rulesStatuses ? (rulesStatuses[contractId] ?? "not_extracted") : null;
+  /** Leitura automática em andamento/falha do contrato recém-cadastrado. */
+  const extractionStates = useContractExtractionStates();
+  const rulesStatusOf = (contractId: string): ContractRulesDisplayStatus | null => {
+    const extraction = extractionStates[contractId];
+    if (extraction) return extraction;
+    return rulesStatuses ? (rulesStatuses[contractId] ?? "not_extracted") : null;
+  };
 
   /** Ferramenta provisória de testes: simula a página sem contratos, sem alterar dados. */
   const [simulateEmpty, setSimulateEmpty] = useState(false);
