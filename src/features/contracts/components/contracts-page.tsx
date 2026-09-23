@@ -542,9 +542,13 @@ function ContractRulesStatusBadge({
           type="button"
           onClick={() => onOpen(contract)}
           aria-label={`${label} — ${hint} do contrato de ${contract.company}`}
-          className="cursor-pointer rounded-full outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="group cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
-          <Badge variant={variant} size="md" className="underline decoration-dotted">
+          <Badge
+            variant={variant}
+            size="md"
+            className="border border-transparent transition-colors group-hover:border-current group-hover:brightness-95"
+          >
             <Scale className="size-3" aria-hidden="true" />
             {label}
           </Badge>
