@@ -122,6 +122,59 @@ export function describeContractRule(rule: ContractRule): string {
   return parts.join(" · ");
 }
 
+function formatCurrency(value: number): string {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function formatBrDate(iso: string): string {
+  const [year, month, day] = iso.split("-");
+  return year && month && day ? `${day}/${month}/${year}` : "";
+}
+
+/** Título da regra na lista compacta de revisão. */
+export function contractRuleTitle(rule: ContractRuleDraft): string {
+  return rule.category.trim() || "Regra geral do contrato";
+}
+
+/**
+ * Resumo dinâmico da regra para a revisão: mostra só o que se aplica ao tipo de
+ * regra (base de referência, códigos, desconto/acréscimo, fator ou valor fixo).
+ */
+export function summarizeContractRule(rule: ContractRuleDraft): string {
+  const parts: string[] = [];
+  const codes = parseRuleCodes(rule.codes);
+
+  if (rule.baseType === "contract") {
+    parts.push(codes.length > 0 ? `Código ${codes.join(", ")}` : "Valor negociado");
+  } else if (rule.baseType !== "none") {
+    parts.push(contractRuleBaseLabel(rule.baseType));
+    if (codes.length > 0) parts.push(`Código ${codes.join(", ")}`);
+  } else if (codes.length > 0) {
+    parts.push(`Código ${codes.join(", ")}`);
+  }
+
+  if (rule.adjustmentPercent !== 0) {
+    const sign = rule.adjustmentPercent > 0 ? "Acréscimo" : "Desconto";
+    parts.push(`${sign} de ${Math.abs(rule.adjustmentPercent).toLocaleString("pt-BR")}%`);
+  } else if (rule.baseType !== "contract" && rule.baseType !== "none") {
+    parts.push(`Fator ${rule.factor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`);
+  }
+
+  if (rule.negotiatedValue !== null) parts.push(formatCurrency(rule.negotiatedValue));
+
+  return parts.join(" · ");
+}
+
+/** Vigência da regra em texto; vazio quando o contrato não informa datas. */
+export function formatContractRuleValidity(rule: ContractRuleDraft): string {
+  const from = rule.validFrom ? formatBrDate(rule.validFrom) : "";
+  const to = rule.validTo ? formatBrDate(rule.validTo) : "";
+  if (from && to) return `${from} – ${to}`;
+  if (from) return `A partir de ${from}`;
+  if (to) return `Até ${to}`;
+  return "";
+}
+
 /** Regra aplicável a um item, considerando código, categoria e vigência. */
 export function findRuleForItem(
   rules: ContractRule[],
