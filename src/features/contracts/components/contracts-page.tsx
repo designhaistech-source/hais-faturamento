@@ -347,13 +347,16 @@ export function ContractsPage() {
                                   {formatIsoToBr(contract.validUntil) || "—"}
                                 </DataTableCell>
                                 <DataTableCell>
-                                  <ContractRulesStatusBadge status={rulesStatusOf(contract.id)} />
+                                  <ContractRulesStatusBadge
+                                    status={rulesStatusOf(contract.id)}
+                                    contract={contract}
+                                    onOpen={setRulesContract}
+                                  />
                                 </DataTableCell>
                                 <DataTableCell className="text-right">
                                   <ContractActions
                                     contract={contract}
                                     onView={setPreviewContract}
-                                    onRules={setRulesContract}
                                   />
                                 </DataTableCell>
                               </DataTableRow>
@@ -381,17 +384,17 @@ export function ContractsPage() {
                                 {
                                   label: "Regras",
                                   value: (
-                                    <ContractRulesStatusBadge status={rulesStatusOf(contract.id)} />
+                                    <ContractRulesStatusBadge
+                                      status={rulesStatusOf(contract.id)}
+                                      contract={contract}
+                                      onOpen={setRulesContract}
+                                    />
                                   ),
                                 },
                               ]}
                             />
                             <DataTableCardActions className="-mt-0.5 justify-end">
-                              <ContractActions
-                                contract={contract}
-                                onView={setPreviewContract}
-                                onRules={setRulesContract}
-                              />
+                              <ContractActions contract={contract} onView={setPreviewContract} />
                             </DataTableCardActions>
                           </DataTableCard>
                         ))}
@@ -487,10 +490,19 @@ export function ContractsPage() {
 }
 
 /**
- * Situação das regras de remuneração do contrato. O texto sozinho identifica o
- * estado; a cor apenas reforça (o estado inicial é neutro, não um erro).
+ * Situação das regras de remuneração do contrato e ponto de acesso à revisão.
+ * O texto identifica o estado; a cor apenas reforça. Quando acionável, o status
+ * é um botão com ícone, sublinhado, foco visível e navegação por teclado.
  */
-function ContractRulesStatusBadge({ status }: { status: ContractRulesDisplayStatus | null }) {
+function ContractRulesStatusBadge({
+  status,
+  contract,
+  onOpen,
+}: {
+  status: ContractRulesDisplayStatus | null;
+  contract: Contract;
+  onOpen: (contract: Contract) => void;
+}) {
   if (status === null) {
     return <span className="text-sm text-muted-foreground">—</span>;
   }
@@ -504,10 +516,42 @@ function ContractRulesStatusBadge({ status }: { status: ContractRulesDisplayStat
           : status === "failed"
             ? "destructive-soft"
             : "secondary";
+  const label = contractRulesStatusLabel(status);
+
+  if (status === "extracting") {
+    return (
+      <Badge variant={variant} size="md">
+        {label}
+      </Badge>
+    );
+  }
+
+  const hint =
+    status === "reviewed"
+      ? "Consultar e editar as regras de remuneração"
+      : status === "pending_review"
+        ? "Revisar as regras de remuneração"
+        : status === "failed"
+          ? "Ver o motivo da falha e tentar novamente"
+          : "Extrair as regras de remuneração";
+
   return (
-    <Badge variant={variant} size="md">
-      {contractRulesStatusLabel(status)}
-    </Badge>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onClick={() => onOpen(contract)}
+          aria-label={`${label} — ${hint} do contrato de ${contract.company}`}
+          className="cursor-pointer rounded-full outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          <Badge variant={variant} size="md" className="underline decoration-dotted">
+            <Scale className="size-3" aria-hidden="true" />
+            {label}
+          </Badge>
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>{hint}</TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -528,33 +572,16 @@ function ContractFileName({ name }: { name: string }) {
   );
 }
 
-/** Ações da linha: visualizar, baixar e revisar as regras, identificadas por tooltip. */
+/** Ações da linha, relacionadas ao documento: visualizar e baixar o contrato. */
 function ContractActions({
   contract,
   onView,
-  onRules,
 }: {
   contract: Contract;
   onView: (contract: Contract) => void;
-  onRules: (contract: Contract) => void;
 }) {
   return (
     <div className="inline-flex items-center gap-1">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={`Regras de remuneração do contrato de ${contract.company}`}
-            onClick={() => onRules(contract)}
-          >
-            <Scale className="size-4" aria-hidden="true" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Regras de remuneração</TooltipContent>
-      </Tooltip>
-
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
