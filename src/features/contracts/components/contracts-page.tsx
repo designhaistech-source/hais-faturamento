@@ -547,7 +547,7 @@ function ContractRulesStatusBadge({
           <Badge
             variant={variant}
             size="md"
-            className="border border-transparent transition-colors group-hover:border-current group-hover:brightness-95"
+            className="transition-colors group-hover:brightness-95"
           >
             <Scale className="size-3" aria-hidden="true" />
             {label}
