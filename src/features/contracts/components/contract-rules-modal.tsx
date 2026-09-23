@@ -358,5 +358,19 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
         )}
       </div>
     </AppModal>
+
+    <ConfirmDialog
+      open={confirmReextract}
+      onOpenChange={setConfirmReextract}
+      tone="warning"
+      title="Extrair as regras novamente?"
+      description="As regras atuais serão substituídas pelas regras identificadas no contrato, e as alterações já revisadas serão perdidas."
+      confirmLabel="Extrair novamente"
+      onConfirm={() => {
+        setConfirmReextract(false);
+        extractMutation.mutate();
+      }}
+    />
+    </>
   );
 }
