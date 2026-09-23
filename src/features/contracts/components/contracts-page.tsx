@@ -380,19 +380,19 @@ export function ContractsPage() {
                                 },
                                 {
                                   label: "Regras",
-                                  value: (
-                                    <ContractRulesStatusBadge status={rulesStatusOf(contract.id)} />
-                                  ),
-                                },
-                              ]}
-                            />
-                            <DataTableCardActions className="-mt-0.5 justify-end">
-                              <ContractActions
-                                contract={contract}
-                                onView={setPreviewContract}
-                                onRules={setRulesContract}
-                              />
-                            </DataTableCardActions>
+                                   value: (
+                                     <ContractRulesStatusBadge
+                                       status={rulesStatusOf(contract.id)}
+                                       contract={contract}
+                                       onOpen={setRulesContract}
+                                     />
+                                   ),
+                                 },
+                               ]}
+                             />
+                             <DataTableCardActions className="-mt-0.5 justify-end">
+                               <ContractActions contract={contract} onView={setPreviewContract} />
+                             </DataTableCardActions>
                           </DataTableCard>
                         ))}
                       </DataTableCardList>
