@@ -346,16 +346,16 @@ export function ContractsPage() {
                                 <DataTableCell>
                                   {formatIsoToBr(contract.validUntil) || "—"}
                                 </DataTableCell>
-                                <DataTableCell>
-                                  <ContractRulesStatusBadge status={rulesStatusOf(contract.id)} />
-                                </DataTableCell>
-                                <DataTableCell className="text-right">
-                                  <ContractActions
-                                    contract={contract}
-                                    onView={setPreviewContract}
-                                    onRules={setRulesContract}
-                                  />
-                                </DataTableCell>
+                                 <DataTableCell>
+                                   <ContractRulesStatusBadge
+                                     status={rulesStatusOf(contract.id)}
+                                     contract={contract}
+                                     onOpen={setRulesContract}
+                                   />
+                                 </DataTableCell>
+                                 <DataTableCell className="text-right">
+                                   <ContractActions contract={contract} onView={setPreviewContract} />
+                                 </DataTableCell>
                               </DataTableRow>
                             ))}
                           </DataTableBody>
