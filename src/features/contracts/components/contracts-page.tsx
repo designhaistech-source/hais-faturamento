@@ -569,33 +569,16 @@ function ContractFileName({ name }: { name: string }) {
   );
 }
 
-/** Ações da linha: visualizar, baixar e revisar as regras, identificadas por tooltip. */
+/** Ações da linha, relacionadas ao documento: visualizar e baixar o contrato. */
 function ContractActions({
   contract,
   onView,
-  onRules,
 }: {
   contract: Contract;
   onView: (contract: Contract) => void;
-  onRules: (contract: Contract) => void;
 }) {
   return (
     <div className="inline-flex items-center gap-1">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={`Regras de remuneração do contrato de ${contract.company}`}
-            onClick={() => onRules(contract)}
-          >
-            <Scale className="size-4" aria-hidden="true" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Regras de remuneração</TooltipContent>
-      </Tooltip>
-
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
