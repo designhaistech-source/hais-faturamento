@@ -132,6 +132,7 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
   }
 
   return (
+    <>
     <AppModal
       open={open}
       onOpenChange={onOpenChange}
