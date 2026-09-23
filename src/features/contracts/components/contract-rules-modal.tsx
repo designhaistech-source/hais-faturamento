@@ -475,6 +475,20 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
           extractMutation.mutate();
         }}
       />
+
+      <ConfirmDialog
+        open={confirmDiscard}
+        onOpenChange={setConfirmDiscard}
+        tone="warning"
+        title="Descartar as alterações?"
+        description="As alterações feitas nas regras deste contrato não foram salvas e serão perdidas."
+        confirmLabel="Descartar alterações"
+        onConfirm={() => {
+          setConfirmDiscard(false);
+          discardChanges();
+          onOpenChange(false);
+        }}
+      />
     </>
   );
 }
