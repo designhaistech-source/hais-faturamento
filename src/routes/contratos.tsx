@@ -9,7 +9,7 @@ export const Route = createFileRoute("/contratos")({
       {
         name: "description",
         content:
-          "Cadastre e consulte os contratos das clínicas e hospitais atendidos no HaisFaturamento, com empresa, CNPJ, validade e arquivo original.",
+          "Cadastre e consulte os contratos das clínicas e hospitais atendidos no HaisFaturamento, com prestador, CNPJ, validade e arquivo original.",
       },
       { property: "og:title", content: "Contratos | HaisFaturamento" },
       {

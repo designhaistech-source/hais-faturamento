@@ -54,7 +54,7 @@ import {
 } from "../data/contract-rules-service";
 import { Badge } from "@/components/ui/badge";
 
-const COLUMNS = ["Empresa", "CNPJ", "Contrato", "Validade", "Regras", "Ações"] as const;
+const COLUMNS = ["Prestador", "CNPJ", "Contrato", "Validade", "Regras", "Ações"] as const;
 
 async function downloadContractFile(contract: Contract) {
   try {
@@ -228,7 +228,7 @@ export function ContractsPage() {
                     id="contracts-search"
                     label="Buscar"
                     fieldClassName="sm:col-span-2 lg:col-span-1"
-                    placeholder="Buscar por empresa ou CNPJ"
+                    placeholder="Buscar por prestador ou CNPJ"
                     value={search}
                     clearable
                     onChange={(event) => {
