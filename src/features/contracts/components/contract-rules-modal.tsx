@@ -124,7 +124,8 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
       clearContractExtractionState(contractId);
       await queryClient.invalidateQueries({ queryKey: contractRulesQueryKey(contractId) });
       await queryClient.invalidateQueries({ queryKey: contractRulesStatusQueryKey });
-      toast.success("Revisão das regras concluída.");
+      setSavedRules(rules);
+      toast.success(isReviewed ? "Alterações salvas." : "Revisão das regras concluída.");
       onOpenChange(false);
     },
     onError: () => {
