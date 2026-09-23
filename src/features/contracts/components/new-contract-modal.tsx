@@ -18,7 +18,7 @@ interface NewContractModalProps {
   onCreate: (contract: NewContractInput) => void;
 }
 
-/** Formulário de cadastro de contrato: arquivo obrigatório + dados da empresa. */
+/** Formulário de cadastro de contrato: arquivo obrigatório + dados do prestador. */
 export function NewContractModal({ open, onOpenChange, onCreate }: NewContractModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -35,7 +35,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
   const fileError =
     invalidFileMessage ?? (fileTouched && !file ? "Selecione o arquivo do contrato." : undefined);
   const companyError =
-    companyTouched && company.trim().length === 0 ? "Informe o nome da empresa." : undefined;
+    companyTouched && company.trim().length === 0 ? "Informe o nome do prestador." : undefined;
 
   /** Aplica as restrições implementadas: PDF, DOC ou DOCX com no máximo 10 MB. */
   function handleSelectedFile(selected: File | null) {
@@ -94,7 +94,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
       open={open}
       onOpenChange={(next) => (next ? onOpenChange(true) : close())}
       title="Novo contrato"
-      description="Anexe o arquivo do contrato e informe os dados da empresa."
+      description="Anexe o arquivo do contrato e informe os dados do prestador."
       icon={<FileText className="size-5" aria-hidden="true" />}
       footer={
         <>
@@ -114,7 +114,7 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
           submit();
         }}
       >
-        <Field id="contract-company" label="Nome da empresa" required error={companyError}>
+        <Field id="contract-company" label="Nome do prestador" required error={companyError}>
           <Input
             value={company}
             onChange={(event) => setCompany(event.target.value)}
