@@ -153,36 +153,63 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
 
   const isExtracting = extractionState === "extracting" || extractMutation.isPending;
   const hasFailed = extractionState === "failed" && !extractMutation.isPending;
+  /** Consulta: contrato revisado e sem alterações pendentes nesta sessão. */
+  const isConsulting = isReviewed && !hasUnsavedChanges;
+
+  function discardChanges() {
+    setRules(savedRules);
+    setEditingIndex(null);
+  }
+
+  function handleOpenChange(next: boolean) {
+    if (!next && hasUnsavedChanges) {
+      setConfirmDiscard(true);
+      return;
+    }
+    onOpenChange(next);
+  }
 
   return (
     <>
       <AppModal
         open={open}
-        onOpenChange={onOpenChange}
+        onOpenChange={handleOpenChange}
         size="lg"
         title="Regras de remuneração"
-        description={
-          contract
-            ? `Confira as regras usadas nas análises do contrato de ${contract.company}.`
-            : "Confira as regras usadas nas análises deste contrato."
-        }
         icon={<Scale className="size-5" aria-hidden="true" />}
         footer={
-          <>
+          isConsulting ? (
             <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
-              Cancelar
+              Fechar
             </Button>
-            {hasRules && (
+          ) : (
+            <>
               <Button
                 type="button"
+                variant="outline"
                 size="sm"
-                disabled={saveMutation.isPending}
-                onClick={() => saveMutation.mutate()}
+                onClick={() => {
+                  if (isReviewed) {
+                    discardChanges();
+                    return;
+                  }
+                  handleOpenChange(false);
+                }}
               >
-                Concluir revisão
+                {isReviewed ? "Cancelar alterações" : "Cancelar"}
               </Button>
-            )}
-          </>
+              {hasRules && (
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={saveMutation.isPending}
+                  onClick={() => saveMutation.mutate()}
+                >
+                  {isReviewed ? "Salvar alterações" : "Concluir revisão"}
+                </Button>
+              )}
+            </>
+          )
         }
       >
         <div className="space-y-4">
@@ -190,10 +217,14 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-foreground">
-                  {`${rules.length} ${rules.length === 1 ? "regra identificada" : "regras identificadas"}`}
+                  {isReviewed
+                    ? `${rules.length} ${rules.length === 1 ? "regra de remuneração" : "regras de remuneração"}`
+                    : `${rules.length} ${rules.length === 1 ? "regra identificada" : "regras identificadas"}`}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Confira as regras identificadas no contrato antes de concluir a revisão.
+                  {isReviewed
+                    ? "Consulte as regras utilizadas nas análises deste contrato."
+                    : "Confira as regras identificadas no contrato antes de concluir a revisão."}
                 </p>
               </div>
               <Button
