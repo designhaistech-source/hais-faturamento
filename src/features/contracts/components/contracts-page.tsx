@@ -47,18 +47,12 @@ import {
   listContracts,
   prefetchContractFile,
 } from "../data/contracts-service";
-import {
-  contractRulesStatusLabel,
-  type ContractRulesDisplayStatus,
-} from "../data/contract-rules";
+import { contractRulesStatusLabel, type ContractRulesDisplayStatus } from "../data/contract-rules";
 import {
   contractRulesStatusQueryKey,
   listContractRulesStatuses,
 } from "../data/contract-rules-service";
-import {
-  extractContractRulesFor,
-  useContractExtractionStates,
-} from "../data/contract-extraction";
+import { extractContractRulesFor, useContractExtractionStates } from "../data/contract-extraction";
 import { Badge } from "@/components/ui/badge";
 
 const COLUMNS = ["Prestador", "CNPJ", "Contrato", "Validade", "Regras", "Ações"] as const;

@@ -387,7 +387,9 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
                             <Input
                               type="date"
                               value={rule.validTo}
-                              onChange={(event) => updateRule(index, { validTo: event.target.value })}
+                              onChange={(event) =>
+                                updateRule(index, { validTo: event.target.value })
+                              }
                             />
                           </Field>
                         </div>
