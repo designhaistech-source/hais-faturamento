@@ -487,10 +487,19 @@ export function ContractsPage() {
 }
 
 /**
- * Situação das regras de remuneração do contrato. O texto sozinho identifica o
- * estado; a cor apenas reforça (o estado inicial é neutro, não um erro).
+ * Situação das regras de remuneração do contrato e ponto de acesso à revisão.
+ * O texto identifica o estado; a cor apenas reforça. Quando acionável, o status
+ * é um botão com ícone, sublinhado, foco visível e navegação por teclado.
  */
-function ContractRulesStatusBadge({ status }: { status: ContractRulesDisplayStatus | null }) {
+function ContractRulesStatusBadge({
+  status,
+  contract,
+  onOpen,
+}: {
+  status: ContractRulesDisplayStatus | null;
+  contract: Contract;
+  onOpen: (contract: Contract) => void;
+}) {
   if (status === null) {
     return <span className="text-sm text-muted-foreground">—</span>;
   }
@@ -504,10 +513,42 @@ function ContractRulesStatusBadge({ status }: { status: ContractRulesDisplayStat
           : status === "failed"
             ? "destructive-soft"
             : "secondary";
+  const label = contractRulesStatusLabel(status);
+
+  if (status === "extracting") {
+    return (
+      <Badge variant={variant} size="md">
+        {label}
+      </Badge>
+    );
+  }
+
+  const hint =
+    status === "reviewed"
+      ? "Consultar e editar as regras de remuneração"
+      : status === "pending_review"
+        ? "Revisar as regras de remuneração"
+        : status === "failed"
+          ? "Ver o motivo da falha e tentar novamente"
+          : "Extrair as regras de remuneração";
+
   return (
-    <Badge variant={variant} size="md">
-      {contractRulesStatusLabel(status)}
-    </Badge>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onClick={() => onOpen(contract)}
+          aria-label={`${label} — ${hint} do contrato de ${contract.company}`}
+          className="cursor-pointer rounded-full outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          <Badge variant={variant} size="md" className="underline decoration-dotted">
+            <Scale className="size-3" aria-hidden="true" />
+            {label}
+          </Badge>
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>{hint}</TooltipContent>
+    </Tooltip>
   );
 }
 
