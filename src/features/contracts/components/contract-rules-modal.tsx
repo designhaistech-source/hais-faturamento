@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Pencil, Plus, Scale, Sparkles, Trash2 } from "lucide-react";
+import { Check, CircleCheck, Pencil, Plus, Scale, Sparkles, Trash2 } from "lucide-react";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 import { AppModal } from "@/components/app-modal";
@@ -92,8 +95,25 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
   }, [open, rulesQuery.data]);
 
   useEffect(() => {
-    if (!open) setEditingIndex(null);
+    if (!open) {
+      setEditingIndex(null);
+      setExtractedCount(null);
+    }
   }, [open]);
+
+  /** Feedback de extração concluída: some sozinho após alguns segundos. */
+  const [extractedCount, setExtractedCount] = useState<number | null>(null);
+  const [feedbackVisible, setFeedbackVisible] = useState(false);
+  useEffect(() => {
+    if (extractedCount === null) return;
+    setFeedbackVisible(true);
+    const hide = window.setTimeout(() => setFeedbackVisible(false), 5000);
+    const remove = window.setTimeout(() => setExtractedCount(null), 5500);
+    return () => {
+      window.clearTimeout(hide);
+      window.clearTimeout(remove);
+    };
+  }, [extractedCount]);
 
   const extractMutation = useMutation({
     mutationFn: async () => {
@@ -107,6 +127,7 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
         return;
       }
       setRules(drafts);
+      setExtractedCount(drafts.length);
       await queryClient.invalidateQueries({ queryKey: contractRulesQueryKey(contractId) });
       await queryClient.invalidateQueries({ queryKey: contractRulesStatusQueryKey });
     },
@@ -215,6 +236,26 @@ export function ContractRulesModal({ contract, open, onOpenChange }: ContractRul
         }
       >
         <div className="space-y-4">
+          {extractedCount !== null && !isExtracting && (
+            <Alert
+              variant="success"
+              role="status"
+              aria-live="polite"
+              className={cn(
+                "transition-opacity duration-500 motion-reduce:transition-none",
+                feedbackVisible ? "opacity-100" : "opacity-0",
+              )}
+            >
+              <CircleCheck className="size-4" aria-hidden="true" />
+              <AlertTitle>Extração concluída</AlertTitle>
+              <AlertDescription>
+                {extractedCount === 1
+                  ? "1 regra de remuneração foi identificada."
+                  : `${extractedCount} regras de remuneração foram identificadas.`}{" "}
+                Confira as informações antes de concluir a revisão.
+              </AlertDescription>
+            </Alert>
+          )}
           {hasRules && !isExtracting && (
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="space-y-1">
