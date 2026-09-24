@@ -562,25 +562,16 @@ function ContractRulesStatusBadge({ status }: { status: ContractRulesDisplayStat
     return <span className="text-sm text-muted-foreground">—</span>;
   }
   const label = contractRulesStatusLabel(status);
-  const variant =
-    status === "available"
-      ? "success-soft"
-      : status === "failed"
-        ? "destructive-soft"
-        : "secondary";
-  const Icon =
-    status === "available"
-      ? CircleCheck
-      : status === "extracting"
-        ? Hourglass
-        : status === "failed"
-          ? CircleAlert
-          : FileSearch;
+  const config = {
+    available: { tone: "success", icon: CircleCheck },
+    extracting: { tone: "info", icon: LoaderCircle },
+    not_identified: { tone: "warning", icon: TriangleAlert },
+    failed: { tone: "danger", icon: CircleAlert },
+    not_extracted: { tone: "neutral", icon: FileSearch },
+  } as const satisfies Record<ContractRulesDisplayStatus, { tone: StatusTone; icon: LucideIcon }>;
+  const { tone, icon } = config[status];
   return (
-    <Badge variant={variant} size="md">
-      <Icon className="size-3" aria-hidden="true" />
-      {label}
-    </Badge>
+    <StatusBadge tone={tone} icon={icon} label={label} spinning={status === "extracting"} />
   );
 }
 
