@@ -37,7 +37,7 @@ import {
 
 import { NewTussVersionModal } from "./new-tuss-version-modal";
 import {
-  currentTussVersionId,
+  currentTussTableIds,
   formatTussDateTime,
   formatVersionMonth,
   type NewTussVersionInput,
@@ -51,7 +51,14 @@ import {
   tussVersionsQueryKey,
 } from "../data/tuss-versions-service";
 
-const COLUMNS = ["Arquivo", "Versão", "Cadastrado por", "Data do cadastro", "Ações"] as const;
+const COLUMNS = [
+  "Arquivo",
+  "Tabela TUSS",
+  "Versão",
+  "Cadastrado por",
+  "Data do cadastro",
+  "Ações",
+] as const;
 
 async function downloadVersionFile(version: TussVersion) {
   try {
@@ -77,7 +84,7 @@ export function TussPage() {
   const versionsQuery = useQuery({ queryKey: tussVersionsQueryKey, queryFn: listTussVersions });
   const storedVersions = versionsQuery.data ?? [];
   const versions = simulateEmpty ? [] : storedVersions;
-  const currentVersionId = currentTussVersionId(versions);
+  const currentIds = useMemo(() => currentTussTableIds(versions), [versions]);
 
   const [search, setSearch] = useState("");
   const [createdFrom, setCreatedFrom] = useState("");
@@ -124,10 +131,10 @@ export function TussPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: tussVersionsQueryKey });
       setPage(1);
-      toast.success("Versão cadastrada com sucesso.");
+      toast.success("Tabela cadastrada com sucesso.");
     },
     onError: () => {
-      toast.error("Não foi possível cadastrar a versão.");
+      toast.error("Não foi possível cadastrar a tabela.");
     },
   });
 
@@ -137,17 +144,17 @@ export function TussPage() {
       setClearOpen(false);
       await queryClient.invalidateQueries({ queryKey: tussVersionsQueryKey });
       setPage(1);
-      toast.success("Versões cadastradas removidas.");
+      toast.success("Tabelas cadastradas removidas.");
     },
     onError: () => {
-      toast.error("Não foi possível limpar as versões cadastradas.");
+      toast.error("Não foi possível limpar as tabelas cadastradas.");
     },
   });
 
   const newVersionButton = (
     <Button type="button" onClick={() => setModalOpen(true)}>
       <Plus className="size-4" aria-hidden="true" />
-      Nova versão
+      Nova tabela
     </Button>
   );
 
@@ -168,7 +175,7 @@ export function TussPage() {
                   onClick={() => setModalOpen(true)}
                 >
                   <Plus className="size-4" aria-hidden="true" />
-                  Nova versão
+                  Nova tabela
                 </Button>
               }
             />
@@ -176,12 +183,12 @@ export function TussPage() {
             <section className="space-y-4">
               {versionsQuery.isPending ? (
                 <SurfaceCard padding="none">
-                  <TableSkeleton rows={4} columns={5} />
+                  <TableSkeleton rows={4} columns={6} />
                 </SurfaceCard>
               ) : versionsQuery.isError ? (
                 <SurfaceCard padding="md">
                   <ErrorState
-                    title="Não foi possível carregar as versões"
+                    title="Não foi possível carregar as tabelas"
                     description="Tente novamente em alguns instantes."
                     onRetry={() => void versionsQuery.refetch()}
                   />
@@ -189,8 +196,8 @@ export function TussPage() {
               ) : versions.length === 0 ? (
                 <EmptyStateCard
                   icon={<BookMarked className="size-10" aria-hidden="true" />}
-                  title="Nenhuma versão cadastrada"
-                  description="Cadastre uma versão da TUSS para começar."
+                  title="Nenhuma tabela cadastrada"
+                  description="Cadastre uma tabela TUSS para começar."
                   action={newVersionButton}
                 />
               ) : (
@@ -257,7 +264,7 @@ export function TussPage() {
                   {filteredVersions.length === 0 ? (
                     <EmptyStateCard
                       icon={<BookMarked className="size-10" aria-hidden="true" />}
-                      title="Nenhuma versão encontrada"
+                      title="Nenhuma tabela encontrada"
                       description="Ajuste os filtros para ver outros resultados."
                       action={
                         <Button type="button" variant="outline" onClick={handleClearFilters}>
@@ -291,9 +298,10 @@ export function TussPage() {
                                   <DataTableCell className="max-w-96">
                                     <div className="flex min-w-0 items-center gap-2">
                                       <VersionFileName name={version.file.name} />
-                                      {currentVersionId === version.id && <CurrentBadge />}
+                                      {currentIds.has(version.id) && <CurrentBadge />}
                                     </div>
                                   </DataTableCell>
+                                  <DataTableCell>{version.tableName || "—"}</DataTableCell>
                                   <DataTableCell className="font-mono">
                                     {formatVersionMonth(version.versionMonth)}
                                   </DataTableCell>
@@ -316,10 +324,8 @@ export function TussPage() {
                               <DataTableCardHeader
                                 title={
                                   <>
-                                    <span className="font-mono">
-                                      {`Versão ${formatVersionMonth(version.versionMonth)}`}
-                                    </span>
-                                    {currentVersionId === version.id && <CurrentBadge />}
+                                    <span>{version.tableName || "—"}</span>
+                                    {currentIds.has(version.id) && <CurrentBadge />}
                                   </>
                                 }
                                 subtitle={version.file.name}
@@ -327,6 +333,10 @@ export function TussPage() {
                               <DataTableCardFields
                                 className="gap-x-4 gap-y-1"
                                 fields={[
+                                  {
+                                    label: "Versão",
+                                    value: formatVersionMonth(version.versionMonth),
+                                  },
                                   { label: "Cadastrado por", value: version.createdBy },
                                   {
                                     label: "Data do cadastro",
@@ -389,7 +399,7 @@ export function TussPage() {
                     onClick={() => setClearOpen(true)}
                   >
                     <Trash2 className="size-3.5" aria-hidden="true" />
-                    Limpar versões cadastradas · Temporário
+                    Limpar tabelas cadastradas · Temporário
                   </Button>
                 )}
               </div>
@@ -403,16 +413,15 @@ export function TussPage() {
       <NewTussVersionModal
         open={modalOpen}
         onOpenChange={setModalOpen}
-        hasCurrentVersion={storedVersions.length > 0}
         onCreate={(input) => createMutation.mutate(input)}
       />
 
       <ConfirmDialog
         open={clearOpen}
         onOpenChange={setClearOpen}
-        title="Limpar versões cadastradas?"
-        description="Esta ação apagará todas as versões da TUSS e seus arquivos. Deseja continuar?"
-        confirmLabel="Limpar versões"
+        title="Limpar tabelas cadastradas?"
+        description="Esta ação apagará todas as tabelas TUSS e seus arquivos. Deseja continuar?"
+        confirmLabel="Limpar tabelas"
         onConfirm={() => clearMutation.mutate()}
       />
     </TooltipProvider>

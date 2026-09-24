@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { BookMarked, Info, Paperclip, Trash2, Upload } from "lucide-react";
+import { BookMarked, Paperclip, Trash2, Upload } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
 import { Field } from "@/components/form-field";
@@ -15,18 +15,13 @@ interface NewTussVersionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreate: (version: NewTussVersionInput) => void;
-  /** Quando já existe uma versão, a nova passa a ser a Atual. */
-  hasCurrentVersion?: boolean;
 }
 
 /** Cadastro de uma nova versão do conjunto TUSS (mês/ano + arquivo). */
-export function NewTussVersionModal({
-  open,
-  onOpenChange,
-  onCreate,
-  hasCurrentVersion = false,
-}: NewTussVersionModalProps) {
+export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVersionModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [tableName, setTableName] = useState("");
+  const [tableTouched, setTableTouched] = useState(false);
   const [versionMonth, setVersionMonth] = useState("");
   const [versionTouched, setVersionTouched] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -35,7 +30,9 @@ export function NewTussVersionModal({
   const [invalidFileMessage, setInvalidFileMessage] = useState<string | null>(null);
 
   const validMonth = /^\d{4}-\d{2}$/.test(versionMonth);
-  const canSubmit = Boolean(file) && validMonth;
+  const validTable = tableName.trim() !== "";
+  const canSubmit = Boolean(file) && validMonth && validTable;
+  const tableError = tableTouched && !validTable ? "Informe a tabela TUSS." : undefined;
   const fileError =
     invalidFileMessage ?? (fileTouched && !file ? "Selecione o arquivo da versão." : undefined);
   const versionError =
@@ -58,6 +55,8 @@ export function NewTussVersionModal({
   }
 
   function reset() {
+    setTableName("");
+    setTableTouched(false);
     setVersionMonth("");
     setVersionTouched(false);
     setFile(null);
@@ -74,8 +73,9 @@ export function NewTussVersionModal({
   function submit() {
     setFileTouched(true);
     setVersionTouched(true);
-    if (!file || !validMonth) return;
-    onCreate({ file, versionMonth });
+    setTableTouched(true);
+    if (!file || !validMonth || !validTable) return;
+    onCreate({ file, versionMonth, tableName });
     reset();
     onOpenChange(false);
   }
@@ -84,8 +84,8 @@ export function NewTussVersionModal({
     <AppModal
       open={open}
       onOpenChange={(next) => (next ? onOpenChange(true) : close())}
-      title="Cadastrar nova versão"
-      description="Envie o arquivo do conjunto TUSS e informe o mês e o ano da versão."
+      title="Nova tabela TUSS"
+      description="Envie o arquivo de uma tabela TUSS e informe a versão do Padrão TISS a que pertence."
       icon={<BookMarked className="size-5" aria-hidden="true" />}
       footer={
         <>
@@ -105,6 +105,16 @@ export function NewTussVersionModal({
           submit();
         }}
       >
+        <Field id="tuss-table-name" label="Tabela TUSS" required error={tableError}>
+          <Input
+            value={tableName}
+            placeholder="Informe a tabela TUSS"
+            onChange={(event) => {
+              setTableTouched(true);
+              setTableName(event.target.value);
+            }}
+          />
+        </Field>
         <Field
           id="tuss-version-month"
           label="Versão"
@@ -227,20 +237,6 @@ export function NewTussVersionModal({
             )}
           </div>
         </Field>
-
-        {hasCurrentVersion && (
-          <div className="flex items-start gap-3 rounded-xl border border-info/30 bg-info-muted px-4 py-3">
-            <Info className="mt-0.5 size-4 shrink-0 text-info-strong" aria-hidden="true" />
-            <div className="min-w-0 space-y-0.5">
-              <p className="text-sm font-medium text-foreground">
-                Esta será a nova versão atual da TUSS.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                A versão anterior continuará disponível no histórico.
-              </p>
-            </div>
-          </div>
-        )}
       </form>
     </AppModal>
   );
