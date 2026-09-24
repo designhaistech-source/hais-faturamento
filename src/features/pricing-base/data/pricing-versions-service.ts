@@ -98,7 +98,6 @@ export async function createPricingVersion(input: NewPricingVersionInput): Promi
     file_name: input.file.name,
     file_path: path,
     file_type: input.file.type,
-    version_month: `${input.versionMonth}-01`,
     base_type: input.baseType ?? inferPricingBaseType(input.file.name),
     created_by: CURRENT_USER.name,
   });

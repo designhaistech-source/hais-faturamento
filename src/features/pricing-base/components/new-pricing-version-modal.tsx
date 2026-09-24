@@ -44,12 +44,7 @@ export function NewPricingVersionModal({
   const [dragActive, setDragActive] = useState(false);
   const [invalidFileMessage, setInvalidFileMessage] = useState<string | null>(null);
 
-  const [versionMonth, setVersionMonth] = useState("");
-  const [versionTouched, setVersionTouched] = useState(false);
-  const validMonth = /^\d{4}-\d{2}$/.test(versionMonth);
-  const versionError =
-    versionTouched && !validMonth ? "Informe o mês e o ano da versão." : undefined;
-  const canSubmit = Boolean(file) && baseType !== "" && validMonth;
+  const canSubmit = Boolean(file) && baseType !== "";
   const fileError =
     invalidFileMessage ??
     (fileTouched && !file ? "Selecione o arquivo CSV ou TXT da base." : undefined);
@@ -80,8 +75,6 @@ export function NewPricingVersionModal({
 
   function reset() {
     setBaseType("");
-    setVersionMonth("");
-    setVersionTouched(false);
     setBaseTypeTouched(false);
     setFile(null);
     setFileTouched(false);
@@ -97,9 +90,8 @@ export function NewPricingVersionModal({
   function submit() {
     setFileTouched(true);
     setBaseTypeTouched(true);
-    setVersionTouched(true);
-    if (!file || baseType === "" || !validMonth) return;
-    onCreate({ file, baseType, versionMonth });
+    if (!file || baseType === "") return;
+    onCreate({ file, baseType });
     reset();
     onOpenChange(false);
   }
@@ -145,22 +137,6 @@ export function NewPricingVersionModal({
           }}
         />
 
-        <Field
-          id="pricing-version-month"
-          label="Versão"
-          required
-          error={versionError}
-          hint="Mês e ano"
-        >
-          <Input
-            type="month"
-            value={versionMonth}
-            onChange={(event) => {
-              setVersionTouched(true);
-              setVersionMonth(event.target.value);
-            }}
-          />
-        </Field>
 
         <Field
           id="pricing-version-file"

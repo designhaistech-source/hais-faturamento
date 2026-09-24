@@ -38,7 +38,6 @@ import {
 import { NewPricingVersionModal } from "./new-pricing-version-modal";
 import {
   currentVersionIdsByType,
-  formatPricingVersionMonth,
   formatVersionDateTime,
   pricingBaseTypeLabel,
   PRICING_BASE_TYPES,
@@ -54,14 +53,7 @@ import {
   pricingVersionsQueryKey,
 } from "../data/pricing-versions-service";
 
-const COLUMNS = [
-  "Arquivo",
-  "Tipo da base",
-  "Versão",
-  "Cadastrado por",
-  "Data do cadastro",
-  "Ações",
-] as const;
+const COLUMNS = ["Arquivo", "Tipo da base", "Cadastrado por", "Data do cadastro", "Ações"] as const;
 
 async function downloadVersionFile(version: PricingVersion) {
   try {
@@ -339,18 +331,13 @@ export function PricingBasePage() {
                                   <DataTableCell className="max-w-96">
                                     <div className="flex min-w-0 items-center gap-2">
                                       <VersionFileName name={version.file.name} />
+                                      {currentVersionIds.has(version.id) && <CurrentBadge />}
                                     </div>
                                   </DataTableCell>
                                   <DataTableCell>
                                     <Badge variant="info-soft" size="sm" className="shrink-0">
                                       {pricingBaseTypeLabel(version.baseType)}
                                     </Badge>
-                                  </DataTableCell>
-                                  <DataTableCell>
-                                    <VersionMonth
-                                      value={version.versionMonth}
-                                      current={currentVersionIds.has(version.id)}
-                                    />
                                   </DataTableCell>
                                   <DataTableCell>{version.createdBy}</DataTableCell>
                                   <DataTableCell>
@@ -375,6 +362,7 @@ export function PricingBasePage() {
                                     <Badge variant="info-soft" size="sm" className="shrink-0">
                                       {pricingBaseTypeLabel(version.baseType)}
                                     </Badge>
+                                    {currentVersionIds.has(version.id) && <CurrentBadge />}
                                   </>
                                 }
                                 subtitle={version.file.name}
@@ -382,15 +370,6 @@ export function PricingBasePage() {
                               <DataTableCardFields
                                 className="gap-x-4 gap-y-1"
                                 fields={[
-                                  {
-                                    label: "Versão",
-                                    value: (
-                                      <VersionMonth
-                                        value={version.versionMonth}
-                                        current={currentVersionIds.has(version.id)}
-                                      />
-                                    ),
-                                  },
                                   { label: "Cadastrado por", value: version.createdBy },
                                   {
                                     label: "Data do cadastro",
@@ -484,19 +463,14 @@ export function PricingBasePage() {
   );
 }
 
-/** Mês/ano da versão, com o badge Atual na versão vigente do tipo. */
-function VersionMonth({ value, current }: { value: string; current: boolean }) {
+function CurrentBadge() {
   return (
-    <span className="inline-flex items-center gap-2">
-      <span className="font-mono">{formatPricingVersionMonth(value)}</span>
-      {current && (
-        <Badge variant="success-soft" size="sm" className="shrink-0">
-          Atual
-        </Badge>
-      )}
-    </span>
+    <Badge variant="success-soft" size="sm" className="shrink-0">
+      Atual
+    </Badge>
   );
 }
+
 
 /** Nome do arquivo truncado, com o valor completo em tooltip (mouse e teclado). */
 function VersionFileName({ name }: { name: string }) {
