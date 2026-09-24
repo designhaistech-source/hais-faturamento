@@ -446,18 +446,35 @@ function CurrentBadge() {
 }
 
 /** Nome do arquivo truncado, com o valor completo em tooltip (mouse e teclado). */
-function VersionFileName({ name }: { name: string }) {
+function VersionFileName({ files }: { files: TussVersion["files"] }) {
+  const [first] = files;
+  const extra = files.length - 1;
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <span
           tabIndex={0}
-          className="block min-w-0 truncate rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex min-w-0 items-center gap-1.5 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          {name}
+          <span className="min-w-0 truncate">{first?.name ?? "—"}</span>
+          {extra > 0 && (
+            <span className="shrink-0 text-xs text-muted-foreground">
+              +{extra} {extra === 1 ? "arquivo" : "arquivos"}
+            </span>
+          )}
         </span>
       </TooltipTrigger>
-      <TooltipContent className="max-w-80 break-all">{name}</TooltipContent>
+      <TooltipContent className="max-w-80 break-all">
+        {files.length > 1 ? (
+          <ul className="space-y-0.5">
+            {files.map((file) => (
+              <li key={file.path}>{file.name}</li>
+            ))}
+          </ul>
+        ) : (
+          first?.name
+        )}
+      </TooltipContent>
     </Tooltip>
   );
 }
