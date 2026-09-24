@@ -11,6 +11,8 @@ export interface TussVersion {
   id: string;
   /** Reference month of the version, as "YYYY-MM". */
   versionMonth: string;
+  /** TUSS table this file represents, as informed at registration. */
+  tableName: string;
   /** ISO timestamp of the upload. */
   createdAt: string;
   createdBy: string;
@@ -18,6 +20,7 @@ export interface TussVersion {
 }
 
 export interface NewTussVersionInput {
+  tableName: string;
   /** Reference month, as "YYYY-MM". */
   versionMonth: string;
   file: File;
@@ -42,7 +45,15 @@ export function formatTussDateTime(iso: string): string {
   });
 }
 
-/** The newest registered version is the one in use ("Atual"). Expects newest-first order. */
-export function currentTussVersionId(versions: TussVersion[]): string | undefined {
-  return versions[0]?.id;
+/**
+ * Ids of the newest file of each TUSS table ("Atual"), given newest-first order.
+ * Registering a file only supersedes older files of the same table.
+ */
+export function currentTussTableIds(versions: TussVersion[]): Set<string> {
+  const current = new Map<string, string>();
+  for (const version of versions) {
+    const key = version.tableName.trim().toLowerCase();
+    if (!current.has(key)) current.set(key, version.id);
+  }
+  return new Set(current.values());
 }

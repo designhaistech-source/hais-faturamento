@@ -26,13 +26,16 @@ export async function createTussVersionFileUrl(path: string, downloadAs: string)
 export async function listTussVersions(): Promise<TussVersion[]> {
   const { data, error } = await supabase
     .from("tuss_versions")
-    .select("id, version_month, created_at, created_by, file_name, file_path, file_type")
+    .select(
+      "id, version_month, table_name, created_at, created_by, file_name, file_path, file_type",
+    )
     .order("created_at", { ascending: false });
   if (error) throw error;
 
   return (data ?? []).map((row) => ({
     id: row.id,
     versionMonth: row.version_month.slice(0, 7),
+    tableName: row.table_name,
     createdAt: row.created_at,
     createdBy: row.created_by,
     file: { name: row.file_name, path: row.file_path, type: row.file_type ?? "" },
@@ -48,6 +51,7 @@ export async function createTussVersion(input: NewTussVersionInput): Promise<voi
 
   const { error } = await supabase.from("tuss_versions").insert({
     version_month: `${input.versionMonth}-01`,
+    table_name: input.tableName.trim(),
     file_name: input.file.name,
     file_path: path,
     file_type: input.file.type,
