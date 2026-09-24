@@ -1,7 +1,11 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { BackgroundTaskProvider, useBackgroundTask, type BackgroundTaskOutcome } from "./background-task";
+import {
+  BackgroundTaskProvider,
+  useBackgroundTask,
+  type BackgroundTaskOutcome,
+} from "./background-task";
 
 function deferred() {
   let resolve!: (value: BackgroundTaskOutcome) => void;
