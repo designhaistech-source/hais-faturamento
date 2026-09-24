@@ -110,7 +110,10 @@ export async function deleteAllTussVersions(): Promise<void> {
   const paths = [
     ...new Set(
       (data ?? [])
-        .flatMap((row) => [row.file_path, ...(row.tuss_version_files ?? []).map((f) => f.file_path)])
+        .flatMap((row) => [
+          row.file_path,
+          ...(row.tuss_version_files ?? []).map((f) => f.file_path),
+        ])
         .filter(Boolean),
     ),
   ];
