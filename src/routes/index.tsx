@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Database, FileCheck2, FileText } from "lucide-react";
+import { BookMarked, Database, FileCheck2, FileText } from "lucide-react";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteFooter } from "@/components/site-footer";
@@ -40,6 +40,14 @@ const FEATURES = [
     action: "Acessar",
   },
   {
+    icon: BookMarked,
+    title: "TUSS",
+    description:
+      "Gerencie as tabelas TUSS utilizadas na identificação e classificação dos itens do faturamento.",
+    to: "/tuss",
+    action: "Acessar",
+  },
+  {
     icon: Database,
     title: "Base de precificação",
     description:
@@ -67,7 +75,7 @@ function HomePage() {
             description="Antecipe inconsistências no faturamento antes do envio à operadora."
           />
 
-          <div className="grid gap-4 pt-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 pt-2 sm:grid-cols-2 xl:grid-cols-4">
             {FEATURES.map((item) => (
               <FeatureCard key={item.to} {...item} />
             ))}
