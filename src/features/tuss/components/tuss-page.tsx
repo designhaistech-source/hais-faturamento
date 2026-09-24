@@ -56,13 +56,15 @@ const COLUMNS = ["Arquivo", "Tabela TUSS", "Cadastrado por", "Data do cadastro",
 
 async function downloadVersionFile(version: TussVersion) {
   try {
-    const url = await createTussVersionFileUrl(version.file.path, version.file.name);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = version.file.name;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    for (const file of version.files) {
+      const url = await createTussVersionFileUrl(file.path, file.name);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = file.name;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
   } catch {
     toast.error("Não foi possível baixar o arquivo desta versão.");
   }
@@ -92,7 +94,8 @@ export function TussPage() {
   const filteredVersions = useMemo(() => {
     const term = search.trim().toLowerCase();
     return versions.filter((version) => {
-      if (term && !version.file.name.toLowerCase().includes(term)) return false;
+      if (term && !version.files.some((file) => file.name.toLowerCase().includes(term)))
+        return false;
       if (createdFrom || createdTo) {
         const created = new Date(version.createdAt);
         if (Number.isNaN(created.getTime())) return false;
@@ -126,7 +129,10 @@ export function TussPage() {
   function startTableProcessing(input: NewTussVersionInput) {
     backgroundTask.start({
       kind: "tuss-table",
-      fileName: input.file.name,
+      fileName:
+        input.files.length === 1
+          ? (input.files[0]?.name ?? "")
+          : `${input.files[0]?.name ?? ""} + ${input.files.length - 1} arquivo(s)`,
       processing: {
         title: "Processando tabela TUSS",
         description: "Processando os dados da tabela...",
@@ -307,7 +313,7 @@ export function TussPage() {
                                 <DataTableRow key={version.id}>
                                   <DataTableCell className="max-w-96">
                                     <div className="flex min-w-0 items-center gap-2">
-                                      <VersionFileName name={version.file.name} />
+                                      <VersionFileName files={version.files} />
                                       {currentIds.has(version.id) && <CurrentBadge />}
                                     </div>
                                   </DataTableCell>
@@ -335,7 +341,7 @@ export function TussPage() {
                                     {currentIds.has(version.id) && <CurrentBadge />}
                                   </>
                                 }
-                                subtitle={version.file.name}
+                                subtitle={version.files.map((file) => file.name).join(", ")}
                               />
                               <DataTableCardFields
                                 className="gap-x-4 gap-y-1"
@@ -465,13 +471,19 @@ function VersionActions({ version }: { version: TussVersion }) {
             type="button"
             variant="ghost"
             size="icon"
-            aria-label={`Baixar ${version.file.name}`}
+            aria-label={
+              version.files.length > 1
+                ? `Baixar ${version.files.length} arquivos de ${tussTableLabel(version.tableName)}`
+                : `Baixar ${version.file.name}`
+            }
             onClick={() => void downloadVersionFile(version)}
           >
             <Download className="size-4" aria-hidden="true" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Baixar arquivo</TooltipContent>
+        <TooltipContent>
+          {version.files.length > 1 ? "Baixar arquivos" : "Baixar arquivo"}
+        </TooltipContent>
       </Tooltip>
     </div>
   );

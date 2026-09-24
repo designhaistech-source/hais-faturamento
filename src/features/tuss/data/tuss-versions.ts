@@ -16,12 +16,16 @@ export interface TussVersion {
   /** ISO timestamp of the upload. */
   createdAt: string;
   createdBy: string;
+  /** Primary file (first part); kept for single-file consumers. */
   file: TussVersionFile;
+  /** Every part that composes this registration, in upload order. */
+  files: TussVersionFile[];
 }
 
 export interface NewTussVersionInput {
   tableName: string;
-  file: File;
+  /** One or more parts composing a single registration. */
+  files: File[];
 }
 
 /** Formats "YYYY-MM" (or a date starting with it) as "MM/AAAA". */
@@ -68,6 +72,16 @@ export const TUSS_TABLE_NUMBERS = [
   ...Array.from({ length: 87 - 23 + 1 }, (_, index) => String(23 + index)),
 ] as const;
 
+/** Official names of the main TUSS tables; other numbers are shown by number only. */
+const TUSS_TABLE_NAMES: Record<string, string> = {
+  "18": "Diárias, taxas e gases medicinais",
+  "19": "Materiais e OPME",
+  "20": "Medicamentos",
+  "22": "Procedimentos e eventos em saúde",
+};
+
 export function tussTableLabel(tableName: string): string {
-  return /^\d+$/.test(tableName) ? `Tabela ${tableName}` : tableName || "—";
+  if (!/^\d+$/.test(tableName)) return tableName || "—";
+  const name = TUSS_TABLE_NAMES[tableName];
+  return name ? `${tableName} — ${name}` : `Tabela ${tableName}`;
 }
