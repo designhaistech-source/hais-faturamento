@@ -1,0 +1,515 @@
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Database, Download, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+
+import { AppSidebar } from "@/components/app-sidebar";
+import { SiteFooter } from "@/components/site-footer";
+import { PageHeader } from "@/components/page-header";
+import { AppBreadcrumb } from "@/components/app-breadcrumb";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { EmptyStateCard } from "@/components/empty-state-card";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { ErrorState, TableSkeleton } from "@/components/data-state";
+import { SurfaceCard } from "@/components/surface-card";
+import { FilterCard } from "@/components/filter-card";
+import { SearchField, SelectField } from "@/components/form-field";
+import { Input } from "@/components/ui/input";
+import { toLocalIsoDate } from "@/lib/date";
+import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/table-pagination";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCard,
+  DataTableCardActions,
+  DataTableCardFields,
+  DataTableCardHeader,
+  DataTableCardList,
+  DataTableCell,
+  DataTableDesktop,
+  DataTableHead,
+  DataTableHeader,
+  DataTableRoot,
+  DataTableRow,
+} from "@/components/data-table";
+
+import { NewPricingVersionModal } from "./new-pricing-version-modal";
+import {
+  currentVersionIdsByType,
+  formatVersionDateTime,
+  pricingBaseTypeLabel,
+  PRICING_BASE_TYPES,
+  type NewPricingVersionInput,
+  type PricingBaseType,
+  type PricingVersion,
+} from "../data/pricing-versions";
+import {
+  createPricingVersion,
+  createPricingVersionFileUrl,
+  deleteAllPricingVersions,
+  listPricingVersions,
+  pricingVersionsQueryKey,
+} from "../data/pricing-versions-service";
+
+const COLUMNS = ["Arquivo", "Tipo da base", "Cadastrado por", "Data do cadastro", "Ações"] as const;
+
+async function downloadVersionFile(version: PricingVersion) {
+  try {
+    const url = await createPricingVersionFileUrl(version.file.path, version.file.name);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = version.file.name;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch {
+    toast.error("Não foi possível baixar o arquivo desta versão.");
+  }
+}
+
+export function PricingBasePage() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const versionsQuery = useQuery({
+    queryKey: pricingVersionsQueryKey,
+    queryFn: listPricingVersions,
+  });
+  const storedVersions = versionsQuery.data ?? [];
+  const [clearOpen, setClearOpen] = useState(false);
+  /** Ferramenta provisória de testes: simula a página sem versões, sem alterar dados. */
+  const [simulateEmpty, setSimulateEmpty] = useState(false);
+  const versions = simulateEmpty ? [] : storedVersions;
+  const currentVersionIds = useMemo(() => currentVersionIdsByType(versions), [versions]);
+  /** Tipos que já possuem versão cadastrada (independe da simulação de estado vazio). */
+  const existingBaseTypes = useMemo(
+    () => Array.from(new Set(storedVersions.map((version) => version.baseType))),
+    [storedVersions],
+  );
+
+  const [search, setSearch] = useState("");
+  const [baseTypeFilter, setBaseTypeFilter] = useState<"all" | PricingBaseType>("all");
+  const [createdFrom, setCreatedFrom] = useState("");
+  const [createdTo, setCreatedTo] = useState("");
+
+  const activeCount = [
+    search.trim() !== "",
+    baseTypeFilter !== "all",
+    createdFrom !== "",
+    createdTo !== "",
+  ].filter(Boolean).length;
+  const hasFilters = activeCount > 0;
+
+  const filteredVersions = useMemo(() => {
+    const term = search.trim().toLowerCase();
+
+    return versions.filter((version) => {
+      if (term && !version.file.name.toLowerCase().includes(term)) return false;
+      if (baseTypeFilter !== "all" && version.baseType !== baseTypeFilter) return false;
+      if (createdFrom || createdTo) {
+        const created = new Date(version.createdAt);
+        if (Number.isNaN(created.getTime())) return false;
+        const createdDay = toLocalIsoDate(created);
+        if (createdFrom && createdDay < createdFrom) return false;
+        if (createdTo && createdDay > createdTo) return false;
+      }
+      return true;
+    });
+  }, [versions, search, baseTypeFilter, createdFrom, createdTo]);
+
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+
+  const totalPages = Math.max(1, Math.ceil(filteredVersions.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedVersions = useMemo(
+    () => filteredVersions.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filteredVersions, currentPage, pageSize],
+  );
+
+  function handleClearFilters() {
+    setSearch("");
+    setBaseTypeFilter("all");
+    setCreatedFrom("");
+    setCreatedTo("");
+    setPage(1);
+  }
+
+  const baseTypeOptions = useMemo(
+    () => [
+      { value: "all", label: "Todos os tipos" },
+      ...PRICING_BASE_TYPES.map((type) => ({
+        value: type,
+        label: pricingBaseTypeLabel(type),
+      })),
+    ],
+    [],
+  );
+
+  const createMutation = useMutation({
+    mutationFn: (input: NewPricingVersionInput) => createPricingVersion(input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: pricingVersionsQueryKey });
+      setPage(1);
+      toast.success("Versão cadastrada com sucesso.");
+    },
+    onError: () => {
+      toast.error("Não foi possível cadastrar a versão.");
+    },
+  });
+
+  const clearMutation = useMutation({
+    mutationFn: deleteAllPricingVersions,
+    onSuccess: async () => {
+      setClearOpen(false);
+      await queryClient.invalidateQueries({ queryKey: pricingVersionsQueryKey });
+      setPage(1);
+      toast.success("Versões cadastradas removidas.");
+    },
+    onError: () => {
+      toast.error("Não foi possível limpar as versões cadastradas.");
+    },
+  });
+
+  return (
+    <TooltipProvider delayDuration={150}>
+      <div className="flex min-h-screen bg-background">
+        <AppSidebar activeKey="base-precificacao" />
+        <div className="flex min-h-screen min-w-0 flex-1 flex-col pt-14 md:pt-0">
+          <main className="flex-1 space-y-6 p-6 pb-16">
+            <AppBreadcrumb />
+            <PageHeader
+              title="Base de precificação"
+              description="Gerencie as bases de valores utilizadas na análise do faturamento."
+              actions={
+                <Button
+                  type="button"
+                  className="w-full sm:w-auto"
+                  onClick={() => setModalOpen(true)}
+                >
+                  <Plus className="size-4" aria-hidden="true" />
+                  Nova versão
+                </Button>
+              }
+            />
+
+            <section className="space-y-4">
+              {versionsQuery.isPending ? (
+                <SurfaceCard padding="none">
+                  <TableSkeleton rows={4} columns={5} />
+                </SurfaceCard>
+              ) : versionsQuery.isError ? (
+                <SurfaceCard padding="md">
+                  <ErrorState
+                    title="Não foi possível carregar as versões"
+                    description="Tente novamente em alguns instantes."
+                    onRetry={() => void versionsQuery.refetch()}
+                  />
+                </SurfaceCard>
+              ) : versions.length === 0 ? (
+                <EmptyStateCard
+                  icon={<Database className="size-10" aria-hidden="true" />}
+                  title="Nenhuma base cadastrada"
+                  description="Cadastre uma versão de uma base de precificação para começar."
+                  action={
+                    <Button type="button" onClick={() => setModalOpen(true)}>
+                      <Plus className="size-4" aria-hidden="true" />
+                      Nova versão
+                    </Button>
+                  }
+                />
+              ) : (
+                <>
+                  <FilterCard
+                    id="pricing-versions-filters"
+                    variant="bar"
+                    activeCount={activeCount}
+                    onClear={handleClearFilters}
+                    clearDisabled={!hasFilters}
+                    // Colunas flexíveis no lg para a barra caber em uma única linha —
+                    // mesma altura visual da barra de filtros de Contratos.
+                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_12rem] lg:gap-4 xl:grid-cols-[minmax(0,1fr)_12rem_22rem_auto]"
+                  >
+                    <SearchField
+                      id="pricing-versions-search"
+                      label="Buscar"
+                      fieldClassName="sm:col-span-2 lg:col-span-1"
+                      placeholder="Buscar por nome do arquivo"
+                      value={search}
+                      clearable
+                      onChange={(event) => {
+                        setSearch(event.target.value);
+                        setPage(1);
+                      }}
+                      onClear={() => {
+                        setSearch("");
+                        setPage(1);
+                      }}
+                    />
+                    <SelectField
+                      id="pricing-versions-base-type"
+                      label="Tipo da base"
+                      className="sm:col-span-2 lg:col-span-1"
+                      value={baseTypeFilter}
+                      options={baseTypeOptions}
+                      onValueChange={(value) => {
+                        setBaseTypeFilter(value as "all" | PricingBaseType);
+                        setPage(1);
+                      }}
+                    />
+                    <fieldset className="min-w-0 space-y-1.5 sm:col-span-2 sm:space-y-2 lg:col-span-1">
+                      <legend className="text-xs font-medium leading-snug text-muted-foreground">
+                        Data do cadastro
+                      </legend>
+                      <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
+                        <span className="shrink-0 text-xs text-muted-foreground">De</span>
+                        <Input
+                          id="pricing-versions-created-from"
+                          type="date"
+                          aria-label="Data do cadastro de"
+                          className="min-w-0 flex-1"
+                          value={createdFrom}
+                          max={createdTo || undefined}
+                          onChange={(event) => {
+                            setCreatedFrom(event.target.value);
+                            setPage(1);
+                          }}
+                        />
+                        <span className="shrink-0 text-xs text-muted-foreground">até</span>
+                        <Input
+                          id="pricing-versions-created-to"
+                          type="date"
+                          aria-label="Data do cadastro até"
+                          className="min-w-0 flex-1"
+                          value={createdTo}
+                          min={createdFrom || undefined}
+                          onChange={(event) => {
+                            setCreatedTo(event.target.value);
+                            setPage(1);
+                          }}
+                        />
+                      </div>
+                    </fieldset>
+                  </FilterCard>
+
+                  {filteredVersions.length === 0 ? (
+                    <EmptyStateCard
+                      icon={<Database className="size-10" aria-hidden="true" />}
+                      title="Nenhuma versão encontrada"
+                      description="Ajuste os filtros para ver outros resultados."
+                      action={
+                        <Button type="button" variant="outline" onClick={handleClearFilters}>
+                          Limpar filtros
+                        </Button>
+                      }
+                    />
+                  ) : (
+                    <div className="mt-5 space-y-3">
+                      <h2 className="font-display text-base font-semibold tracking-tight text-foreground">
+                        Histórico de versões
+                      </h2>
+                      <DataTable>
+                        <DataTableDesktop>
+                          <DataTableRoot>
+                            <DataTableHeader>
+                              <tr>
+                                {COLUMNS.map((column) => (
+                                  <DataTableHead
+                                    key={column}
+                                    className={column === "Ações" ? "text-right" : undefined}
+                                  >
+                                    {column}
+                                  </DataTableHead>
+                                ))}
+                              </tr>
+                            </DataTableHeader>
+                            <DataTableBody>
+                              {paginatedVersions.map((version) => (
+                                <DataTableRow key={version.id}>
+                                  <DataTableCell className="max-w-96">
+                                    <div className="flex min-w-0 items-center gap-2">
+                                      <VersionFileName name={version.file.name} />
+                                      {currentVersionIds.has(version.id) && (
+                                        <Badge
+                                          variant="success-soft"
+                                          size="sm"
+                                          className="shrink-0"
+                                        >
+                                          Atual
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </DataTableCell>
+                                  <DataTableCell>
+                                    <Badge variant="info-soft" size="sm" className="shrink-0">
+                                      {pricingBaseTypeLabel(version.baseType)}
+                                    </Badge>
+                                  </DataTableCell>
+                                  <DataTableCell>{version.createdBy}</DataTableCell>
+                                  <DataTableCell>
+                                    {formatVersionDateTime(version.createdAt)}
+                                  </DataTableCell>
+
+                                  <DataTableCell className="text-right">
+                                    <VersionActions version={version} />
+                                  </DataTableCell>
+                                </DataTableRow>
+                              ))}
+                            </DataTableBody>
+                          </DataTableRoot>
+                        </DataTableDesktop>
+
+                        <DataTableCardList divided>
+                          {paginatedVersions.map((version) => (
+                            <DataTableCard key={version.id} flat className="space-y-1.5 py-2.5">
+                              <DataTableCardHeader
+                                title={
+                                  <>
+                                    <Badge variant="info-soft" size="sm" className="shrink-0">
+                                      {pricingBaseTypeLabel(version.baseType)}
+                                    </Badge>
+                                    {currentVersionIds.has(version.id) && (
+                                      <Badge variant="success-soft" size="sm" className="shrink-0">
+                                        Atual
+                                      </Badge>
+                                    )}
+                                  </>
+                                }
+                                subtitle={version.file.name}
+                              />
+                              <DataTableCardFields
+                                className="gap-x-4 gap-y-1"
+                                fields={[
+                                  { label: "Cadastrado por", value: version.createdBy },
+                                  {
+                                    label: "Data do cadastro",
+                                    value: formatVersionDateTime(version.createdAt),
+                                  },
+                                ]}
+                              />
+
+                              <DataTableCardActions className="-mt-0.5 justify-end">
+                                <VersionActions version={version} />
+                              </DataTableCardActions>
+                            </DataTableCard>
+                          ))}
+                        </DataTableCardList>
+
+                        <TablePagination
+                          id="pricing-versions"
+                          totalItems={filteredVersions.length}
+                          page={currentPage}
+                          pageSize={pageSize}
+                          onPageChange={setPage}
+                          onPageSizeChange={(size) => {
+                            setPageSize(size);
+                            setPage(1);
+                          }}
+                          className="px-4 pb-4"
+                        />
+                      </DataTable>
+                    </div>
+                  )}
+                </>
+              )}
+            </section>
+
+            {/* Ferramentas provisórias de testes: não fazem parte do produto. */}
+            {storedVersions.length > 0 && (
+              <div className="flex flex-wrap justify-end gap-2 border-t border-dashed border-border pt-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground"
+                  onClick={() => setSimulateEmpty((previous) => !previous)}
+                >
+                  {simulateEmpty ? (
+                    <EyeOff className="size-3.5" aria-hidden="true" />
+                  ) : (
+                    <Eye className="size-3.5" aria-hidden="true" />
+                  )}
+                  {simulateEmpty
+                    ? "Sair do estado vazio · Temporário"
+                    : "Visualizar estado vazio · Temporário"}
+                </Button>
+                {!simulateEmpty && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-muted-foreground hover:text-destructive"
+                    disabled={clearMutation.isPending}
+                    onClick={() => setClearOpen(true)}
+                  >
+                    <Trash2 className="size-3.5" aria-hidden="true" />
+                    Limpar versões cadastradas · Temporário
+                  </Button>
+                )}
+              </div>
+            )}
+          </main>
+
+          <SiteFooter />
+        </div>
+      </div>
+
+      <NewPricingVersionModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        existingBaseTypes={existingBaseTypes}
+        onCreate={(input) => createMutation.mutate(input)}
+      />
+
+      <ConfirmDialog
+        open={clearOpen}
+        onOpenChange={setClearOpen}
+        title="Limpar versões cadastradas?"
+        description="Esta ação apagará todas as versões da base de precificação e seus arquivos. Deseja continuar?"
+        confirmLabel="Limpar versões"
+        onConfirm={() => clearMutation.mutate()}
+      />
+    </TooltipProvider>
+  );
+}
+
+/** Nome do arquivo truncado, com o valor completo em tooltip (mouse e teclado). */
+function VersionFileName({ name }: { name: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span
+          tabIndex={0}
+          className="block min-w-0 truncate rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {name}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-80 break-all">{name}</TooltipContent>
+    </Tooltip>
+  );
+}
+
+/** Ações da linha: apenas baixar o arquivo original da versão. */
+function VersionActions({ version }: { version: PricingVersion }) {
+  return (
+    <div className="inline-flex items-center gap-1">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={`Baixar ${version.file.name}`}
+            onClick={() => void downloadVersionFile(version)}
+          >
+            <Download className="size-4" aria-hidden="true" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Baixar</TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}
