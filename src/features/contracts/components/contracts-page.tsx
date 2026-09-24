@@ -1,6 +1,18 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Eye, EyeOff, FileText, Plus, Scale, Trash2 } from "lucide-react";
+import {
+  CircleAlert,
+  CircleCheck,
+  Clock3,
+  Download,
+  Eye,
+  EyeOff,
+  FileSearch,
+  FileText,
+  LoaderCircle,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -517,10 +529,22 @@ function ContractRulesStatusBadge({
             ? "destructive-soft"
             : "secondary";
   const label = contractRulesStatusLabel(status);
+  const StatusIcon =
+    status === "reviewed"
+      ? CircleCheck
+      : status === "pending_review"
+        ? Clock3
+        : status === "failed"
+          ? CircleAlert
+          : FileSearch;
 
   if (status === "extracting") {
     return (
       <Badge variant={variant} size="md">
+        <LoaderCircle
+          className="size-3 animate-spin motion-reduce:animate-none"
+          aria-hidden="true"
+        />
         {label}
       </Badge>
     );
@@ -549,7 +573,7 @@ function ContractRulesStatusBadge({
             size="md"
             className="transition-colors group-hover:brightness-95"
           >
-            <Scale className="size-3" aria-hidden="true" />
+            <StatusIcon className="size-3" aria-hidden="true" />
             {label}
           </Badge>
         </button>
