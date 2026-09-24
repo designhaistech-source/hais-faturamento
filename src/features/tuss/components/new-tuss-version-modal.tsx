@@ -18,7 +18,7 @@ const TABLE_OPTIONS = TUSS_TABLE_NUMBERS.map((number) => ({
   label: tussTableLabel(number),
 }));
 
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_FILE_SIZE_BYTES = 150 * 1024 * 1024;
 
 interface NewTussVersionModalProps {
   open: boolean;
@@ -50,7 +50,7 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
       return;
     }
     if (selected.size > MAX_FILE_SIZE_BYTES) {
-      setInvalidFileMessage("Arquivo maior que 10 MB.");
+      setInvalidFileMessage("Arquivo maior que 150 MB.");
       setFile(null);
       return;
     }
@@ -126,7 +126,7 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
           label="Arquivo"
           required
           error={fileError}
-          hint="Máx. 10 MB"
+          hint="Máx. 150 MB"
           injectChildProps={false}
         >
           <div
