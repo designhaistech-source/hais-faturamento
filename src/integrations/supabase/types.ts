@@ -289,6 +289,7 @@ export type Database = {
           file_path: string
           file_type: string | null
           id: string
+          table_name: string
           version_month: string
         }
         Insert: {
@@ -298,6 +299,7 @@ export type Database = {
           file_path: string
           file_type?: string | null
           id?: string
+          table_name?: string
           version_month: string
         }
         Update: {
@@ -307,6 +309,7 @@ export type Database = {
           file_path?: string
           file_type?: string | null
           id?: string
+          table_name?: string
           version_month?: string
         }
         Relationships: []
