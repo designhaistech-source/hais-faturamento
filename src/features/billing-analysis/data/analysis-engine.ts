@@ -94,11 +94,7 @@ function baseResult(item: TissItem): AnalysisItemResult {
   };
 }
 
-function unanalyzed(
-  item: TissItem,
-  reason: string,
-  rule?: ContractRule,
-): AnalysisItemResult {
+function unanalyzed(item: TissItem, reason: string, rule?: ContractRule): AnalysisItemResult {
   return {
     ...baseResult(item),
     reason,
