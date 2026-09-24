@@ -483,41 +483,11 @@ function AnalysisFileName({ name }: { name: string }) {
 
 /** Resultado da análise, com o detalhe dos itens não analisados em tooltip. */
 function AnalysisResultBadge({ analysis }: { analysis: BillingAnalysis }) {
-  const hasDivergent = analysis.divergenceCount > 0;
-  const hasUnanalyzed = analysis.unanalyzedCount > 0;
-  const actionable = analysis.status === "completed";
-
   const badge = (
     <Badge variant={analysisResultBadgeVariant(analysis)} size="sm" className="shrink-0">
       {analysisResultLabel(analysis)}
     </Badge>
   );
-
-  if (actionable) {
-    const hint =
-      hasDivergent && hasUnanalyzed
-        ? "Ver itens que exigem atenção"
-        : hasDivergent
-          ? "Ver divergências"
-          : hasUnanalyzed
-            ? "Ver itens não analisados"
-            : "Ver resultado da análise";
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Link
-            to="/analise-faturamento/$analysisId/resultado"
-            params={{ analysisId: analysis.id }}
-            aria-label={`${analysisResultLabel(analysis)}. ${hint}`}
-            className="inline-flex cursor-pointer rounded-full outline-none transition hover:opacity-80 hover:shadow-xs focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
-          >
-            {badge}
-          </Link>
-        </TooltipTrigger>
-        <TooltipContent>{hint}</TooltipContent>
-      </Tooltip>
-    );
-  }
 
   const detail =
     analysis.status === "failed"
@@ -541,7 +511,7 @@ function AnalysisResultBadge({ analysis }: { analysis: BillingAnalysis }) {
   );
 }
 
-/** Ações da linha, relacionadas ao arquivo XML original da análise. */
+/** Ações da linha: ver o resultado (quando concluída) e baixar o XML original. */
 function AnalysisActions({ analysis }: { analysis: BillingAnalysis }) {
   const [downloading, setDownloading] = useState(false);
 
@@ -563,6 +533,22 @@ function AnalysisActions({ analysis }: { analysis: BillingAnalysis }) {
 
   return (
     <div className="inline-flex items-center gap-1">
+      {analysis.status === "completed" && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button asChild variant="ghost" size="icon">
+              <Link
+                to="/analise-faturamento/$analysisId/resultado"
+                params={{ analysisId: analysis.id }}
+                aria-label={`Ver resultado da análise ${analysis.fileName}`}
+              >
+                <FileSearch className="size-4" aria-hidden="true" />
+              </Link>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Ver resultado</TooltipContent>
+        </Tooltip>
+      )}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
