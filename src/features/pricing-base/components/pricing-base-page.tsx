@@ -198,7 +198,7 @@ export function PricingBasePage() {
             <section className="space-y-4">
               {versionsQuery.isPending ? (
                 <SurfaceCard padding="none">
-                  <TableSkeleton rows={4} columns={6} />
+                  <TableSkeleton rows={4} columns={5} />
                 </SurfaceCard>
               ) : versionsQuery.isError ? (
                 <SurfaceCard padding="md">
