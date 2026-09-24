@@ -26,6 +26,7 @@ export function useBackgroundAnalysis(): BackgroundAnalysisValue {
   const start = useCallback(
     (input: RunBillingAnalysisInput) => {
       tasks.start({
+        kind: "billing-analysis",
         fileName: input.file.name,
         processing: { title: "Analisando faturamento", description: "Processando análise..." },
         failure: {
@@ -59,7 +60,10 @@ export function useBackgroundAnalysis(): BackgroundAnalysisValue {
     [tasks, queryClient, navigate],
   );
 
-  return useMemo(() => ({ isProcessing: tasks.isProcessing, start }), [tasks.isProcessing, start]);
+  return useMemo(
+    () => ({ isProcessing: tasks.isProcessing("billing-analysis"), start }),
+    [tasks, start],
+  );
 }
 
 function plural(count: number, singular: string, pluralForm: string): string {

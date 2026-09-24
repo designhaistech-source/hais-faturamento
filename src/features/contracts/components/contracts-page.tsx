@@ -179,6 +179,7 @@ export function ContractsPage() {
 
   function startRulesExtraction(contract: Contract) {
     backgroundTask.start({
+      kind: "contract-rules",
       fileName: contract.file.name,
       processing: {
         title: "Analisando contrato",
