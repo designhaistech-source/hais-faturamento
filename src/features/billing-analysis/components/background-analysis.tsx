@@ -1,22 +1,29 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { CircleAlert, CircleCheck, LoaderCircle, X } from "lucide-react";
+import { CircleCheck, TriangleAlert, LoaderCircle, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import {
   billingAnalysesQueryKey,
+  getAnalysisOutcomeCounts,
   runBillingAnalysis,
+  type AnalysisOutcomeCounts,
   type RunBillingAnalysisInput,
 } from "../data/billing-analyses-service";
 
 type BackgroundAnalysisState =
   | { status: "idle" }
   | { status: "processing"; input: RunBillingAnalysisInput }
-  | { status: "completed"; input: RunBillingAnalysisInput; analysisId: string }
-  | { status: "failed"; input: RunBillingAnalysisInput; message: string };
+  | {
+      status: "completed";
+      input: RunBillingAnalysisInput;
+      analysisId: string;
+      counts: AnalysisOutcomeCounts | null;
+    }
+  | { status: "failed"; input: RunBillingAnalysisInput };
 
 interface BackgroundAnalysisContextValue {
   isProcessing: boolean;
@@ -38,17 +45,12 @@ export function BackgroundAnalysisProvider({ children }: { children: ReactNode }
       setState({ status: "processing", input });
       void queryClient.invalidateQueries({ queryKey: billingAnalysesQueryKey });
       runBillingAnalysis(input)
-        .then((analysisId) => setState({ status: "completed", input, analysisId }))
-        .catch((cause: unknown) =>
-          setState({
-            status: "failed",
-            input,
-            message:
-              cause instanceof Error && cause.message
-                ? cause.message
-                : "Ocorreu uma falha ao processar o XML.",
-          }),
-        )
+        .then(async (analysisId) => {
+          // As contagens são apenas informativas; sem elas o aviso ainda indica a conclusão.
+          const counts = await getAnalysisOutcomeCounts(analysisId).catch(() => null);
+          setState({ status: "completed", input, analysisId, counts });
+        })
+        .catch(() => setState({ status: "failed", input }))
         .finally(() => void queryClient.invalidateQueries({ queryKey: billingAnalysesQueryKey }));
     },
     [queryClient],
@@ -99,18 +101,21 @@ function BackgroundAnalysisIndicator({
             />
           ),
           title: "Analisando faturamento",
-          description: "Analisando o XML com as regras do contrato e bases de precificação...",
+          description: "Processando análise...",
+          hint: "Você pode continuar usando o sistema.",
         }
       : state.status === "completed"
         ? {
             icon: <CircleCheck className="size-5 text-success" aria-hidden="true" />,
             title: "Análise concluída",
-            description: "A análise foi concluída com sucesso.",
+            description: describeOutcome(state.counts),
+            hint: null,
           }
         : {
-            icon: <CircleAlert className="size-5 text-destructive" aria-hidden="true" />,
+            icon: <TriangleAlert className="size-5 text-destructive" aria-hidden="true" />,
             title: "Não foi possível concluir a análise",
-            description: state.message,
+            description: "Não foi possível processar o arquivo.",
+            hint: null,
           };
 
   return (
@@ -129,6 +134,7 @@ function BackgroundAnalysisIndicator({
             {fileName}
           </p>
           <p className="text-sm text-muted-foreground">{content.description}</p>
+          {content.hint && <p className="text-xs text-muted-foreground">{content.hint}</p>}
           {state.status === "completed" && (
             <div className="pt-2">
               <Button asChild size="sm">
@@ -170,4 +176,22 @@ function BackgroundAnalysisIndicator({
       </div>
     </div>
   );
+}
+
+function plural(count: number, singular: string, pluralForm: string): string {
+  return `${count} ${count === 1 ? singular : pluralForm}`;
+}
+
+function describeOutcome(counts: AnalysisOutcomeCounts | null): string {
+  if (!counts) return "A análise foi concluída.";
+  const parts: string[] = [];
+  if (counts.divergenceCount > 0) {
+    parts.push(
+      plural(counts.divergenceCount, "divergência identificada", "divergências identificadas"),
+    );
+  }
+  if (counts.unanalyzedCount > 0) {
+    parts.push(plural(counts.unanalyzedCount, "item não analisado", "itens não analisados"));
+  }
+  return parts.length > 0 ? parts.join(" · ") : "Nenhuma divergência identificada.";
 }
