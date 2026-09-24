@@ -38,7 +38,9 @@ export function AppBreadcrumb({ className }: { className?: string }) {
     pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
   // Página de detalhe: Início > Análise de faturamento > Detalhes da análise.
   const isAnalysisDetail = normalized.startsWith("/analise-faturamento/");
-  const meta = isAnalysisDetail ? { label: "Detalhes da análise" } : ROUTE_META[normalized];
+  const meta = isAnalysisDetail
+    ? { label: normalized.endsWith("/resultado") ? "Resultado da análise" : "Detalhes da análise" }
+    : ROUTE_META[normalized];
 
   if (!meta || normalized === "/") return null;
 

@@ -16,6 +16,7 @@ import { Route as ContratosRouteImport } from './routes/contratos'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as DesignSystemIconesRouteImport } from './routes/design-system-icones'
 import { Route as AnaliseFaturamentoAnalysisIdRouteImport } from './routes/analise-faturamento_.$analysisId'
+import { Route as AnaliseFaturamentoAnalysisIdResultadoRouteImport } from './routes/analise-faturamento_.$analysisId_.resultado'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -53,6 +54,12 @@ const AnaliseFaturamentoAnalysisIdRoute =
     path: '/analise-faturamento/$analysisId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AnaliseFaturamentoAnalysisIdResultadoRoute =
+  AnaliseFaturamentoAnalysisIdResultadoRouteImport.update({
+    id: '/analise-faturamento_/$analysisId_/resultado',
+    path: '/analise-faturamento/$analysisId/resultado',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
   '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
+  '/analise-faturamento/$analysisId/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -71,6 +79,7 @@ export interface FileRoutesByTo {
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
   '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
+  '/analise-faturamento/$analysisId/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -81,6 +90,7 @@ export interface FileRoutesById {
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
   '/analise-faturamento_/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
+  '/analise-faturamento_/$analysisId_/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -92,6 +102,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/design-system-icones'
     | '/analise-faturamento/$analysisId'
+    | '/analise-faturamento/$analysisId/resultado'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -101,6 +112,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/design-system-icones'
     | '/analise-faturamento/$analysisId'
+    | '/analise-faturamento/$analysisId/resultado'
   id:
     | '__root__'
     | '/'
@@ -110,6 +122,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/design-system-icones'
     | '/analise-faturamento_/$analysisId'
+    | '/analise-faturamento_/$analysisId_/resultado'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -120,6 +133,7 @@ export interface RootRouteChildren {
   DesignSystemRoute: typeof DesignSystemRoute
   DesignSystemIconesRoute: typeof DesignSystemIconesRoute
   AnaliseFaturamentoAnalysisIdRoute: typeof AnaliseFaturamentoAnalysisIdRoute
+  AnaliseFaturamentoAnalysisIdResultadoRoute: typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -173,6 +187,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnaliseFaturamentoAnalysisIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/analise-faturamento_/$analysisId_/resultado': {
+      id: '/analise-faturamento_/$analysisId_/resultado'
+      path: '/analise-faturamento/$analysisId/resultado'
+      fullPath: '/analise-faturamento/$analysisId/resultado'
+      preLoaderRoute: typeof AnaliseFaturamentoAnalysisIdResultadoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -184,6 +205,8 @@ const rootRouteChildren: RootRouteChildren = {
   DesignSystemRoute: DesignSystemRoute,
   DesignSystemIconesRoute: DesignSystemIconesRoute,
   AnaliseFaturamentoAnalysisIdRoute: AnaliseFaturamentoAnalysisIdRoute,
+  AnaliseFaturamentoAnalysisIdResultadoRoute:
+    AnaliseFaturamentoAnalysisIdResultadoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
