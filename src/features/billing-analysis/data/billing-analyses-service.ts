@@ -85,6 +85,10 @@ async function saveItems(analysisId: string, items: AnalysisItemResult[]): Promi
       rule_description: item.ruleDescription,
       expected_value: item.expectedValue,
       difference: item.difference,
+      reference_type: item.referenceType,
+      factor: item.factor,
+      adjustment_percent: item.adjustmentPercent,
+      calculation: item.calculation,
     })),
   );
   if (error) throw error;
