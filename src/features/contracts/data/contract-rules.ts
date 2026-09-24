@@ -66,7 +66,7 @@ const CONTRACT_RULES_STATUS_LABELS: Record<ContractRulesDisplayStatus, string> =
   not_extracted: "Não extraídas",
   pending_review: "Revisão pendente",
   reviewed: "Revisadas",
-  extracting: "Analisando...",
+  extracting: "Aguardando análise",
   failed: "Falha na análise",
 };
 

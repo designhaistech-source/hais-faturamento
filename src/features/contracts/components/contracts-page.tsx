@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CircleAlert,
@@ -9,12 +10,13 @@ import {
   EyeOff,
   FileSearch,
   FileText,
-  LoaderCircle,
+  Hourglass,
   Plus,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { useBackgroundTask } from "@/components/background-task";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteFooter } from "@/components/site-footer";
 import { PageHeader } from "@/components/page-header";
@@ -112,6 +114,15 @@ export function ContractsPage() {
   };
 
   /** Ferramenta provisória de testes: simula a página sem contratos, sem alterar dados. */
+  // "Revisar regras" do aviso global chega pela URL e abre o modal do contrato.
+  useEffect(() => {
+    const id = reviewRequest.revisarRegras;
+    const target = id ? contracts?.find((item) => item.id === id) : undefined;
+    if (!target) return;
+    setRulesContract(target);
+    void navigate({ to: "/contratos", search: {}, replace: true });
+  }, [reviewRequest.revisarRegras, contracts, navigate]);
+
   const [simulateEmpty, setSimulateEmpty] = useState(false);
   const contracts = simulateEmpty ? [] : storedContracts;
 
@@ -162,18 +173,41 @@ export function ContractsPage() {
    * A leitura das regras começa sozinha após o cadastro, em segundo plano, sem
    * bloquear a listagem. A coluna Regras acompanha o andamento.
    */
-  async function startRulesExtraction(contract: Contract) {
-    try {
-      const drafts = await extractContractRulesFor(contract);
-      await queryClient.invalidateQueries({ queryKey: contractRulesStatusQueryKey });
-      if (drafts.length === 0) {
-        toast.info(`Nenhuma regra de remuneração foi identificada em ${contract.company}.`);
-        return;
-      }
-      toast.success(`Regras de ${contract.company} identificadas. Revise antes de usar.`);
-    } catch {
-      toast.error(`Não foi possível ler as regras do contrato de ${contract.company}.`);
-    }
+  const backgroundTask = useBackgroundTask();
+  const navigate = useNavigate();
+  const reviewRequest = useSearch({ strict: false }) as { revisarRegras?: string };
+
+  function startRulesExtraction(contract: Contract) {
+    backgroundTask.start({
+      fileName: contract.file.name,
+      processing: {
+        title: "Analisando contrato",
+        description: "Extraindo as regras de remuneração...",
+      },
+      failure: {
+        title: "Não foi possível analisar o contrato",
+        description: "Não foi possível extrair as regras de remuneração.",
+      },
+      run: async () => {
+        try {
+          const drafts = await extractContractRulesFor(contract);
+          return {
+            title: "Contrato analisado",
+            description:
+              drafts.length > 0
+                ? "As regras estão disponíveis para revisão."
+                : "Nenhuma regra de remuneração foi identificada.",
+            action: {
+              label: "Revisar regras",
+              onSelect: () =>
+                void navigate({ to: "/contratos", search: { revisarRegras: contract.id } }),
+            },
+          };
+        } finally {
+          await queryClient.invalidateQueries({ queryKey: contractRulesStatusQueryKey });
+        }
+      },
+    });
   }
 
   const createMutation = useMutation({
@@ -181,7 +215,7 @@ export function ContractsPage() {
     onSuccess: async (contract) => {
       await queryClient.invalidateQueries({ queryKey: contractsQueryKey });
       toast.success("Contrato cadastrado com sucesso.");
-      void startRulesExtraction(contract);
+      startRulesExtraction(contract);
     },
     onError: () => {
       toast.error("Não foi possível cadastrar o contrato.");
@@ -523,9 +557,7 @@ function ContractRulesStatusBadge({
       ? "success-soft"
       : status === "pending_review"
         ? "info-soft"
-        : status === "extracting"
-          ? "warning-soft"
-          : status === "failed"
+        : status === "failed"
             ? "destructive-soft"
             : "secondary";
   const label = contractRulesStatusLabel(status);
@@ -541,10 +573,7 @@ function ContractRulesStatusBadge({
   if (status === "extracting") {
     return (
       <Badge variant={variant} size="md">
-        <LoaderCircle
-          className="size-3 animate-spin motion-reduce:animate-none"
-          aria-hidden="true"
-        />
+        <Hourglass className="size-3" aria-hidden="true" />
         {label}
       </Badge>
     );
