@@ -13,9 +13,9 @@ import {
   Plus,
   Trash2,
   TriangleAlert,
-import { StatusBadge, type StatusTone } from "@/components/status-badge";
   type LucideIcon,
 } from "lucide-react";
+import { StatusBadge, type StatusTone } from "@/components/status-badge";
 import { toast } from "sonner";
 
 import { useBackgroundTask } from "@/components/background-task";
@@ -573,9 +573,7 @@ function ContractRulesStatusBadge({ status }: { status: ContractRulesDisplayStat
     not_extracted: { tone: "neutral", icon: FileSearch },
   } as const satisfies Record<ContractRulesDisplayStatus, { tone: StatusTone; icon: LucideIcon }>;
   const { tone, icon } = config[status];
-  return (
-    <StatusBadge tone={tone} icon={icon} label={label} spinning={status === "extracting"} />
-  );
+  return <StatusBadge tone={tone} icon={icon} label={label} spinning={status === "extracting"} />;
 }
 
 /** Nome do arquivo truncado, com o valor completo em tooltip (mouse e teclado). */
