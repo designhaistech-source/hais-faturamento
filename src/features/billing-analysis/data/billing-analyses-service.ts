@@ -47,6 +47,7 @@ interface CreateAnalysisRow {
   fileName: string;
   provider: string;
   healthPlan: string;
+  xmlContent: string;
 }
 
 async function createAnalysisRow(input: CreateAnalysisRow): Promise<string> {
@@ -58,6 +59,7 @@ async function createAnalysisRow(input: CreateAnalysisRow): Promise<string> {
       file_name: input.fileName,
       provider: input.provider,
       health_plan: input.healthPlan,
+      xml_content: input.xmlContent,
       status: "processing",
     })
     .select("id")
@@ -145,6 +147,7 @@ export async function runBillingAnalysis(input: RunBillingAnalysisInput): Promis
     fileName: input.file.name,
     provider: parties.provider,
     healthPlan: parties.healthPlan,
+    xmlContent: await input.file.text(),
   });
 
   try {
@@ -161,6 +164,17 @@ export async function runBillingAnalysis(input: RunBillingAnalysisInput): Promis
     await failAnalysis(analysisId, message);
     throw cause;
   }
+}
+
+/** XML original persistido de uma análise; null quando a análise é anterior ao armazenamento. */
+export async function getAnalysisXml(analysisId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("billing_analyses")
+    .select("xml_content")
+    .eq("id", analysisId)
+    .single();
+  if (error) throw error;
+  return data?.xml_content ?? null;
 }
 
 /** Ferramenta provisória de testes: apaga todas as análises realizadas. */
