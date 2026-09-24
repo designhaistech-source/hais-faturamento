@@ -3,6 +3,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Download, Eye, EyeOff, FileSearch, Plus, Trash2 } from "lucide-react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { FilterCard } from "@/components/filter-card";
+import { SearchField, SelectField } from "@/components/form-field";
+import { Input } from "@/components/ui/input";
+import { toLocalIsoDate } from "@/lib/date";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -53,6 +57,28 @@ import {
   runBillingAnalysis,
 } from "../data/billing-analyses-service";
 
+type ResultFilter = "all" | "divergent" | "unanalyzed" | "clean";
+
+const RESULT_FILTER_OPTIONS = [
+  { value: "all", label: "Todos" },
+  { value: "divergent", label: "Com divergências" },
+  { value: "unanalyzed", label: "Com itens não analisados" },
+  { value: "clean", label: "Sem divergências" },
+];
+
+function matchesResultFilter(analysis: BillingAnalysis, filter: ResultFilter): boolean {
+  if (filter === "divergent") return analysis.divergenceCount > 0;
+  if (filter === "unanalyzed") return analysis.unanalyzedCount > 0;
+  if (filter === "clean") {
+    return (
+      analysis.status === "completed" &&
+      analysis.divergenceCount === 0 &&
+      analysis.unanalyzedCount === 0
+    );
+  }
+  return true;
+}
+
 const COLUMNS = [
   "Arquivo",
   "Contrato",
@@ -100,11 +126,60 @@ export function BillingAnalysisPage() {
 
   const handleNewAnalysis = () => setModalOpen(true);
 
-  const totalPages = Math.max(1, Math.ceil(analyses.length / pageSize));
+  const [search, setSearch] = useState("");
+  const [resultFilter, setResultFilter] = useState<ResultFilter>("all");
+  const [analyzedFrom, setAnalyzedFrom] = useState("");
+  const [analyzedTo, setAnalyzedTo] = useState("");
+  const activeCount = [
+    search.trim() !== "",
+    resultFilter !== "all",
+    analyzedFrom !== "",
+    analyzedTo !== "",
+  ].filter(Boolean).length;
+  const hasFilters = activeCount > 0;
+
+  const filteredAnalyses = useMemo(() => {
+    const term = search.trim().toLocaleLowerCase("pt-BR");
+    const digits = term.replace(/\D/g, "");
+    return analyses.filter((analysis) => {
+      if (term) {
+        const fields = [
+          analysis.fileName,
+          analysis.contractCompany,
+          analysis.provider,
+          analysis.healthPlan,
+        ];
+        const textMatch = fields.some((field) => field.toLocaleLowerCase("pt-BR").includes(term));
+        // CNPJ e registro ANS também são encontrados sem pontuação.
+        const digitMatch =
+          digits.length >= 3 && fields.some((field) => field.replace(/\D/g, "").includes(digits));
+        if (!textMatch && !digitMatch) return false;
+      }
+      if (!matchesResultFilter(analysis, resultFilter)) return false;
+      if (analyzedFrom || analyzedTo) {
+        const analyzed = new Date(analysis.analyzedAt);
+        if (Number.isNaN(analyzed.getTime())) return false;
+        const day = toLocalIsoDate(analyzed);
+        if (analyzedFrom && day < analyzedFrom) return false;
+        if (analyzedTo && day > analyzedTo) return false;
+      }
+      return true;
+    });
+  }, [analyses, search, resultFilter, analyzedFrom, analyzedTo]);
+
+  function handleClearFilters() {
+    setSearch("");
+    setResultFilter("all");
+    setAnalyzedFrom("");
+    setAnalyzedTo("");
+    setPage(1);
+  }
+
+  const totalPages = Math.max(1, Math.ceil(filteredAnalyses.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const paginatedAnalyses = useMemo(
-    () => analyses.slice((currentPage - 1) * pageSize, currentPage * pageSize),
-    [analyses, currentPage, pageSize],
+    () => filteredAnalyses.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filteredAnalyses, currentPage, pageSize],
   );
 
   const analyzeMutation = useMutation({
@@ -173,94 +248,182 @@ export function BillingAnalysisPage() {
                   }
                 />
               ) : (
-                <div className="mt-5 space-y-3">
-                  <h2 className="font-display text-base font-semibold tracking-tight text-foreground">
-                    Análises realizadas
-                  </h2>
-                  <DataTable>
-                    <DataTableDesktop>
-                      <DataTableRoot>
-                        <DataTableHeader>
-                          <tr>
-                            {COLUMNS.map((column) => (
-                              <DataTableHead
-                                key={column}
-                                className={column === "Ações" ? "text-right" : undefined}
-                              >
-                                {column}
-                              </DataTableHead>
-                            ))}
-                          </tr>
-                        </DataTableHeader>
-                        <DataTableBody>
-                          {paginatedAnalyses.map((analysis) => (
-                            <DataTableRow key={analysis.id}>
-                              <DataTableCell className="max-w-72">
-                                <AnalysisFileName name={analysis.fileName} />
-                              </DataTableCell>
-                              <DataTableCell>{analysis.contractCompany || "—"}</DataTableCell>
-                              <DataTableCell>{analysis.provider}</DataTableCell>
-                              <DataTableCell>{analysis.healthPlan}</DataTableCell>
-                              <DataTableCell>
-                                {formatAnalysisDateTime(analysis.analyzedAt)}
-                              </DataTableCell>
-                              <DataTableCell>
-                                <AnalysisResultBadge
-                                  analysis={analysis}
-                                  onOpen={setResultAnalysis}
-                                />
-                              </DataTableCell>
-                              <DataTableCell className="text-right">
-                                <AnalysisActions analysis={analysis} onView={setXmlAnalysis} />
-                              </DataTableCell>
-                            </DataTableRow>
-                          ))}
-                        </DataTableBody>
-                      </DataTableRoot>
-                    </DataTableDesktop>
-
-                    <DataTableCardList divided>
-                      {paginatedAnalyses.map((analysis) => (
-                        <DataTableCard key={analysis.id} flat className="space-y-1.5 py-2.5">
-                          <DataTableCardHeader
-                            title={
-                              <AnalysisResultBadge analysis={analysis} onOpen={setResultAnalysis} />
-                            }
-                            subtitle={analysis.fileName}
-                          />
-                          <DataTableCardFields
-                            className="gap-x-4 gap-y-1"
-                            fields={[
-                              { label: "Contrato", value: analysis.contractCompany || "—" },
-                              { label: "Prestador", value: analysis.provider },
-                              { label: "Operadora", value: analysis.healthPlan },
-                              {
-                                label: "Data da análise",
-                                value: formatAnalysisDateTime(analysis.analyzedAt),
-                              },
-                            ]}
-                          />
-                          <DataTableCardActions className="-mt-0.5 justify-end">
-                            <AnalysisActions analysis={analysis} onView={setXmlAnalysis} />
-                          </DataTableCardActions>
-                        </DataTableCard>
-                      ))}
-                    </DataTableCardList>
-
-                    <TablePagination
-                      id="billing-analyses"
-                      totalItems={analyses.length}
-                      page={currentPage}
-                      pageSize={pageSize}
-                      onPageChange={setPage}
-                      onPageSizeChange={(size) => {
-                        setPageSize(size);
+                <>
+                  <FilterCard
+                    id="billing-analyses-filters"
+                    variant="bar"
+                    activeCount={activeCount}
+                    onClear={handleClearFilters}
+                    clearDisabled={!hasFilters}
+                    barColumnsClassName="lg:grid-cols-[minmax(12rem,1fr)_10rem_minmax(15rem,19rem)_auto] lg:gap-3 xl:grid-cols-[minmax(0,1fr)_11rem_19rem_auto] xl:gap-4"
+                  >
+                    <SearchField
+                      id="billing-analyses-search"
+                      label="Buscar"
+                      fieldClassName="sm:col-span-2 lg:col-span-1"
+                      placeholder="Buscar por arquivo, contrato ou prestador"
+                      value={search}
+                      clearable
+                      onChange={(event) => {
+                        setSearch(event.target.value);
                         setPage(1);
                       }}
-                      className="px-4 pb-4"
+                      onClear={() => {
+                        setSearch("");
+                        setPage(1);
+                      }}
                     />
-                  </DataTable>
-                </div>
+                    <SelectField
+                      id="billing-analyses-result"
+                      label="Resultado"
+                      className="sm:col-span-2 lg:col-span-1"
+                      value={resultFilter}
+                      options={RESULT_FILTER_OPTIONS}
+                      onValueChange={(value) => {
+                        setResultFilter(value as ResultFilter);
+                        setPage(1);
+                      }}
+                    />
+                    <fieldset className="min-w-0 space-y-1.5 sm:col-span-2 sm:space-y-2 lg:col-span-1">
+                      <legend className="text-xs font-medium leading-snug text-muted-foreground">
+                        Data da análise
+                      </legend>
+                      <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
+                        <span className="shrink-0 text-xs text-muted-foreground">De</span>
+                        <Input
+                          id="billing-analyses-from"
+                          type="date"
+                          aria-label="Data da análise de"
+                          className="min-w-0 flex-1"
+                          value={analyzedFrom}
+                          max={analyzedTo || undefined}
+                          onChange={(event) => {
+                            setAnalyzedFrom(event.target.value);
+                            setPage(1);
+                          }}
+                        />
+                        <span className="shrink-0 text-xs text-muted-foreground">até</span>
+                        <Input
+                          id="billing-analyses-to"
+                          type="date"
+                          aria-label="Data da análise até"
+                          className="min-w-0 flex-1"
+                          value={analyzedTo}
+                          min={analyzedFrom || undefined}
+                          onChange={(event) => {
+                            setAnalyzedTo(event.target.value);
+                            setPage(1);
+                          }}
+                        />
+                      </div>
+                    </fieldset>
+                  </FilterCard>
+
+                  {filteredAnalyses.length === 0 ? (
+                    <EmptyStateCard
+                      icon={<FileSearch className="size-10" aria-hidden="true" />}
+                      title="Nenhuma análise encontrada"
+                      description="Ajuste os filtros para ver outros resultados."
+                      action={
+                        <Button type="button" variant="outline" onClick={handleClearFilters}>
+                          Limpar filtros
+                        </Button>
+                      }
+                    />
+                  ) : (
+                    <div className="mt-5 space-y-3">
+                      <h2 className="font-display text-base font-semibold tracking-tight text-foreground">
+                        Análises realizadas
+                      </h2>
+                      <DataTable>
+                        <DataTableDesktop>
+                          <DataTableRoot>
+                            <DataTableHeader>
+                              <tr>
+                                {COLUMNS.map((column) => (
+                                  <DataTableHead
+                                    key={column}
+                                    className={column === "Ações" ? "text-right" : undefined}
+                                  >
+                                    {column}
+                                  </DataTableHead>
+                                ))}
+                              </tr>
+                            </DataTableHeader>
+                            <DataTableBody>
+                              {paginatedAnalyses.map((analysis) => (
+                                <DataTableRow key={analysis.id}>
+                                  <DataTableCell className="max-w-72">
+                                    <AnalysisFileName name={analysis.fileName} />
+                                  </DataTableCell>
+                                  <DataTableCell>{analysis.contractCompany || "—"}</DataTableCell>
+                                  <DataTableCell>{analysis.provider}</DataTableCell>
+                                  <DataTableCell>{analysis.healthPlan}</DataTableCell>
+                                  <DataTableCell>
+                                    {formatAnalysisDateTime(analysis.analyzedAt)}
+                                  </DataTableCell>
+                                  <DataTableCell>
+                                    <AnalysisResultBadge
+                                      analysis={analysis}
+                                      onOpen={setResultAnalysis}
+                                    />
+                                  </DataTableCell>
+                                  <DataTableCell className="text-right">
+                                    <AnalysisActions analysis={analysis} onView={setXmlAnalysis} />
+                                  </DataTableCell>
+                                </DataTableRow>
+                              ))}
+                            </DataTableBody>
+                          </DataTableRoot>
+                        </DataTableDesktop>
+
+                        <DataTableCardList divided>
+                          {paginatedAnalyses.map((analysis) => (
+                            <DataTableCard key={analysis.id} flat className="space-y-1.5 py-2.5">
+                              <DataTableCardHeader
+                                title={
+                                  <AnalysisResultBadge
+                                    analysis={analysis}
+                                    onOpen={setResultAnalysis}
+                                  />
+                                }
+                                subtitle={analysis.fileName}
+                              />
+                              <DataTableCardFields
+                                className="gap-x-4 gap-y-1"
+                                fields={[
+                                  { label: "Contrato", value: analysis.contractCompany || "—" },
+                                  { label: "Prestador", value: analysis.provider },
+                                  { label: "Operadora", value: analysis.healthPlan },
+                                  {
+                                    label: "Data da análise",
+                                    value: formatAnalysisDateTime(analysis.analyzedAt),
+                                  },
+                                ]}
+                              />
+                              <DataTableCardActions className="-mt-0.5 justify-end">
+                                <AnalysisActions analysis={analysis} onView={setXmlAnalysis} />
+                              </DataTableCardActions>
+                            </DataTableCard>
+                          ))}
+                        </DataTableCardList>
+
+                        <TablePagination
+                          id="billing-analyses"
+                          totalItems={filteredAnalyses.length}
+                          page={currentPage}
+                          pageSize={pageSize}
+                          onPageChange={setPage}
+                          onPageSizeChange={(size) => {
+                            setPageSize(size);
+                            setPage(1);
+                          }}
+                          className="px-4 pb-4"
+                        />
+                      </DataTable>
+                    </div>
+                  )}
+                </>
               )}
             </section>
 
