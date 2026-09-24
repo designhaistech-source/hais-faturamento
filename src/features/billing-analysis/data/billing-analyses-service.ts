@@ -131,10 +131,10 @@ export interface RunBillingAnalysisInput {
  * bases de precificação cadastradas e persiste o resultado item por item.
  */
 export async function runBillingAnalysis(input: RunBillingAnalysisInput): Promise<string> {
-  // A análise só roda com regras contratuais já revisadas e salvas.
+  // A análise só roda com dados já extraídos do contrato.
   const contractRules = await listContractRules(input.contractId);
-  if (contractRules.length === 0 || !contractRules.every((rule) => rule.reviewed)) {
-    throw new Error("Este contrato ainda não possui regras de remuneração revisadas.");
+  if (contractRules.length === 0) {
+    throw new Error("Este contrato ainda não possui dados extraídos.");
   }
 
   const xml = await parseTissXml(input.file);

@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {
-  ContractRulesModal,
   contractRulesQueryKey,
   contractRulesStatusQueryKey,
   contractsQueryKey,
@@ -48,7 +47,6 @@ export function NewBillingAnalysisModal({
   const [contractTouched, setContractTouched] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [invalidFileMessage, setInvalidFileMessage] = useState<string | null>(null);
-  const [rulesModalOpen, setRulesModalOpen] = useState(false);
   const [phase, setPhase] = useState<"form" | "processing" | "error">("form");
   const isProcessing = phase === "processing";
 
@@ -70,12 +68,12 @@ export function NewBillingAnalysisModal({
   const contractOptions = useMemo<SelectOption[]>(
     () =>
       contracts.map((contract) => {
-        const status = statuses ? (statuses[contract.id] ?? "not_extracted") : null;
+        const status = statuses ? (statuses[contract.id] ?? "not_identified") : null;
         return {
           value: contract.id,
           label:
-            status !== null && status !== "reviewed"
-              ? `${contract.company} — regras pendentes de revisão`
+            status !== null && status !== "available"
+              ? `${contract.company} — sem dados extraídos`
               : contract.company,
         };
       }),
@@ -89,8 +87,7 @@ export function NewBillingAnalysisModal({
     enabled: open && contractId !== "",
   });
   const rules = rulesQuery.data;
-  const rulesReady =
-    rules !== undefined && rules.length > 0 && rules.every((rule) => rule.reviewed);
+  const rulesReady = rules !== undefined && rules.length > 0;
   const showRulesWarning = contractId !== "" && rules !== undefined && !rulesReady;
 
   const canSubmit = Boolean(file) && contractId !== "" && rulesReady;
@@ -237,21 +234,12 @@ export function NewBillingAnalysisModal({
                 <div className="min-w-0 space-y-2">
                   <div className="space-y-0.5">
                     <p className="text-sm font-medium text-foreground">
-                      Este contrato ainda não possui regras de remuneração revisadas.
+                      Este contrato ainda não possui dados extraídos.
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Revise as regras do contrato antes de utilizá-lo em uma análise.
+                      A análise só pode ser feita com os dados extraídos do contrato.
                     </p>
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={!selectedContract}
-                    onClick={() => setRulesModalOpen(true)}
-                  >
-                    Revisar regras
-                  </Button>
                 </div>
               </div>
             ) : null}
@@ -368,14 +356,6 @@ export function NewBillingAnalysisModal({
           </form>
         )}
       </AppModal>
-
-      {selectedContract ? (
-        <ContractRulesModal
-          contract={selectedContract}
-          open={rulesModalOpen}
-          onOpenChange={setRulesModalOpen}
-        />
-      ) : null}
     </>
   );
 }
