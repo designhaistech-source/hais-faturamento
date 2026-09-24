@@ -96,32 +96,37 @@ export function AnalysisResultModal({ analysis, onClose }: AnalysisResultModalPr
               />
             ) : (
               <div className="space-y-5">
-                <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-foreground">
-                  <span className="font-medium">
-                    {summary.total} {summary.total === 1 ? "item" : "itens"}
-                  </span>
-                  <SummaryPart
-                    icon={<Check className="h-3.5 w-3.5 text-success" aria-hidden="true" />}
-                  >
-                    {summary.matches} {summary.matches === 1 ? "conforme" : "conformes"}
-                  </SummaryPart>
-                  <SummaryPart
-                    icon={<X className="h-3.5 w-3.5 text-destructive" aria-hidden="true" />}
-                  >
-                    {summary.divergences}{" "}
-                    {summary.divergences === 1 ? "divergência" : "divergências"}
-                  </SummaryPart>
-                  {summary.unanalyzed > 0 && (
+                <section aria-labelledby="summary-title" className="space-y-2">
+                  <h3 id="summary-title" className="text-sm font-semibold text-foreground">
+                    Resumo
+                  </h3>
+                  <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-foreground">
+                    <span className="font-medium">
+                      {summary.total} {summary.total === 1 ? "item" : "itens"}
+                    </span>
                     <SummaryPart
-                      icon={
-                        <AlertTriangle className="h-3.5 w-3.5 text-warning" aria-hidden="true" />
-                      }
+                      icon={<Check className="h-3.5 w-3.5 text-success" aria-hidden="true" />}
                     >
-                      {summary.unanalyzed} não{" "}
-                      {summary.unanalyzed === 1 ? "analisado" : "analisados"}
+                      {summary.matches} {summary.matches === 1 ? "conforme" : "conformes"}
                     </SummaryPart>
-                  )}
-                </p>
+                    <SummaryPart
+                      icon={<X className="h-3.5 w-3.5 text-destructive" aria-hidden="true" />}
+                    >
+                      {summary.divergences}{" "}
+                      {summary.divergences === 1 ? "divergência" : "divergências"}
+                    </SummaryPart>
+                    {summary.unanalyzed > 0 && (
+                      <SummaryPart
+                        icon={
+                          <AlertTriangle className="h-3.5 w-3.5 text-warning" aria-hidden="true" />
+                        }
+                      >
+                        {summary.unanalyzed} não{" "}
+                        {summary.unanalyzed === 1 ? "analisado" : "analisados"}
+                      </SummaryPart>
+                    )}
+                  </p>
+                </section>
 
                 {items.length > 0 && (
                   <section aria-labelledby="attention-title" className="space-y-2">
@@ -294,13 +299,9 @@ function RuleSummary({
               {item.referenceValue !== null && (
                 <CalcRow label="Valor de referência" value={formatCurrency(item.referenceValue)} />
               )}
-              {item.factor !== null && item.factor !== 1 && (
-                <CalcRow label="Fator" value={formatDecimal(item.factor)} />
+              {friendlyCalculation(item) && (
+                <CalcRow label="Cálculo" value={friendlyCalculation(item) ?? ""} />
               )}
-              {item.quantity > 1 && (
-                <CalcRow label="Quantidade" value={formatDecimal(item.quantity)} />
-              )}
-              {item.calculation && <CalcRow label="Cálculo" value={item.calculation} />}
             </dl>
           )}
         </>
@@ -326,4 +327,35 @@ function SummaryPart({ icon, children }: { icon: ReactNode; children: ReactNode 
       {children}
     </span>
   );
+}
+
+/**
+ * Fórmula legível montada com os mesmos parâmetros do motor
+ * (referência × fator × (1 + ajuste%) × quantidade). Se o resultado não
+ * reproduzir o valor esperado salvo, usa a memória original para não distorcer o cálculo.
+ */
+function friendlyCalculation(item: AnalysisItemDetail): string | null {
+  const { referenceValue: ref, expectedValue: expected } = item;
+  if (ref === null || expected === null) return item.calculation;
+  const factor = item.factor ?? 1;
+  const adjustment = item.adjustmentPercent ?? 0;
+  let expr = formatCurrency(ref);
+  let compound = false;
+  if (factor !== 1) {
+    expr = `${expr} × ${formatDecimal(factor)}`;
+    compound = true;
+  }
+  if (adjustment !== 0) {
+    const sign = adjustment < 0 ? "−" : "+";
+    expr = `${compound ? `(${expr})` : expr} ${sign} ${formatDecimal(Math.abs(adjustment))}%`;
+    compound = true;
+  }
+  const withAdjustment = ref * factor * (1 + adjustment / 100);
+  let computed = withAdjustment;
+  if (Math.abs(withAdjustment - expected) > 0.01 && item.quantity > 1) {
+    computed = withAdjustment * item.quantity;
+    expr = `${compound ? `(${expr})` : expr} × ${formatDecimal(item.quantity)}`;
+  }
+  if (Math.abs(computed - expected) > 0.01) return item.calculation;
+  return `${expr} = ${formatCurrency(expected)}`;
 }
