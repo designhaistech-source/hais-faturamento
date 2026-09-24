@@ -352,11 +352,11 @@ export function AnalysisDetailsPage({ analysisId }: { analysisId: string }) {
   );
 }
 
-function expectedOf(item: AnalysisItemDetail): string {
+export function expectedOf(item: AnalysisItemDetail): string {
   return item.status === "unanalyzed" ? "—" : formatCurrency(item.expectedValue);
 }
 
-function differenceOf(item: AnalysisItemDetail): string {
+export function differenceOf(item: AnalysisItemDetail): string {
   return item.status === "unanalyzed" ? "—" : formatDifference(item.difference);
 }
 
@@ -381,7 +381,7 @@ function SummaryTile({ icon, label, value }: { icon: ReactNode; label: string; v
   );
 }
 
-function ItemStatusBadge({ status }: { status: AnalysisItemStatus }) {
+export function ItemStatusBadge({ status }: { status: AnalysisItemStatus }) {
   return (
     <Badge variant={ITEM_STATUS_BADGE[status]} size="sm" className="shrink-0">
       {ITEM_STATUS_LABEL[status]}
@@ -389,7 +389,7 @@ function ItemStatusBadge({ status }: { status: AnalysisItemStatus }) {
   );
 }
 
-function DetailsButton({
+export function DetailsButton({
   item,
   onOpen,
 }: {
@@ -414,7 +414,7 @@ function DetailsButton({
   );
 }
 
-function ItemDetailsModal({
+export function ItemDetailsModal({
   item,
   onClose,
 }: {
