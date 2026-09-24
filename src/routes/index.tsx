@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Database, FileText } from "lucide-react";
+import { Database, FileCheck2, FileText } from "lucide-react";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteFooter } from "@/components/site-footer";
@@ -47,6 +47,13 @@ const FEATURES = [
     to: "/base-precificacao",
     action: "Acessar",
   },
+  {
+    icon: FileCheck2,
+    title: "Análise de faturamento",
+    description: "Analise arquivos XML TISS e identifique divergências nos valores faturados.",
+    to: "/analise-faturamento",
+    action: "Acessar",
+  },
 ] as const;
 
 function HomePage() {
@@ -60,7 +67,7 @@ function HomePage() {
             description="Antecipe inconsistências no faturamento antes do envio à operadora."
           />
 
-          <div className="grid gap-4 pt-2 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 pt-2 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((item) => (
               <FeatureCard key={item.to} {...item} />
             ))}
