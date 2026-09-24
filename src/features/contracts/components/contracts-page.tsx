@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CircleAlert,
   CircleCheck,
-  Clock3,
   Download,
   Eye,
   EyeOff,
@@ -101,7 +100,7 @@ export function ContractsPage() {
   });
   const storedContracts = contractsQuery.data ?? [];
 
-  /** Situação real das regras de cada contrato (extraídas, pendentes ou revisadas). */
+  /** Situação real das regras de cada contrato (disponíveis ou não identificados). */
   const rulesStatusQuery = useQuery({
     queryKey: contractRulesStatusQueryKey,
     queryFn: listContractRulesStatuses,
@@ -540,7 +539,7 @@ export function ContractsPage() {
 }
 
 /**
- * Situação das regras de remuneração do contrato e ponto de acesso à revisão.
+ * Situação das regras de remuneração do contrato e ponto de acesso à consulta.
  * O texto identifica o estado; a cor apenas reforça. Quando acionável, o status
  * é um botão com ícone, sublinhado, foco visível e navegação por teclado.
  */
