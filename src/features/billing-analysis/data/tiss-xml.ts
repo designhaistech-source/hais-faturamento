@@ -25,19 +25,15 @@ const ITEM_TAGS = new Set([
   "outrasDespesas",
 ]);
 
-const CODE_TAGS = [
-  "codigoProcedimento",
-  "codigoItem",
-  "codigoServico",
-  "codigoTabela",
-  "codigo",
-] as const;
+/** codigoTabela identifica a tabela de referência, não o item; por isso não entra aqui. */
+const CODE_TAGS = ["codigoProcedimento", "codigoItem", "codigoServico", "codigo"] as const;
 const DESCRIPTION_TAGS = ["descricaoProcedimento", "descricaoItem", "descricao"] as const;
 const QUANTITY_TAGS = ["quantidadeExecutada", "quantidade", "quantidadeSolicitada"] as const;
 const UNIT_VALUE_TAGS = ["valorUnitario", "valorUnitarioTabela"] as const;
 const TOTAL_VALUE_TAGS = ["valorTotal", "valorTotalItem"] as const;
 const DATE_TAGS = ["dataExecucao", "dataRealizacao", "dataAtendimento", "dataInicio"] as const;
 const EXPENSE_TYPE_TAGS = ["codigoDespesa", "tipoDespesa"] as const;
+const TABLE_TAGS = ["codigoTabela"] as const;
 
 /** Categorias padronizadas do campo codigoDespesa do TISS. */
 const EXPENSE_CATEGORIES: Record<string, string> = {
@@ -49,6 +45,14 @@ const EXPENSE_CATEGORIES: Record<string, string> = {
   "07": "OPME",
   "08": "materiais",
   "09": "medicamentos",
+};
+
+/** Categorias pela tabela de terminologia TISS informada no item. */
+const TABLE_CATEGORIES: Record<string, string> = {
+  "18": "taxas e diárias",
+  "19": "materiais",
+  "20": "medicamentos",
+  "22": "procedimentos",
 };
 
 function childValue(element: Element, tagNames: readonly string[]): string | null {
@@ -88,6 +92,11 @@ function categoryOf(element: Element): string {
   if (expenseType) {
     const code = expenseType.padStart(2, "0");
     if (EXPENSE_CATEGORIES[code]) return EXPENSE_CATEGORIES[code];
+  }
+  const table = childValue(element, TABLE_TAGS);
+  if (table) {
+    const code = table.padStart(2, "0");
+    if (TABLE_CATEGORIES[code]) return TABLE_CATEGORIES[code];
   }
   if (element.localName.toLowerCase().includes("proc")) return "procedimentos";
   return "";

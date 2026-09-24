@@ -175,29 +175,19 @@ export function formatContractRuleValidity(rule: ContractRuleDraft): string {
   return "";
 }
 
-/** Regra aplicável a um item, considerando código, categoria e vigência. */
-export function findRuleForItem(
+function selectRule(
   rules: ContractRule[],
-  item: { code: string; category: string; executedAt: string },
+  item: { code: string; category: string },
 ): ContractRule | null {
   const code = item.code.trim().toUpperCase();
   const category = item.category.trim().toLowerCase();
 
-  const withinValidity = (rule: ContractRule) => {
-    if (!item.executedAt) return true;
-    if (rule.validFrom && item.executedAt < rule.validFrom) return false;
-    if (rule.validTo && item.executedAt > rule.validTo) return false;
-    return true;
-  };
-
-  const candidates = rules.filter(withinValidity);
-
-  const byCode = candidates.find(
-    (rule) => code !== "" && parseRuleCodes(rule.codes).includes(code),
-  );
+  const byCode = rules.find((rule) => code !== "" && parseRuleCodes(rule.codes).includes(code));
   if (byCode) return byCode;
 
-  const byCategory = candidates.find((rule) => {
+  /** Regras com códigos específicos só valem para esses códigos. */
+  const byCategory = rules.find((rule) => {
+    if (rule.codes.trim() !== "") return false;
     const ruleCategory = rule.category.trim().toLowerCase();
     if (ruleCategory === "" || category === "") return false;
     return (
@@ -209,5 +199,44 @@ export function findRuleForItem(
   if (byCategory) return byCategory;
 
   /** Regra geral: sem códigos e sem categoria específica. */
-  return candidates.find((rule) => rule.codes.trim() === "" && rule.category.trim() === "") ?? null;
+  return rules.find((rule) => rule.codes.trim() === "" && rule.category.trim() === "") ?? null;
+}
+
+function isWithinValidity(rule: ContractRule, executedAt: string): boolean {
+  if (!executedAt) return true;
+  if (rule.validFrom && executedAt < rule.validFrom) return false;
+  if (rule.validTo && executedAt > rule.validTo) return false;
+  return true;
+}
+
+export type RuleMatch =
+  | { kind: "matched"; rule: ContractRule }
+  | { kind: "out_of_validity"; rule: ContractRule }
+  | { kind: "not_found" };
+
+/**
+ * Regra aplicável a um item. Quando a regra só existe fora da vigência da data
+ * do item, isso é informado separadamente para compor o motivo.
+ */
+export function matchRuleForItem(
+  rules: ContractRule[],
+  item: { code: string; category: string; executedAt: string },
+): RuleMatch {
+  const valid = selectRule(
+    rules.filter((rule) => isWithinValidity(rule, item.executedAt)),
+    item,
+  );
+  if (valid) return { kind: "matched", rule: valid };
+  const any = selectRule(rules, item);
+  if (any) return { kind: "out_of_validity", rule: any };
+  return { kind: "not_found" };
+}
+
+/** Regra aplicável a um item, considerando código, categoria e vigência. */
+export function findRuleForItem(
+  rules: ContractRule[],
+  item: { code: string; category: string; executedAt: string },
+): ContractRule | null {
+  const match = matchRuleForItem(rules, item);
+  return match.kind === "matched" ? match.rule : null;
 }
