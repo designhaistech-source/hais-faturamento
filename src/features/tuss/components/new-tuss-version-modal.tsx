@@ -1,65 +1,50 @@
 import { useRef, useState } from "react";
-import { Database, Info, Paperclip, Trash2, Upload } from "lucide-react";
+import { BookMarked, Info, Paperclip, Trash2, Upload } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
-import { Field, SelectField, type SelectOption } from "@/components/form-field";
+import { Field } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import {
-  PRICING_BASE_TYPES,
-  pricingBaseTypeLabel,
-  type NewPricingVersionInput,
-  type PricingBaseType,
-} from "../data/pricing-versions";
+import type { NewTussVersionInput } from "../data/tuss-versions";
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
-const BASE_TYPE_OPTIONS: SelectOption[] = PRICING_BASE_TYPES.map((type) => ({
-  value: type,
-  label: pricingBaseTypeLabel(type),
-}));
-
-interface NewPricingVersionModalProps {
+interface NewTussVersionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreate: (version: NewPricingVersionInput) => void;
-  /** Tipos de base que já possuem ao menos uma versão cadastrada. */
-  existingBaseTypes?: readonly PricingBaseType[];
+  onCreate: (version: NewTussVersionInput) => void;
+  /** Quando já existe uma versão, a nova passa a ser a Atual. */
+  hasCurrentVersion?: boolean;
 }
 
-/** Cadastro de uma nova versão da base de precificação (tipo da base + arquivo CSV ou TXT). */
-export function NewPricingVersionModal({
+/** Cadastro de uma nova versão do conjunto TUSS (mês/ano + arquivo). */
+export function NewTussVersionModal({
   open,
   onOpenChange,
   onCreate,
-  existingBaseTypes = [],
-}: NewPricingVersionModalProps) {
+  hasCurrentVersion = false,
+}: NewTussVersionModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [baseType, setBaseType] = useState<PricingBaseType | "">("");
-  const [baseTypeTouched, setBaseTypeTouched] = useState(false);
+  const [versionMonth, setVersionMonth] = useState("");
+  const [versionTouched, setVersionTouched] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [fileTouched, setFileTouched] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [invalidFileMessage, setInvalidFileMessage] = useState<string | null>(null);
 
-  const canSubmit = Boolean(file) && baseType !== "";
+  const validMonth = /^\d{4}-\d{2}$/.test(versionMonth);
+  const canSubmit = Boolean(file) && validMonth;
   const fileError =
-    invalidFileMessage ??
-    (fileTouched && !file ? "Selecione o arquivo CSV ou TXT da base." : undefined);
-  const baseTypeError =
-    baseTypeTouched && baseType === "" ? "Selecione o tipo da base." : undefined;
-  const replacesCurrent = baseType !== "" && existingBaseTypes.includes(baseType);
+    invalidFileMessage ?? (fileTouched && !file ? "Selecione o arquivo da versão." : undefined);
+  const versionError =
+    versionTouched && !validMonth ? "Informe o mês e o ano da versão." : undefined;
 
   function handleSelectedFile(selected: File | null) {
     setFileTouched(true);
     if (!selected) {
       setInvalidFileMessage(null);
-      setFile(null);
-      return;
-    }
-    if (!/\.(csv|txt)$/i.test(selected.name)) {
-      setInvalidFileMessage("Formato não aceito. Envie um arquivo CSV ou TXT.");
       setFile(null);
       return;
     }
@@ -73,8 +58,8 @@ export function NewPricingVersionModal({
   }
 
   function reset() {
-    setBaseType("");
-    setBaseTypeTouched(false);
+    setVersionMonth("");
+    setVersionTouched(false);
     setFile(null);
     setFileTouched(false);
     setInvalidFileMessage(null);
@@ -88,9 +73,9 @@ export function NewPricingVersionModal({
 
   function submit() {
     setFileTouched(true);
-    setBaseTypeTouched(true);
-    if (!file || baseType === "") return;
-    onCreate({ file, baseType });
+    setVersionTouched(true);
+    if (!file || !validMonth) return;
+    onCreate({ file, versionMonth });
     reset();
     onOpenChange(false);
   }
@@ -100,8 +85,8 @@ export function NewPricingVersionModal({
       open={open}
       onOpenChange={(next) => (next ? onOpenChange(true) : close())}
       title="Cadastrar nova versão"
-      description="Envie o arquivo CSV ou TXT com os valores atualizados da base de precificação."
-      icon={<Database className="size-5" aria-hidden="true" />}
+      description="Envie o arquivo do conjunto TUSS e informe o mês e o ano da versão."
+      icon={<BookMarked className="size-5" aria-hidden="true" />}
       footer={
         <>
           <Button type="button" variant="outline" size="sm" onClick={close}>
@@ -120,28 +105,23 @@ export function NewPricingVersionModal({
           submit();
         }}
       >
-        <SelectField
-          id="pricing-version-base-type"
-          label="Tipo da base"
-          required
-          placeholder="Selecione o tipo da base"
-          options={BASE_TYPE_OPTIONS}
-          // line-height 1 do trigger cortava o texto no mobile: usa leading normal.
-          triggerClassName="text-base/normal sm:text-sm/normal [&>span]:line-clamp-none [&>span]:block [&>span]:truncate"
-          value={baseType === "" ? undefined : baseType}
-          error={baseTypeError}
-          onValueChange={(value) => {
-            setBaseTypeTouched(true);
-            setBaseType(value as PricingBaseType);
-          }}
-        />
+        <Field id="tuss-version-month" label="Versão" required error={versionError} hint="Mês e ano">
+          <Input
+            type="month"
+            value={versionMonth}
+            onChange={(event) => {
+              setVersionTouched(true);
+              setVersionMonth(event.target.value);
+            }}
+          />
+        </Field>
 
         <Field
-          id="pricing-version-file"
-          label="Arquivo CSV ou TXT"
+          id="tuss-version-file"
+          label="Arquivo"
           required
           error={fileError}
-          hint="CSV ou TXT • Máx. 10 MB"
+          hint="Máx. 10 MB"
           injectChildProps={false}
         >
           <div
@@ -169,9 +149,8 @@ export function NewPricingVersionModal({
           >
             <input
               ref={inputRef}
-              id="pricing-version-file"
+              id="tuss-version-file"
               type="file"
-              accept=".csv,.txt,text/csv,text/plain"
               className="sr-only"
               onChange={(event) => handleSelectedFile(event.target.files?.[0] ?? null)}
             />
@@ -243,12 +222,12 @@ export function NewPricingVersionModal({
           </div>
         </Field>
 
-        {replacesCurrent && (
+        {hasCurrentVersion && (
           <div className="flex items-start gap-3 rounded-xl border border-info/30 bg-info-muted px-4 py-3">
             <Info className="mt-0.5 size-4 shrink-0 text-info-strong" aria-hidden="true" />
             <div className="min-w-0 space-y-0.5">
               <p className="text-sm font-medium text-foreground">
-                {`Esta será a nova versão atual de ${pricingBaseTypeLabel(baseType as PricingBaseType)}.`}
+                Esta será a nova versão atual da TUSS.
               </p>
               <p className="text-xs text-muted-foreground">
                 A versão anterior continuará disponível no histórico.
