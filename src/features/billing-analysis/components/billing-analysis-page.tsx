@@ -243,7 +243,7 @@ export function BillingAnalysisPage() {
                     activeCount={activeCount}
                     onClear={handleClearFilters}
                     clearDisabled={!hasFilters}
-                    barColumnsClassName="lg:grid-cols-[minmax(12rem,1fr)_10rem_minmax(15rem,19rem)_auto] lg:gap-3 xl:grid-cols-[minmax(0,1fr)_11rem_19rem_auto] xl:gap-4"
+                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_11rem] lg:gap-4 xl:grid-cols-[minmax(0,1fr)_11rem_22rem_auto]"
                   >
                     <SearchField
                       id="billing-analyses-search"

@@ -389,6 +389,8 @@ input[type="month"][type="month"] {
   /* 0.75rem de gutter + 1rem de ícone + 0.5rem de respiro antes do texto */
   padding-left: 2.25rem;
   padding-right: 0.75rem;
+  /* largura mínima para "dd/mm/aaaa" nunca ser cortado */
+  min-width: 8.5rem;
   /* evita que o valor "salte" verticalmente entre navegadores */
   line-height: 1.25rem;
   text-align: left;

@@ -304,7 +304,7 @@ export function ContractsPage() {
                     activeCount={activeCount}
                     onClear={handleClearFilters}
                     clearDisabled={!hasFilters}
-                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_21rem_auto] lg:gap-4"
+                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_22rem_auto] lg:gap-4"
                   >
                     <SearchField
                       id="contracts-search"
