@@ -4,6 +4,7 @@ import { BookMarked, Download, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import { useBackgroundTask } from "@/components/background-task";
 import { SiteFooter } from "@/components/site-footer";
 import { PageHeader } from "@/components/page-header";
 import { AppBreadcrumb } from "@/components/app-breadcrumb";
@@ -119,17 +120,33 @@ export function TussPage() {
     setPage(1);
   }
 
-  const createMutation = useMutation({
-    mutationFn: (input: NewTussVersionInput) => createTussVersion(input),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: tussVersionsQueryKey });
-      setPage(1);
-      toast.success("Tabela cadastrada com sucesso.");
-    },
-    onError: () => {
-      toast.error("Não foi possível cadastrar a tabela.");
-    },
-  });
+  const backgroundTask = useBackgroundTask();
+
+  // Runs in the global background task so it survives navigation; the task card is the only feedback.
+  function startTableProcessing(input: NewTussVersionInput) {
+    backgroundTask.start({
+      kind: "tuss-table",
+      fileName: input.file.name,
+      processing: {
+        title: "Processando tabela TUSS",
+        description: "Processando os dados da tabela...",
+      },
+      failure: {
+        title: "Não foi possível processar a tabela",
+        description: "Não foi possível processar o arquivo.",
+      },
+      retryable: true,
+      run: async () => {
+        await createTussVersion(input);
+        await queryClient.invalidateQueries({ queryKey: tussVersionsQueryKey });
+        setPage(1);
+        return {
+          title: "Tabela processada",
+          description: "Os dados da tabela TUSS estão disponíveis para uso.",
+        };
+      },
+    });
+  }
 
   const clearMutation = useMutation({
     mutationFn: deleteAllTussVersions,
@@ -399,7 +416,7 @@ export function TussPage() {
       <NewTussVersionModal
         open={modalOpen}
         onOpenChange={setModalOpen}
-        onCreate={(input) => createMutation.mutate(input)}
+        onCreate={startTableProcessing}
       />
 
       <ConfirmDialog
