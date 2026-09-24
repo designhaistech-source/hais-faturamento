@@ -68,7 +68,7 @@ import {
 import { extractContractRulesFor, useContractExtractionStates } from "../data/contract-extraction";
 import { Badge } from "@/components/ui/badge";
 
-const COLUMNS = ["Prestador", "CNPJ", "Contrato", "Validade", "Regras", "Ações"] as const;
+const COLUMNS = ["Prestador", "CNPJ", "Contrato", "Validade", "Dados extraídos", "Ações"] as const;
 
 async function downloadContractFile(contract: Contract) {
   try {
@@ -172,7 +172,7 @@ export function ContractsPage() {
 
   /**
    * A leitura das regras começa sozinha após o cadastro, em segundo plano, sem
-   * bloquear a listagem. A coluna Regras acompanha o andamento.
+   * bloquear a listagem. A coluna Dados extraídos acompanha o andamento.
    */
   const backgroundTask = useBackgroundTask();
 
@@ -431,7 +431,7 @@ export function ContractsPage() {
                                   value: formatIsoToBr(contract.validUntil) || "—",
                                 },
                                 {
-                                  label: "Regras",
+                                  label: "Dados extraídos",
                                   value: (
                                     <ContractRulesStatusBadge
                                       status={rulesStatusOf(contract.id)}
