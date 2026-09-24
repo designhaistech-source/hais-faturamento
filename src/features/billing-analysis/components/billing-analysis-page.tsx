@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { Eye, FileSearch, Plus } from "lucide-react";
 import { toast } from "sonner";
 
@@ -303,13 +304,14 @@ function AnalysisActions({ analysis }: { analysis: BillingAnalysis }) {
     <div className="inline-flex items-center gap-1">
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={`Visualizar análise de ${analysis.fileName}`}
-          >
-            <Eye className="size-4" aria-hidden="true" />
+          <Button asChild variant="ghost" size="icon">
+            <Link
+              to="/analise-faturamento/$analysisId"
+              params={{ analysisId: analysis.id }}
+              aria-label={`Visualizar análise de ${analysis.fileName}`}
+            >
+              <Eye className="size-4" aria-hidden="true" />
+            </Link>
           </Button>
         </TooltipTrigger>
         <TooltipContent>Visualizar análise</TooltipContent>
