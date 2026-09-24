@@ -68,7 +68,14 @@ import {
 import { extractContractRulesFor, useContractExtractionStates } from "../data/contract-extraction";
 import { Badge } from "@/components/ui/badge";
 
-const COLUMNS = ["Prestador", "CNPJ", "Contrato", "Validade", "Dados extraídos", "Ações"] as const;
+const COLUMNS = [
+  "Prestador",
+  "CNPJ",
+  "Contrato",
+  "Validade",
+  "Status da extração",
+  "Ações",
+] as const;
 
 async function downloadContractFile(contract: Contract) {
   try {
@@ -111,7 +118,7 @@ export function ContractsPage() {
   const rulesStatusOf = (contractId: string): ContractRulesDisplayStatus | null => {
     const extraction = extractionStates[contractId];
     if (extraction) return extraction;
-    return rulesStatuses ? (rulesStatuses[contractId] ?? "not_identified") : null;
+    return rulesStatuses ? (rulesStatuses[contractId] ?? "not_extracted") : null;
   };
 
   /** Ferramenta provisória de testes: simula a página sem contratos, sem alterar dados. */
@@ -172,7 +179,7 @@ export function ContractsPage() {
 
   /**
    * A leitura das regras começa sozinha após o cadastro, em segundo plano, sem
-   * bloquear a listagem. A coluna Dados extraídos acompanha o andamento.
+   * bloquear a listagem. A coluna Status da extração acompanha o andamento.
    */
   const backgroundTask = useBackgroundTask();
 
@@ -396,15 +403,15 @@ export function ContractsPage() {
                                   {formatIsoToBr(contract.validUntil) || "—"}
                                 </DataTableCell>
                                 <DataTableCell>
-                                  <ContractRulesStatusBadge
-                                    status={rulesStatusOf(contract.id)}
-                                    contract={contract}
-                                    onOpen={setRulesContract}
-                                  />
+                                  <ContractRulesStatusBadge status={rulesStatusOf(contract.id)} />
                                 </DataTableCell>
                                 <DataTableCell className="text-right">
                                   <ContractActions
                                     contract={contract}
+                                    extractedDataAvailable={
+                                      rulesStatusOf(contract.id) === "available"
+                                    }
+                                    onViewExtractedData={setRulesContract}
                                     onView={setPreviewContract}
                                   />
                                 </DataTableCell>
@@ -431,19 +438,20 @@ export function ContractsPage() {
                                   value: formatIsoToBr(contract.validUntil) || "—",
                                 },
                                 {
-                                  label: "Dados extraídos",
+                                  label: "Status da extração",
                                   value: (
-                                    <ContractRulesStatusBadge
-                                      status={rulesStatusOf(contract.id)}
-                                      contract={contract}
-                                      onOpen={setRulesContract}
-                                    />
+                                    <ContractRulesStatusBadge status={rulesStatusOf(contract.id)} />
                                   ),
                                 },
                               ]}
                             />
                             <DataTableCardActions className="-mt-0.5 justify-end">
-                              <ContractActions contract={contract} onView={setPreviewContract} />
+                              <ContractActions
+                                contract={contract}
+                                extractedDataAvailable={rulesStatusOf(contract.id) === "available"}
+                                onViewExtractedData={setRulesContract}
+                                onView={setPreviewContract}
+                              />
                             </DataTableCardActions>
                           </DataTableCard>
                         ))}
@@ -543,54 +551,30 @@ export function ContractsPage() {
  * O texto identifica o estado; a cor apenas reforça. Quando acionável, o status
  * é um botão com ícone, sublinhado, foco visível e navegação por teclado.
  */
-function ContractRulesStatusBadge({
-  status,
-  contract,
-  onOpen,
-}: {
-  status: ContractRulesDisplayStatus | null;
-  contract: Contract;
-  onOpen: (contract: Contract) => void;
-}) {
+function ContractRulesStatusBadge({ status }: { status: ContractRulesDisplayStatus | null }) {
   if (status === null) {
     return <span className="text-sm text-muted-foreground">—</span>;
   }
   const label = contractRulesStatusLabel(status);
-
-  if (status !== "available") {
-    const Icon =
-      status === "extracting" ? Hourglass : status === "failed" ? CircleAlert : FileSearch;
-    return (
-      <Badge variant={status === "failed" ? "destructive-soft" : "secondary"} size="md">
-        <Icon className="size-3" aria-hidden="true" />
-        {label}
-      </Badge>
-    );
-  }
-
-  const hint = "Consultar os dados extraídos";
-
+  const variant =
+    status === "available"
+      ? "success-soft"
+      : status === "failed"
+        ? "destructive-soft"
+        : "secondary";
+  const Icon =
+    status === "available"
+      ? CircleCheck
+      : status === "extracting"
+        ? Hourglass
+        : status === "failed"
+          ? CircleAlert
+          : FileSearch;
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          type="button"
-          onClick={() => onOpen(contract)}
-          aria-label={`${label} — ${hint} do contrato de ${contract.company}`}
-          className="group cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-        >
-          <Badge
-            variant="success-soft"
-            size="md"
-            className="transition-colors group-hover:brightness-95"
-          >
-            <CircleCheck className="size-3" aria-hidden="true" />
-            {label}
-          </Badge>
-        </button>
-      </TooltipTrigger>
-      <TooltipContent>{hint}</TooltipContent>
-    </Tooltip>
+    <Badge variant={variant} size="md">
+      <Icon className="size-3" aria-hidden="true" />
+      {label}
+    </Badge>
   );
 }
 
@@ -611,16 +595,37 @@ function ContractFileName({ name }: { name: string }) {
   );
 }
 
-/** Ações da linha, relacionadas ao documento: visualizar e baixar o contrato. */
+/** Ações da linha: dados extraídos (quando concluída), visualizar e baixar o contrato. */
 function ContractActions({
   contract,
+  extractedDataAvailable,
+  onViewExtractedData,
   onView,
 }: {
   contract: Contract;
+  extractedDataAvailable: boolean;
+  onViewExtractedData: (contract: Contract) => void;
   onView: (contract: Contract) => void;
 }) {
   return (
     <div className="inline-flex items-center gap-1">
+      {extractedDataAvailable && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={`Ver dados extraídos do contrato de ${contract.company}`}
+              onClick={() => onViewExtractedData(contract)}
+            >
+              <FileSearch className="size-4" aria-hidden="true" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Ver dados extraídos</TooltipContent>
+        </Tooltip>
+      )}
+
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -635,7 +640,7 @@ function ContractActions({
             <Eye className="size-4" aria-hidden="true" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Visualizar</TooltipContent>
+        <TooltipContent>Visualizar contrato</TooltipContent>
       </Tooltip>
 
       <Tooltip>
@@ -650,7 +655,7 @@ function ContractActions({
             <Download className="size-4" aria-hidden="true" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Baixar</TooltipContent>
+        <TooltipContent>Baixar contrato</TooltipContent>
       </Tooltip>
     </div>
   );

@@ -8,7 +8,7 @@ import { saveContractRules } from "./contract-rules-service";
 import { readContractText } from "./contract-text";
 
 /** Situação da leitura automática em andamento (não persistida no banco). */
-export type ContractExtractionState = "extracting" | "failed";
+export type ContractExtractionState = "extracting" | "not_identified" | "failed";
 
 const states = new Map<string, ContractExtractionState>();
 const listeners = new Set<() => void>();
@@ -87,7 +87,8 @@ export async function extractContractRulesFor(contract: Contract): Promise<Contr
     const drafts = toContractRuleDrafts(extracted);
     /** Regras extraídas ficam salvas como revisão pendente até a confirmação. */
     if (drafts.length > 0) await saveContractRules(contract.id, drafts, { reviewed: false });
-    states.delete(contract.id);
+    if (drafts.length > 0) states.delete(contract.id);
+    else states.set(contract.id, "not_identified");
     emit();
     return drafts;
   } catch (cause) {

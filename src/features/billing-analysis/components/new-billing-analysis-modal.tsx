@@ -68,7 +68,7 @@ export function NewBillingAnalysisModal({
   const contractOptions = useMemo<SelectOption[]>(
     () =>
       contracts.map((contract) => {
-        const status = statuses ? (statuses[contract.id] ?? "not_identified") : null;
+        const status = statuses ? (statuses[contract.id] ?? "not_extracted") : null;
         return {
           value: contract.id,
           label:
