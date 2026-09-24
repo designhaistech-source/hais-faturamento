@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Download, Eye, FileSearch, Plus } from "lucide-react";
+import { Download, Eye, EyeOff, FileSearch, Plus, Trash2 } from "lucide-react";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -47,6 +48,7 @@ import {
 } from "../data/billing-analyses";
 import {
   billingAnalysesQueryKey,
+  deleteAllBillingAnalyses,
   listBillingAnalyses,
   runBillingAnalysis,
 } from "../data/billing-analyses-service";
@@ -78,7 +80,23 @@ export function BillingAnalysisPage() {
     queryKey: billingAnalysesQueryKey,
     queryFn: listBillingAnalyses,
   });
-  const analyses = analysesQuery.data ?? [];
+  const storedAnalyses = analysesQuery.data ?? [];
+  // Ferramentas provisórias de testes: não fazem parte do produto.
+  const [simulateEmpty, setSimulateEmpty] = useState(false);
+  const [clearOpen, setClearOpen] = useState(false);
+  const analyses = simulateEmpty ? [] : storedAnalyses;
+  const clearMutation = useMutation({
+    mutationFn: deleteAllBillingAnalyses,
+    onSuccess: async () => {
+      setClearOpen(false);
+      setPage(1);
+      await queryClient.invalidateQueries({ queryKey: billingAnalysesQueryKey });
+      toast.success("Análises realizadas removidas.");
+    },
+    onError: () => {
+      toast.error("Não foi possível limpar as análises realizadas.");
+    },
+  });
 
   const handleNewAnalysis = () => setModalOpen(true);
 
@@ -245,6 +263,41 @@ export function BillingAnalysisPage() {
                 </div>
               )}
             </section>
+
+            {/* Ferramentas provisórias de testes: não fazem parte do produto. */}
+            {storedAnalyses.length > 0 && (
+              <div className="flex flex-wrap justify-end gap-2 border-t border-dashed border-border pt-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground"
+                  onClick={() => setSimulateEmpty((previous) => !previous)}
+                >
+                  {simulateEmpty ? (
+                    <EyeOff className="size-3.5" aria-hidden="true" />
+                  ) : (
+                    <Eye className="size-3.5" aria-hidden="true" />
+                  )}
+                  {simulateEmpty
+                    ? "Sair do estado vazio · Temporário"
+                    : "Visualizar estado vazio · Temporário"}
+                </Button>
+                {!simulateEmpty && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-muted-foreground hover:text-destructive"
+                    disabled={clearMutation.isPending}
+                    onClick={() => setClearOpen(true)}
+                  >
+                    <Trash2 className="size-3.5" aria-hidden="true" />
+                    Limpar análises realizadas · Temporário
+                  </Button>
+                )}
+              </div>
+            )}
           </main>
 
           <SiteFooter />
@@ -258,6 +311,14 @@ export function BillingAnalysisPage() {
       />
       <AnalysisResultModal analysis={resultAnalysis} onClose={() => setResultAnalysis(null)} />
       <XmlPreviewModal analysis={xmlAnalysis} onClose={() => setXmlAnalysis(null)} />
+      <ConfirmDialog
+        open={clearOpen}
+        onOpenChange={setClearOpen}
+        title="Limpar análises realizadas?"
+        description="Esta ação apagará todas as análises realizadas, com seus itens, resultados e arquivos XML. Contratos, regras e bases de precificação não serão afetados. Deseja continuar?"
+        confirmLabel="Limpar análises"
+        onConfirm={() => clearMutation.mutate()}
+      />
     </TooltipProvider>
   );
 }
