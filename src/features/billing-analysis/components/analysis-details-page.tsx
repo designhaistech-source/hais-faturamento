@@ -442,67 +442,66 @@ export function ItemDetailsModal({
 export function ItemDetailsContent({ item }: { item: AnalysisItemDetail }) {
   const unanalyzed = item.status === "unanalyzed";
   return (
-        <div className="space-y-5">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-muted-foreground">Resultado</span>
-            <ItemStatusBadge status={item.status} />
-          </div>
+    <div className="space-y-5">
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-medium text-muted-foreground">Resultado</span>
+        <ItemStatusBadge status={item.status} />
+      </div>
 
-          {unanalyzed && (
-            <Alert variant="warning">
-              <AlertTriangle className="size-4" aria-hidden="true" />
-              <AlertTitle>Item não analisado</AlertTitle>
-              <AlertDescription>
-                {item.reason ?? "O sistema não encontrou informações suficientes para o cálculo."}
-              </AlertDescription>
-            </Alert>
-          )}
+      {unanalyzed && (
+        <Alert variant="warning">
+          <AlertTriangle className="size-4" aria-hidden="true" />
+          <AlertTitle>Item não analisado</AlertTitle>
+          <AlertDescription>
+            {item.reason ?? "O sistema não encontrou informações suficientes para o cálculo."}
+          </AlertDescription>
+        </Alert>
+      )}
 
-          <DetailGroup title="Item faturado">
-            <DetailRow label="Código" value={item.code} mono />
-            <DetailRow label="Descrição" value={item.description} />
-            <DetailRow label="Categoria identificada" value={item.category || "—"} />
-            <DetailRow label="Quantidade" value={formatDecimal(item.quantity)} mono />
-            <DetailRow label="Valor faturado" value={formatCurrency(item.billedValue)} mono />
-          </DetailGroup>
+      <DetailGroup title="Item faturado">
+        <DetailRow label="Código" value={item.code} mono />
+        <DetailRow label="Descrição" value={item.description} />
+        <DetailRow label="Categoria identificada" value={item.category || "—"} />
+        <DetailRow label="Quantidade" value={formatDecimal(item.quantity)} mono />
+        <DetailRow label="Valor faturado" value={formatCurrency(item.billedValue)} mono />
+      </DetailGroup>
 
-          {!unanalyzed && (
-            <DetailGroup title="Como o valor esperado foi calculado">
-              <DetailRow label="Regra contratual" value={item.ruleDescription ?? "—"} />
-              <DetailRow label="Referência utilizada" value={referenceLabel(item)} />
-              {item.referenceType !== "contract" && (
-                <>
-                  <DetailRow
-                    label="Valor encontrado na base"
-                    value={formatCurrency(item.referenceValue)}
-                    mono
-                  />
-                  <DetailRow label="Fator" value={formatDecimal(item.factor)} mono />
-                  <DetailRow
-                    label="Desconto ou acréscimo"
-                    value={formatAdjustment(item.adjustmentPercent)}
-                  />
-                </>
-              )}
-              <DetailRow label="Cálculo realizado" value={item.calculation ?? "—"} mono />
-              <DetailRow label="Valor esperado" value={formatCurrency(item.expectedValue)} mono />
+      {!unanalyzed && (
+        <DetailGroup title="Como o valor esperado foi calculado">
+          <DetailRow label="Regra contratual" value={item.ruleDescription ?? "—"} />
+          <DetailRow label="Referência utilizada" value={referenceLabel(item)} />
+          {item.referenceType !== "contract" && (
+            <>
               <DetailRow
-                label="Diferença (faturado − esperado)"
-                value={formatDifference(item.difference)}
+                label="Valor encontrado na base"
+                value={formatCurrency(item.referenceValue)}
                 mono
               />
-              {item.reason && <DetailRow label="Observação" value={item.reason} />}
-            </DetailGroup>
+              <DetailRow label="Fator" value={formatDecimal(item.factor)} mono />
+              <DetailRow
+                label="Desconto ou acréscimo"
+                value={formatAdjustment(item.adjustmentPercent)}
+              />
+            </>
           )}
+          <DetailRow label="Cálculo realizado" value={item.calculation ?? "—"} mono />
+          <DetailRow label="Valor esperado" value={formatCurrency(item.expectedValue)} mono />
+          <DetailRow
+            label="Diferença (faturado − esperado)"
+            value={formatDifference(item.difference)}
+            mono
+          />
+          {item.reason && <DetailRow label="Observação" value={item.reason} />}
+        </DetailGroup>
+      )}
 
-          {unanalyzed && item.ruleDescription && (
-            <DetailGroup title="Regra considerada">
-              <DetailRow label="Regra contratual" value={item.ruleDescription} />
-              <DetailRow label="Referência" value={referenceLabel(item)} />
-            </DetailGroup>
-          )}
-        </div>
-
+      {unanalyzed && item.ruleDescription && (
+        <DetailGroup title="Regra considerada">
+          <DetailRow label="Regra contratual" value={item.ruleDescription} />
+          <DetailRow label="Referência" value={referenceLabel(item)} />
+        </DetailGroup>
+      )}
+    </div>
   );
 }
 
