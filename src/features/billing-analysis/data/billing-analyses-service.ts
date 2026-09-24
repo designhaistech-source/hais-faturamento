@@ -186,3 +186,22 @@ export async function deleteAllBillingAnalyses(): Promise<void> {
   const { error } = await supabase.from("billing_analyses").delete().in("id", ids);
   if (error) throw error;
 }
+
+export interface AnalysisOutcomeCounts {
+  divergenceCount: number;
+  unanalyzedCount: number;
+}
+
+/** Contagens persistidas de uma análise concluída, usadas no aviso de conclusão. */
+export async function getAnalysisOutcomeCounts(analysisId: string): Promise<AnalysisOutcomeCounts> {
+  const { data, error } = await supabase
+    .from("billing_analyses")
+    .select("divergence_count, unanalyzed_count")
+    .eq("id", analysisId)
+    .single();
+  if (error) throw error;
+  return {
+    divergenceCount: data?.divergence_count ?? 0,
+    unanalyzedCount: data?.unanalyzed_count ?? 0,
+  };
+}
