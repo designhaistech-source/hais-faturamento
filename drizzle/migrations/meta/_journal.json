@@ -43,6 +43,13 @@
       "when": 1790102858381,
       "tag": "0005_create_billing_analysis",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790251011805,
+      "tag": "0006_billing_analysis_items_calculation_memory",
+      "breakpoints": true
     }
   ]
 }

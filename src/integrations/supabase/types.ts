@@ -78,17 +78,21 @@ export type Database = {
       }
       billing_analysis_items: {
         Row: {
+          adjustment_percent: number | null
           analysis_id: string
+          calculation: string | null
           code: string
           created_at: string
           description: string
           difference: number | null
           executed_at: string | null
           expected_value: number | null
+          factor: number | null
           id: string
           line_number: number
           quantity: number
           reason: string | null
+          reference_type: string | null
           reference_value: number | null
           rule_description: string | null
           source: string
@@ -97,17 +101,21 @@ export type Database = {
           unit_value: number | null
         }
         Insert: {
+          adjustment_percent?: number | null
           analysis_id: string
+          calculation?: string | null
           code?: string
           created_at?: string
           description?: string
           difference?: number | null
           executed_at?: string | null
           expected_value?: number | null
+          factor?: number | null
           id?: string
           line_number?: number
           quantity?: number
           reason?: string | null
+          reference_type?: string | null
           reference_value?: number | null
           rule_description?: string | null
           source?: string
@@ -116,17 +124,21 @@ export type Database = {
           unit_value?: number | null
         }
         Update: {
+          adjustment_percent?: number | null
           analysis_id?: string
+          calculation?: string | null
           code?: string
           created_at?: string
           description?: string
           difference?: number | null
           executed_at?: string | null
           expected_value?: number | null
+          factor?: number | null
           id?: string
           line_number?: number
           quantity?: number
           reason?: string | null
+          reference_type?: string | null
           reference_value?: number | null
           rule_description?: string | null
           source?: string
