@@ -2,6 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { ContractsPage } from "@/features/contracts";
 
+interface ContractsSearch {
+  revisarRegras?: string;
+}
+
 export const Route = createFileRoute("/contratos")({
   head: () => ({
     meta: [
@@ -20,5 +24,7 @@ export const Route = createFileRoute("/contratos")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>): ContractsSearch =>
+    typeof search.revisarRegras === "string" ? { revisarRegras: search.revisarRegras } : {},
   component: ContractsPage,
 });
