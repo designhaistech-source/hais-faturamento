@@ -121,7 +121,6 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
           }}
         />
 
-
         <Field
           id="tuss-version-file"
           label="Arquivo"
