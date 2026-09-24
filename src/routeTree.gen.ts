@@ -15,6 +15,7 @@ import { Route as BasePrecificacaoRouteImport } from './routes/base-precificacao
 import { Route as ContratosRouteImport } from './routes/contratos'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as DesignSystemIconesRouteImport } from './routes/design-system-icones'
+import { Route as TussRouteImport } from './routes/tuss'
 import { Route as AnaliseFaturamentoAnalysisIdRouteImport } from './routes/analise-faturamento_.$analysisId'
 import { Route as AnaliseFaturamentoAnalysisIdResultadoRouteImport } from './routes/analise-faturamento_.$analysisId_.resultado'
 
@@ -48,6 +49,11 @@ const DesignSystemIconesRoute = DesignSystemIconesRouteImport.update({
   path: '/design-system-icones',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TussRoute = TussRouteImport.update({
+  id: '/tuss',
+  path: '/tuss',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AnaliseFaturamentoAnalysisIdRoute =
   AnaliseFaturamentoAnalysisIdRouteImport.update({
     id: '/analise-faturamento_/$analysisId',
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/contratos': typeof ContratosRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
+  '/tuss': typeof TussRoute
   '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
   '/analise-faturamento/$analysisId/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/contratos': typeof ContratosRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
+  '/tuss': typeof TussRoute
   '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
   '/analise-faturamento/$analysisId/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/contratos': typeof ContratosRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
+  '/tuss': typeof TussRoute
   '/analise-faturamento_/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
   '/analise-faturamento_/$analysisId_/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/contratos'
     | '/design-system'
     | '/design-system-icones'
+    | '/tuss'
     | '/analise-faturamento/$analysisId'
     | '/analise-faturamento/$analysisId/resultado'
   fileRoutesByTo: FileRoutesByTo
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/contratos'
     | '/design-system'
     | '/design-system-icones'
+    | '/tuss'
     | '/analise-faturamento/$analysisId'
     | '/analise-faturamento/$analysisId/resultado'
   id:
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/contratos'
     | '/design-system'
     | '/design-system-icones'
+    | '/tuss'
     | '/analise-faturamento_/$analysisId'
     | '/analise-faturamento_/$analysisId_/resultado'
   fileRoutesById: FileRoutesById
@@ -132,6 +144,7 @@ export interface RootRouteChildren {
   ContratosRoute: typeof ContratosRoute
   DesignSystemRoute: typeof DesignSystemRoute
   DesignSystemIconesRoute: typeof DesignSystemIconesRoute
+  TussRoute: typeof TussRoute
   AnaliseFaturamentoAnalysisIdRoute: typeof AnaliseFaturamentoAnalysisIdRoute
   AnaliseFaturamentoAnalysisIdResultadoRoute: typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
@@ -180,6 +193,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DesignSystemIconesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tuss': {
+      id: '/tuss'
+      path: '/tuss'
+      fullPath: '/tuss'
+      preLoaderRoute: typeof TussRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/analise-faturamento_/$analysisId': {
       id: '/analise-faturamento_/$analysisId'
       path: '/analise-faturamento/$analysisId'
@@ -204,6 +224,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContratosRoute: ContratosRoute,
   DesignSystemRoute: DesignSystemRoute,
   DesignSystemIconesRoute: DesignSystemIconesRoute,
+  TussRoute: TussRoute,
   AnaliseFaturamentoAnalysisIdRoute: AnaliseFaturamentoAnalysisIdRoute,
   AnaliseFaturamentoAnalysisIdResultadoRoute:
     AnaliseFaturamentoAnalysisIdResultadoRoute,

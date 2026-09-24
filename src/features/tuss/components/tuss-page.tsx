@@ -1,0 +1,466 @@
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { BookMarked, Download, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+
+import { AppSidebar } from "@/components/app-sidebar";
+import { SiteFooter } from "@/components/site-footer";
+import { PageHeader } from "@/components/page-header";
+import { AppBreadcrumb } from "@/components/app-breadcrumb";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { EmptyStateCard } from "@/components/empty-state-card";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { ErrorState, TableSkeleton } from "@/components/data-state";
+import { SurfaceCard } from "@/components/surface-card";
+import { FilterCard } from "@/components/filter-card";
+import { SearchField } from "@/components/form-field";
+import { Input } from "@/components/ui/input";
+import { toLocalIsoDate } from "@/lib/date";
+import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/table-pagination";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCard,
+  DataTableCardActions,
+  DataTableCardFields,
+  DataTableCardHeader,
+  DataTableCardList,
+  DataTableCell,
+  DataTableDesktop,
+  DataTableHead,
+  DataTableHeader,
+  DataTableRoot,
+  DataTableRow,
+} from "@/components/data-table";
+
+import { NewTussVersionModal } from "./new-tuss-version-modal";
+import {
+  currentTussVersionId,
+  formatTussDateTime,
+  formatVersionMonth,
+  type NewTussVersionInput,
+  type TussVersion,
+} from "../data/tuss-versions";
+import {
+  createTussVersion,
+  createTussVersionFileUrl,
+  deleteAllTussVersions,
+  listTussVersions,
+  tussVersionsQueryKey,
+} from "../data/tuss-versions-service";
+
+const COLUMNS = ["Arquivo", "Versão", "Cadastrado por", "Data do cadastro", "Ações"] as const;
+
+async function downloadVersionFile(version: TussVersion) {
+  try {
+    const url = await createTussVersionFileUrl(version.file.path, version.file.name);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = version.file.name;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch {
+    toast.error("Não foi possível baixar o arquivo desta versão.");
+  }
+}
+
+export function TussPage() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [clearOpen, setClearOpen] = useState(false);
+  /** Ferramenta provisória de testes: simula a página sem versões, sem alterar dados. */
+  const [simulateEmpty, setSimulateEmpty] = useState(false);
+  const queryClient = useQueryClient();
+
+  const versionsQuery = useQuery({ queryKey: tussVersionsQueryKey, queryFn: listTussVersions });
+  const storedVersions = versionsQuery.data ?? [];
+  const versions = simulateEmpty ? [] : storedVersions;
+  const currentVersionId = currentTussVersionId(versions);
+
+  const [search, setSearch] = useState("");
+  const [createdFrom, setCreatedFrom] = useState("");
+  const [createdTo, setCreatedTo] = useState("");
+
+  const activeCount = [search.trim() !== "", createdFrom !== "", createdTo !== ""].filter(
+    Boolean,
+  ).length;
+  const hasFilters = activeCount > 0;
+
+  const filteredVersions = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return versions.filter((version) => {
+      if (term && !version.file.name.toLowerCase().includes(term)) return false;
+      if (createdFrom || createdTo) {
+        const created = new Date(version.createdAt);
+        if (Number.isNaN(created.getTime())) return false;
+        const createdDay = toLocalIsoDate(created);
+        if (createdFrom && createdDay < createdFrom) return false;
+        if (createdTo && createdDay > createdTo) return false;
+      }
+      return true;
+    });
+  }, [versions, search, createdFrom, createdTo]);
+
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filteredVersions.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedVersions = useMemo(
+    () => filteredVersions.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filteredVersions, currentPage, pageSize],
+  );
+
+  function handleClearFilters() {
+    setSearch("");
+    setCreatedFrom("");
+    setCreatedTo("");
+    setPage(1);
+  }
+
+  const createMutation = useMutation({
+    mutationFn: (input: NewTussVersionInput) => createTussVersion(input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: tussVersionsQueryKey });
+      setPage(1);
+      toast.success("Versão cadastrada com sucesso.");
+    },
+    onError: () => {
+      toast.error("Não foi possível cadastrar a versão.");
+    },
+  });
+
+  const clearMutation = useMutation({
+    mutationFn: deleteAllTussVersions,
+    onSuccess: async () => {
+      setClearOpen(false);
+      await queryClient.invalidateQueries({ queryKey: tussVersionsQueryKey });
+      setPage(1);
+      toast.success("Versões cadastradas removidas.");
+    },
+    onError: () => {
+      toast.error("Não foi possível limpar as versões cadastradas.");
+    },
+  });
+
+  const newVersionButton = (
+    <Button type="button" onClick={() => setModalOpen(true)}>
+      <Plus className="size-4" aria-hidden="true" />
+      Nova versão
+    </Button>
+  );
+
+  return (
+    <TooltipProvider delayDuration={150}>
+      <div className="flex min-h-screen bg-background">
+        <AppSidebar activeKey="tuss" />
+        <div className="flex min-h-screen min-w-0 flex-1 flex-col pt-14 md:pt-0">
+          <main className="flex-1 space-y-6 p-6 pb-16">
+            <AppBreadcrumb />
+            <PageHeader
+              title="TUSS"
+              description="Gerencie as versões das terminologias utilizadas na identificação e classificação dos itens do faturamento."
+              actions={
+                <Button
+                  type="button"
+                  className="w-full sm:w-auto"
+                  onClick={() => setModalOpen(true)}
+                >
+                  <Plus className="size-4" aria-hidden="true" />
+                  Nova versão
+                </Button>
+              }
+            />
+
+            <section className="space-y-4">
+              {versionsQuery.isPending ? (
+                <SurfaceCard padding="none">
+                  <TableSkeleton rows={4} columns={5} />
+                </SurfaceCard>
+              ) : versionsQuery.isError ? (
+                <SurfaceCard padding="md">
+                  <ErrorState
+                    title="Não foi possível carregar as versões"
+                    description="Tente novamente em alguns instantes."
+                    onRetry={() => void versionsQuery.refetch()}
+                  />
+                </SurfaceCard>
+              ) : versions.length === 0 ? (
+                <EmptyStateCard
+                  icon={<BookMarked className="size-10" aria-hidden="true" />}
+                  title="Nenhuma versão cadastrada"
+                  description="Cadastre uma versão da TUSS para começar."
+                  action={newVersionButton}
+                />
+              ) : (
+                <>
+                  <FilterCard
+                    id="tuss-versions-filters"
+                    variant="bar"
+                    activeCount={activeCount}
+                    onClear={handleClearFilters}
+                    clearDisabled={!hasFilters}
+                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_22rem_auto] lg:gap-4"
+                  >
+                    <SearchField
+                      id="tuss-versions-search"
+                      label="Buscar"
+                      fieldClassName="sm:col-span-2 lg:col-span-1"
+                      placeholder="Buscar por arquivo"
+                      value={search}
+                      clearable
+                      onChange={(event) => {
+                        setSearch(event.target.value);
+                        setPage(1);
+                      }}
+                      onClear={() => {
+                        setSearch("");
+                        setPage(1);
+                      }}
+                    />
+                    <fieldset className="min-w-0 space-y-1.5 sm:col-span-2 sm:space-y-2 lg:col-span-1">
+                      <legend className="text-xs font-medium leading-snug text-muted-foreground">
+                        Data do cadastro
+                      </legend>
+                      <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
+                        <span className="shrink-0 text-xs text-muted-foreground">De</span>
+                        <Input
+                          id="tuss-versions-created-from"
+                          type="date"
+                          aria-label="Data do cadastro de"
+                          className="min-w-0 flex-1"
+                          value={createdFrom}
+                          max={createdTo || undefined}
+                          onChange={(event) => {
+                            setCreatedFrom(event.target.value);
+                            setPage(1);
+                          }}
+                        />
+                        <span className="shrink-0 text-xs text-muted-foreground">até</span>
+                        <Input
+                          id="tuss-versions-created-to"
+                          type="date"
+                          aria-label="Data do cadastro até"
+                          className="min-w-0 flex-1"
+                          value={createdTo}
+                          min={createdFrom || undefined}
+                          onChange={(event) => {
+                            setCreatedTo(event.target.value);
+                            setPage(1);
+                          }}
+                        />
+                      </div>
+                    </fieldset>
+                  </FilterCard>
+
+                  {filteredVersions.length === 0 ? (
+                    <EmptyStateCard
+                      icon={<BookMarked className="size-10" aria-hidden="true" />}
+                      title="Nenhuma versão encontrada"
+                      description="Ajuste os filtros para ver outros resultados."
+                      action={
+                        <Button type="button" variant="outline" onClick={handleClearFilters}>
+                          Limpar filtros
+                        </Button>
+                      }
+                    />
+                  ) : (
+                    <div className="mt-5 space-y-3">
+                      <h2 className="font-display text-base font-semibold tracking-tight text-foreground">
+                        Histórico de versões
+                      </h2>
+                      <DataTable>
+                        <DataTableDesktop>
+                          <DataTableRoot>
+                            <DataTableHeader>
+                              <tr>
+                                {COLUMNS.map((column) => (
+                                  <DataTableHead
+                                    key={column}
+                                    className={column === "Ações" ? "text-right" : undefined}
+                                  >
+                                    {column}
+                                  </DataTableHead>
+                                ))}
+                              </tr>
+                            </DataTableHeader>
+                            <DataTableBody>
+                              {paginatedVersions.map((version) => (
+                                <DataTableRow key={version.id}>
+                                  <DataTableCell className="max-w-96">
+                                    <div className="flex min-w-0 items-center gap-2">
+                                      <VersionFileName name={version.file.name} />
+                                      {currentVersionId === version.id && <CurrentBadge />}
+                                    </div>
+                                  </DataTableCell>
+                                  <DataTableCell className="font-mono">
+                                    {formatVersionMonth(version.versionMonth)}
+                                  </DataTableCell>
+                                  <DataTableCell>{version.createdBy}</DataTableCell>
+                                  <DataTableCell>
+                                    {formatTussDateTime(version.createdAt)}
+                                  </DataTableCell>
+                                  <DataTableCell className="text-right">
+                                    <VersionActions version={version} />
+                                  </DataTableCell>
+                                </DataTableRow>
+                              ))}
+                            </DataTableBody>
+                          </DataTableRoot>
+                        </DataTableDesktop>
+
+                        <DataTableCardList divided>
+                          {paginatedVersions.map((version) => (
+                            <DataTableCard key={version.id} flat className="space-y-1.5 py-2.5">
+                              <DataTableCardHeader
+                                title={
+                                  <>
+                                    <span className="font-mono">
+                                      {`Versão ${formatVersionMonth(version.versionMonth)}`}
+                                    </span>
+                                    {currentVersionId === version.id && <CurrentBadge />}
+                                  </>
+                                }
+                                subtitle={version.file.name}
+                              />
+                              <DataTableCardFields
+                                className="gap-x-4 gap-y-1"
+                                fields={[
+                                  { label: "Cadastrado por", value: version.createdBy },
+                                  {
+                                    label: "Data do cadastro",
+                                    value: formatTussDateTime(version.createdAt),
+                                  },
+                                ]}
+                              />
+                              <DataTableCardActions className="-mt-0.5 justify-end">
+                                <VersionActions version={version} />
+                              </DataTableCardActions>
+                            </DataTableCard>
+                          ))}
+                        </DataTableCardList>
+
+                        <TablePagination
+                          id="tuss-versions"
+                          totalItems={filteredVersions.length}
+                          page={currentPage}
+                          pageSize={pageSize}
+                          onPageChange={setPage}
+                          onPageSizeChange={(size) => {
+                            setPageSize(size);
+                            setPage(1);
+                          }}
+                          className="px-4 pb-4"
+                        />
+                      </DataTable>
+                    </div>
+                  )}
+                </>
+              )}
+            </section>
+
+            {/* Ferramentas provisórias de testes: não fazem parte do produto. */}
+            {storedVersions.length > 0 && (
+              <div className="flex flex-wrap justify-end gap-2 border-t border-dashed border-border pt-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground"
+                  onClick={() => setSimulateEmpty((previous) => !previous)}
+                >
+                  {simulateEmpty ? (
+                    <EyeOff className="size-3.5" aria-hidden="true" />
+                  ) : (
+                    <Eye className="size-3.5" aria-hidden="true" />
+                  )}
+                  {simulateEmpty
+                    ? "Sair do estado vazio · Temporário"
+                    : "Visualizar estado vazio · Temporário"}
+                </Button>
+                {!simulateEmpty && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-muted-foreground hover:text-destructive"
+                    disabled={clearMutation.isPending}
+                    onClick={() => setClearOpen(true)}
+                  >
+                    <Trash2 className="size-3.5" aria-hidden="true" />
+                    Limpar versões cadastradas · Temporário
+                  </Button>
+                )}
+              </div>
+            )}
+          </main>
+
+          <SiteFooter />
+        </div>
+      </div>
+
+      <NewTussVersionModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        hasCurrentVersion={storedVersions.length > 0}
+        onCreate={(input) => createMutation.mutate(input)}
+      />
+
+      <ConfirmDialog
+        open={clearOpen}
+        onOpenChange={setClearOpen}
+        title="Limpar versões cadastradas?"
+        description="Esta ação apagará todas as versões da TUSS e seus arquivos. Deseja continuar?"
+        confirmLabel="Limpar versões"
+        onConfirm={() => clearMutation.mutate()}
+      />
+    </TooltipProvider>
+  );
+}
+
+function CurrentBadge() {
+  return (
+    <Badge variant="success-soft" size="sm" className="shrink-0">
+      Atual
+    </Badge>
+  );
+}
+
+/** Nome do arquivo truncado, com o valor completo em tooltip (mouse e teclado). */
+function VersionFileName({ name }: { name: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span
+          tabIndex={0}
+          className="block min-w-0 truncate rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {name}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-80 break-all">{name}</TooltipContent>
+    </Tooltip>
+  );
+}
+
+function VersionActions({ version }: { version: TussVersion }) {
+  return (
+    <div className="inline-flex items-center gap-1">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={`Baixar ${version.file.name}`}
+            onClick={() => void downloadVersionFile(version)}
+          >
+            <Download className="size-4" aria-hidden="true" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Baixar arquivo</TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}
