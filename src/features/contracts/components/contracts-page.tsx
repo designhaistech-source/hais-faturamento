@@ -31,7 +31,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ErrorState, TableSkeleton } from "@/components/data-state";
 import { SurfaceCard } from "@/components/surface-card";
 import { FilterCard } from "@/components/filter-card";
-import { Field, SearchField } from "@/components/form-field";
+import { Field, SearchField, SelectField } from "@/components/form-field";
 import { Input } from "@/components/ui/input";
 import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/table-pagination";
 
