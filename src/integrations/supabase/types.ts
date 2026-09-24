@@ -303,7 +303,7 @@ export type Database = {
           file_type?: string | null
           id?: string
           table_name?: string
-          version_month: string
+          version_month?: string
         }
         Update: {
           created_at?: string

@@ -21,8 +21,6 @@ export interface TussVersion {
 
 export interface NewTussVersionInput {
   tableName: string;
-  /** Reference month, as "YYYY-MM". */
-  versionMonth: string;
   file: File;
 }
 
