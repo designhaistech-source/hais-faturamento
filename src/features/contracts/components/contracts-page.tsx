@@ -93,6 +93,8 @@ export function ContractsPage() {
 
   const queryClient = useQueryClient();
 
+  const navigate = useNavigate();
+  const reviewRequest = useSearch({ strict: false }) as { revisarRegras?: string };
   const contractsQuery = useQuery({
     queryKey: contractsQueryKey,
     queryFn: listContracts,
@@ -117,11 +119,11 @@ export function ContractsPage() {
   // "Revisar regras" do aviso global chega pela URL e abre o modal do contrato.
   useEffect(() => {
     const id = reviewRequest.revisarRegras;
-    const target = id ? storedContracts.find((item) => item.id === id) : undefined;
+    const target = id ? contractsQuery.data?.find((item) => item.id === id) : undefined;
     if (!target) return;
     setRulesContract(target);
     void navigate({ to: "/contratos", search: {}, replace: true });
-  }, [reviewRequest.revisarRegras, storedContracts, navigate]);
+  }, [reviewRequest.revisarRegras, contractsQuery.data, navigate]);
 
   const [simulateEmpty, setSimulateEmpty] = useState(false);
   const contracts = simulateEmpty ? [] : storedContracts;
@@ -174,8 +176,6 @@ export function ContractsPage() {
    * bloquear a listagem. A coluna Regras acompanha o andamento.
    */
   const backgroundTask = useBackgroundTask();
-  const navigate = useNavigate();
-  const reviewRequest = useSearch({ strict: false }) as { revisarRegras?: string };
 
   function startRulesExtraction(contract: Contract) {
     backgroundTask.start({
