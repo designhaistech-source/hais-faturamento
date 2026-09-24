@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { AnalysisResultPage } from "@/features/billing-analysis";
 
-export const Route = createFileRoute("/analise-faturamento_/$analysisId/resultado")({
+export const Route = createFileRoute("/analise-faturamento_/$analysisId_/resultado")({
   head: () => ({
     meta: [
       { title: "Resultado da análise | HaisFaturamento" },
