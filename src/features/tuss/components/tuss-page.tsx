@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Database, Download, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
+import { BookMarked, Download, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -15,7 +15,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ErrorState, TableSkeleton } from "@/components/data-state";
 import { SurfaceCard } from "@/components/surface-card";
 import { FilterCard } from "@/components/filter-card";
-import { SearchField, SelectField } from "@/components/form-field";
+import { SearchField } from "@/components/form-field";
 import { Input } from "@/components/ui/input";
 import { toLocalIsoDate } from "@/lib/date";
 import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/table-pagination";
@@ -35,29 +35,27 @@ import {
   DataTableRow,
 } from "@/components/data-table";
 
-import { NewPricingVersionModal } from "./new-pricing-version-modal";
+import { NewTussVersionModal } from "./new-tuss-version-modal";
 import {
-  currentVersionIdsByType,
-  formatVersionDateTime,
-  pricingBaseTypeLabel,
-  PRICING_BASE_TYPES,
-  type NewPricingVersionInput,
-  type PricingBaseType,
-  type PricingVersion,
-} from "../data/pricing-versions";
+  currentTussVersionId,
+  formatTussDateTime,
+  formatVersionMonth,
+  type NewTussVersionInput,
+  type TussVersion,
+} from "../data/tuss-versions";
 import {
-  createPricingVersion,
-  createPricingVersionFileUrl,
-  deleteAllPricingVersions,
-  listPricingVersions,
-  pricingVersionsQueryKey,
-} from "../data/pricing-versions-service";
+  createTussVersion,
+  createTussVersionFileUrl,
+  deleteAllTussVersions,
+  listTussVersions,
+  tussVersionsQueryKey,
+} from "../data/tuss-versions-service";
 
-const COLUMNS = ["Arquivo", "Tipo da base", "Cadastrado por", "Data do cadastro", "Ações"] as const;
+const COLUMNS = ["Arquivo", "Versão", "Cadastrado por", "Data do cadastro", "Ações"] as const;
 
-async function downloadVersionFile(version: PricingVersion) {
+async function downloadVersionFile(version: TussVersion) {
   try {
-    const url = await createPricingVersionFileUrl(version.file.path, version.file.name);
+    const url = await createTussVersionFileUrl(version.file.path, version.file.name);
     const link = document.createElement("a");
     link.href = url;
     link.download = version.file.name;
@@ -69,45 +67,31 @@ async function downloadVersionFile(version: PricingVersion) {
   }
 }
 
-export function PricingBasePage() {
+export function TussPage() {
   const [modalOpen, setModalOpen] = useState(false);
-  const queryClient = useQueryClient();
-
-  const versionsQuery = useQuery({
-    queryKey: pricingVersionsQueryKey,
-    queryFn: listPricingVersions,
-  });
-  const storedVersions = versionsQuery.data ?? [];
   const [clearOpen, setClearOpen] = useState(false);
   /** Ferramenta provisória de testes: simula a página sem versões, sem alterar dados. */
   const [simulateEmpty, setSimulateEmpty] = useState(false);
+  const queryClient = useQueryClient();
+
+  const versionsQuery = useQuery({ queryKey: tussVersionsQueryKey, queryFn: listTussVersions });
+  const storedVersions = versionsQuery.data ?? [];
   const versions = simulateEmpty ? [] : storedVersions;
-  const currentVersionIds = useMemo(() => currentVersionIdsByType(versions), [versions]);
-  /** Tipos que já possuem versão cadastrada (independe da simulação de estado vazio). */
-  const existingBaseTypes = useMemo(
-    () => Array.from(new Set(storedVersions.map((version) => version.baseType))),
-    [storedVersions],
-  );
+  const currentVersionId = currentTussVersionId(versions);
 
   const [search, setSearch] = useState("");
-  const [baseTypeFilter, setBaseTypeFilter] = useState<"all" | PricingBaseType>("all");
   const [createdFrom, setCreatedFrom] = useState("");
   const [createdTo, setCreatedTo] = useState("");
 
-  const activeCount = [
-    search.trim() !== "",
-    baseTypeFilter !== "all",
-    createdFrom !== "",
-    createdTo !== "",
-  ].filter(Boolean).length;
+  const activeCount = [search.trim() !== "", createdFrom !== "", createdTo !== ""].filter(
+    Boolean,
+  ).length;
   const hasFilters = activeCount > 0;
 
   const filteredVersions = useMemo(() => {
     const term = search.trim().toLowerCase();
-
     return versions.filter((version) => {
       if (term && !version.file.name.toLowerCase().includes(term)) return false;
-      if (baseTypeFilter !== "all" && version.baseType !== baseTypeFilter) return false;
       if (createdFrom || createdTo) {
         const created = new Date(version.createdAt);
         if (Number.isNaN(created.getTime())) return false;
@@ -117,11 +101,10 @@ export function PricingBasePage() {
       }
       return true;
     });
-  }, [versions, search, baseTypeFilter, createdFrom, createdTo]);
+  }, [versions, search, createdFrom, createdTo]);
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-
   const totalPages = Math.max(1, Math.ceil(filteredVersions.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const paginatedVersions = useMemo(
@@ -131,27 +114,15 @@ export function PricingBasePage() {
 
   function handleClearFilters() {
     setSearch("");
-    setBaseTypeFilter("all");
     setCreatedFrom("");
     setCreatedTo("");
     setPage(1);
   }
 
-  const baseTypeOptions = useMemo(
-    () => [
-      { value: "all", label: "Todos os tipos" },
-      ...PRICING_BASE_TYPES.map((type) => ({
-        value: type,
-        label: pricingBaseTypeLabel(type),
-      })),
-    ],
-    [],
-  );
-
   const createMutation = useMutation({
-    mutationFn: (input: NewPricingVersionInput) => createPricingVersion(input),
+    mutationFn: (input: NewTussVersionInput) => createTussVersion(input),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: pricingVersionsQueryKey });
+      await queryClient.invalidateQueries({ queryKey: tussVersionsQueryKey });
       setPage(1);
       toast.success("Versão cadastrada com sucesso.");
     },
@@ -161,10 +132,10 @@ export function PricingBasePage() {
   });
 
   const clearMutation = useMutation({
-    mutationFn: deleteAllPricingVersions,
+    mutationFn: deleteAllTussVersions,
     onSuccess: async () => {
       setClearOpen(false);
-      await queryClient.invalidateQueries({ queryKey: pricingVersionsQueryKey });
+      await queryClient.invalidateQueries({ queryKey: tussVersionsQueryKey });
       setPage(1);
       toast.success("Versões cadastradas removidas.");
     },
@@ -173,16 +144,23 @@ export function PricingBasePage() {
     },
   });
 
+  const newVersionButton = (
+    <Button type="button" onClick={() => setModalOpen(true)}>
+      <Plus className="size-4" aria-hidden="true" />
+      Nova versão
+    </Button>
+  );
+
   return (
     <TooltipProvider delayDuration={150}>
       <div className="flex min-h-screen bg-background">
-        <AppSidebar activeKey="base-precificacao" />
+        <AppSidebar activeKey="tuss" />
         <div className="flex min-h-screen min-w-0 flex-1 flex-col pt-14 md:pt-0">
           <main className="flex-1 space-y-6 p-6 pb-16">
             <AppBreadcrumb />
             <PageHeader
-              title="Base de precificação"
-              description="Gerencie as bases de valores utilizadas na análise do faturamento."
+              title="TUSS"
+              description="Gerencie as versões das terminologias utilizadas na identificação e classificação dos itens do faturamento."
               actions={
                 <Button
                   type="button"
@@ -210,33 +188,26 @@ export function PricingBasePage() {
                 </SurfaceCard>
               ) : versions.length === 0 ? (
                 <EmptyStateCard
-                  icon={<Database className="size-10" aria-hidden="true" />}
-                  title="Nenhuma base cadastrada"
-                  description="Cadastre uma versão de uma base de precificação para começar."
-                  action={
-                    <Button type="button" onClick={() => setModalOpen(true)}>
-                      <Plus className="size-4" aria-hidden="true" />
-                      Nova versão
-                    </Button>
-                  }
+                  icon={<BookMarked className="size-10" aria-hidden="true" />}
+                  title="Nenhuma versão cadastrada"
+                  description="Cadastre uma versão da TUSS para começar."
+                  action={newVersionButton}
                 />
               ) : (
                 <>
                   <FilterCard
-                    id="pricing-versions-filters"
+                    id="tuss-versions-filters"
                     variant="bar"
                     activeCount={activeCount}
                     onClear={handleClearFilters}
                     clearDisabled={!hasFilters}
-                    // Colunas flexíveis no lg para a barra caber em uma única linha —
-                    // mesma altura visual da barra de filtros de Contratos.
-                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_12rem] lg:gap-4 xl:grid-cols-[minmax(0,1fr)_12rem_22rem_auto]"
+                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_22rem_auto] lg:gap-4"
                   >
                     <SearchField
-                      id="pricing-versions-search"
+                      id="tuss-versions-search"
                       label="Buscar"
                       fieldClassName="sm:col-span-2 lg:col-span-1"
-                      placeholder="Buscar por nome do arquivo"
+                      placeholder="Buscar por arquivo"
                       value={search}
                       clearable
                       onChange={(event) => {
@@ -248,17 +219,6 @@ export function PricingBasePage() {
                         setPage(1);
                       }}
                     />
-                    <SelectField
-                      id="pricing-versions-base-type"
-                      label="Tipo da base"
-                      className="sm:col-span-2 lg:col-span-1"
-                      value={baseTypeFilter}
-                      options={baseTypeOptions}
-                      onValueChange={(value) => {
-                        setBaseTypeFilter(value as "all" | PricingBaseType);
-                        setPage(1);
-                      }}
-                    />
                     <fieldset className="min-w-0 space-y-1.5 sm:col-span-2 sm:space-y-2 lg:col-span-1">
                       <legend className="text-xs font-medium leading-snug text-muted-foreground">
                         Data do cadastro
@@ -266,7 +226,7 @@ export function PricingBasePage() {
                       <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
                         <span className="shrink-0 text-xs text-muted-foreground">De</span>
                         <Input
-                          id="pricing-versions-created-from"
+                          id="tuss-versions-created-from"
                           type="date"
                           aria-label="Data do cadastro de"
                           className="min-w-0 flex-1"
@@ -279,7 +239,7 @@ export function PricingBasePage() {
                         />
                         <span className="shrink-0 text-xs text-muted-foreground">até</span>
                         <Input
-                          id="pricing-versions-created-to"
+                          id="tuss-versions-created-to"
                           type="date"
                           aria-label="Data do cadastro até"
                           className="min-w-0 flex-1"
@@ -296,7 +256,7 @@ export function PricingBasePage() {
 
                   {filteredVersions.length === 0 ? (
                     <EmptyStateCard
-                      icon={<Database className="size-10" aria-hidden="true" />}
+                      icon={<BookMarked className="size-10" aria-hidden="true" />}
                       title="Nenhuma versão encontrada"
                       description="Ajuste os filtros para ver outros resultados."
                       action={
@@ -331,27 +291,14 @@ export function PricingBasePage() {
                                   <DataTableCell className="max-w-96">
                                     <div className="flex min-w-0 items-center gap-2">
                                       <VersionFileName name={version.file.name} />
-                                      {currentVersionIds.has(version.id) && (
-                                        <Badge
-                                          variant="success-soft"
-                                          size="sm"
-                                          className="shrink-0"
-                                        >
-                                          Atual
-                                        </Badge>
-                                      )}
+                                      {currentVersionId === version.id && <CurrentBadge />}
                                     </div>
                                   </DataTableCell>
-                                  <DataTableCell>
-                                    <Badge variant="info-soft" size="sm" className="shrink-0">
-                                      {pricingBaseTypeLabel(version.baseType)}
-                                    </Badge>
+                                  <DataTableCell className="font-mono">
+                                    {formatVersionMonth(version.versionMonth)}
                                   </DataTableCell>
                                   <DataTableCell>{version.createdBy}</DataTableCell>
-                                  <DataTableCell>
-                                    {formatVersionDateTime(version.createdAt)}
-                                  </DataTableCell>
-
+                                  <DataTableCell>{formatTussDateTime(version.createdAt)}</DataTableCell>
                                   <DataTableCell className="text-right">
                                     <VersionActions version={version} />
                                   </DataTableCell>
@@ -367,14 +314,10 @@ export function PricingBasePage() {
                               <DataTableCardHeader
                                 title={
                                   <>
-                                    <Badge variant="info-soft" size="sm" className="shrink-0">
-                                      {pricingBaseTypeLabel(version.baseType)}
-                                    </Badge>
-                                    {currentVersionIds.has(version.id) && (
-                                      <Badge variant="success-soft" size="sm" className="shrink-0">
-                                        Atual
-                                      </Badge>
-                                    )}
+                                    <span className="font-mono">
+                                      {`Versão ${formatVersionMonth(version.versionMonth)}`}
+                                    </span>
+                                    {currentVersionId === version.id && <CurrentBadge />}
                                   </>
                                 }
                                 subtitle={version.file.name}
@@ -385,11 +328,10 @@ export function PricingBasePage() {
                                   { label: "Cadastrado por", value: version.createdBy },
                                   {
                                     label: "Data do cadastro",
-                                    value: formatVersionDateTime(version.createdAt),
+                                    value: formatTussDateTime(version.createdAt),
                                   },
                                 ]}
                               />
-
                               <DataTableCardActions className="-mt-0.5 justify-end">
                                 <VersionActions version={version} />
                               </DataTableCardActions>
@@ -398,7 +340,7 @@ export function PricingBasePage() {
                         </DataTableCardList>
 
                         <TablePagination
-                          id="pricing-versions"
+                          id="tuss-versions"
                           totalItems={filteredVersions.length}
                           page={currentPage}
                           pageSize={pageSize}
@@ -456,10 +398,10 @@ export function PricingBasePage() {
         </div>
       </div>
 
-      <NewPricingVersionModal
+      <NewTussVersionModal
         open={modalOpen}
         onOpenChange={setModalOpen}
-        existingBaseTypes={existingBaseTypes}
+        hasCurrentVersion={storedVersions.length > 0}
         onCreate={(input) => createMutation.mutate(input)}
       />
 
@@ -467,11 +409,19 @@ export function PricingBasePage() {
         open={clearOpen}
         onOpenChange={setClearOpen}
         title="Limpar versões cadastradas?"
-        description="Esta ação apagará todas as versões da base de precificação e seus arquivos. Deseja continuar?"
+        description="Esta ação apagará todas as versões da TUSS e seus arquivos. Deseja continuar?"
         confirmLabel="Limpar versões"
         onConfirm={() => clearMutation.mutate()}
       />
     </TooltipProvider>
+  );
+}
+
+function CurrentBadge() {
+  return (
+    <Badge variant="success-soft" size="sm" className="shrink-0">
+      Atual
+    </Badge>
   );
 }
 
@@ -492,8 +442,7 @@ function VersionFileName({ name }: { name: string }) {
   );
 }
 
-/** Ações da linha: apenas baixar o arquivo original da versão. */
-function VersionActions({ version }: { version: PricingVersion }) {
+function VersionActions({ version }: { version: TussVersion }) {
   return (
     <div className="inline-flex items-center gap-1">
       <Tooltip>
@@ -508,7 +457,7 @@ function VersionActions({ version }: { version: PricingVersion }) {
             <Download className="size-4" aria-hidden="true" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Baixar</TooltipContent>
+        <TooltipContent>Baixar arquivo</TooltipContent>
       </Tooltip>
     </div>
   );
