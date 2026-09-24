@@ -3,7 +3,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutGrid,
   FileText,
-  FileSearch,
+  FileCheck2,
   Database,
   HelpCircle,
   CircleUser,
@@ -246,7 +246,7 @@ function SidebarNav({
           onNavigate={onNavigate}
         />
         <SidebarItem
-          icon={FileSearch}
+          icon={FileCheck2}
           label="Análise de faturamento"
           to="/analise-faturamento"
           active={activeKey === "analise-faturamento"}
