@@ -298,7 +298,9 @@ export function TussPage() {
                                     {formatVersionMonth(version.versionMonth)}
                                   </DataTableCell>
                                   <DataTableCell>{version.createdBy}</DataTableCell>
-                                  <DataTableCell>{formatTussDateTime(version.createdAt)}</DataTableCell>
+                                  <DataTableCell>
+                                    {formatTussDateTime(version.createdAt)}
+                                  </DataTableCell>
                                   <DataTableCell className="text-right">
                                     <VersionActions version={version} />
                                   </DataTableCell>

@@ -105,7 +105,13 @@ export function NewTussVersionModal({
           submit();
         }}
       >
-        <Field id="tuss-version-month" label="Versão" required error={versionError} hint="Mês e ano">
+        <Field
+          id="tuss-version-month"
+          label="Versão"
+          required
+          error={versionError}
+          hint="Mês e ano"
+        >
           <Input
             type="month"
             value={versionMonth}

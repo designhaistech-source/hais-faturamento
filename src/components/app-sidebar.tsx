@@ -5,6 +5,7 @@ import {
   FileText,
   FileCheck2,
   Database,
+  BookMarked,
   HelpCircle,
   CircleUser,
   LogOut,
@@ -66,7 +67,7 @@ function BrandMark({ className }: { className?: string }) {
 }
 
 export type ItemKey =
-  "inicio" | "contratos" | "base-precificacao" | "analise-faturamento" | "design-system" | "icones";
+  "inicio" | "contratos" | "base-precificacao" | "tuss" | "analise-faturamento" | "design-system" | "icones";
 
 export function AppSidebar({ activeKey }: { activeKey: ItemKey }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -242,6 +243,15 @@ function SidebarNav({
           to="/base-precificacao"
           active={activeKey === "base-precificacao"}
           hint="Versões da base de valores utilizada na análise do faturamento."
+          collapsed={collapsed}
+          onNavigate={onNavigate}
+        />
+        <SidebarItem
+          icon={BookMarked}
+          label="TUSS"
+          to="/tuss"
+          active={activeKey === "tuss"}
+          hint="Versões da TUSS utilizadas na identificação e classificação dos itens do faturamento."
           collapsed={collapsed}
           onNavigate={onNavigate}
         />
