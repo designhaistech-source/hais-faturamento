@@ -8,7 +8,8 @@ export const Route = createFileRoute("/analise-faturamento_/$analysisId/resultad
       { title: "Resultado da análise | HaisFaturamento" },
       {
         name: "description",
-        content: "Resumo, conformidades, divergências e itens não analisados de uma análise XML TISS.",
+        content:
+          "Resumo, conformidades, divergências e itens não analisados de uma análise XML TISS.",
       },
       { property: "og:title", content: "Resultado da análise | HaisFaturamento" },
       {

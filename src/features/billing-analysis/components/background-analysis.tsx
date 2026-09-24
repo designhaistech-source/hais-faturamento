@@ -144,7 +144,12 @@ function BackgroundAnalysisIndicator({
           )}
           {state.status === "failed" && (
             <div className="pt-2">
-              <Button type="button" size="sm" variant="outline" onClick={() => onRetry(state.input)}>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => onRetry(state.input)}
+              >
                 Tentar novamente
               </Button>
             </div>

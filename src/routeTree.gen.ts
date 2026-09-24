@@ -16,6 +16,7 @@ import { Route as ContratosRouteImport } from './routes/contratos'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as DesignSystemIconesRouteImport } from './routes/design-system-icones'
 import { Route as AnaliseFaturamentoAnalysisIdRouteImport } from './routes/analise-faturamento_.$analysisId'
+import { Route as AnaliseFaturamentoAnalysisIdResultadoRouteImport } from './routes/analise-faturamento_.$analysisId.resultado'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -53,6 +54,12 @@ const AnaliseFaturamentoAnalysisIdRoute =
     path: '/analise-faturamento/$analysisId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AnaliseFaturamentoAnalysisIdResultadoRoute =
+  AnaliseFaturamentoAnalysisIdResultadoRouteImport.update({
+    id: '/resultado',
+    path: '/resultado',
+    getParentRoute: () => AnaliseFaturamentoAnalysisIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,7 +68,8 @@ export interface FileRoutesByFullPath {
   '/contratos': typeof ContratosRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
-  '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
+  '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRouteWithChildren
+  '/analise-faturamento/$analysisId/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,7 +78,8 @@ export interface FileRoutesByTo {
   '/contratos': typeof ContratosRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
-  '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
+  '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRouteWithChildren
+  '/analise-faturamento/$analysisId/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,7 +89,8 @@ export interface FileRoutesById {
   '/contratos': typeof ContratosRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
-  '/analise-faturamento_/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
+  '/analise-faturamento_/$analysisId': typeof AnaliseFaturamentoAnalysisIdRouteWithChildren
+  '/analise-faturamento_/$analysisId/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -92,6 +102,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/design-system-icones'
     | '/analise-faturamento/$analysisId'
+    | '/analise-faturamento/$analysisId/resultado'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -101,6 +112,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/design-system-icones'
     | '/analise-faturamento/$analysisId'
+    | '/analise-faturamento/$analysisId/resultado'
   id:
     | '__root__'
     | '/'
@@ -110,6 +122,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/design-system-icones'
     | '/analise-faturamento_/$analysisId'
+    | '/analise-faturamento_/$analysisId/resultado'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,7 +132,7 @@ export interface RootRouteChildren {
   ContratosRoute: typeof ContratosRoute
   DesignSystemRoute: typeof DesignSystemRoute
   DesignSystemIconesRoute: typeof DesignSystemIconesRoute
-  AnaliseFaturamentoAnalysisIdRoute: typeof AnaliseFaturamentoAnalysisIdRoute
+  AnaliseFaturamentoAnalysisIdRoute: typeof AnaliseFaturamentoAnalysisIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -173,8 +186,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnaliseFaturamentoAnalysisIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/analise-faturamento_/$analysisId/resultado': {
+      id: '/analise-faturamento_/$analysisId/resultado'
+      path: '/resultado'
+      fullPath: '/analise-faturamento/$analysisId/resultado'
+      preLoaderRoute: typeof AnaliseFaturamentoAnalysisIdResultadoRouteImport
+      parentRoute: typeof AnaliseFaturamentoAnalysisIdRoute
+    }
   }
 }
+
+interface AnaliseFaturamentoAnalysisIdRouteChildren {
+  AnaliseFaturamentoAnalysisIdResultadoRoute: typeof AnaliseFaturamentoAnalysisIdResultadoRoute
+}
+
+const AnaliseFaturamentoAnalysisIdRouteChildren: AnaliseFaturamentoAnalysisIdRouteChildren =
+  {
+    AnaliseFaturamentoAnalysisIdResultadoRoute:
+      AnaliseFaturamentoAnalysisIdResultadoRoute,
+  }
+
+const AnaliseFaturamentoAnalysisIdRouteWithChildren =
+  AnaliseFaturamentoAnalysisIdRoute._addFileChildren(
+    AnaliseFaturamentoAnalysisIdRouteChildren,
+  )
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -183,7 +218,8 @@ const rootRouteChildren: RootRouteChildren = {
   ContratosRoute: ContratosRoute,
   DesignSystemRoute: DesignSystemRoute,
   DesignSystemIconesRoute: DesignSystemIconesRoute,
-  AnaliseFaturamentoAnalysisIdRoute: AnaliseFaturamentoAnalysisIdRoute,
+  AnaliseFaturamentoAnalysisIdRoute:
+    AnaliseFaturamentoAnalysisIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

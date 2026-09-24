@@ -40,8 +40,7 @@ import {
   NewBillingAnalysisModal,
   type NewBillingAnalysisInput,
 } from "./new-billing-analysis-modal";
-import { AnalysisResultModal } from "./analysis-result-modal";
-import { XmlPreviewModal } from "./xml-preview-modal";
+import { useBackgroundAnalysis } from "./background-analysis";
 import { getAnalysisXml } from "../data/billing-analyses-service";
 import { downloadXml } from "../data/xml-preview";
 import {
@@ -95,8 +94,6 @@ const COLUMNS = [
  */
 export function BillingAnalysisPage() {
   const [modalOpen, setModalOpen] = useState(false);
-  const [resultAnalysis, setResultAnalysis] = useState<BillingAnalysis | null>(null);
-  const [xmlAnalysis, setXmlAnalysis] = useState<BillingAnalysis | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
@@ -182,21 +179,12 @@ export function BillingAnalysisPage() {
     [filteredAnalyses, currentPage, pageSize],
   );
 
-  const analyzeMutation = useMutation({
-    mutationFn: (input: NewBillingAnalysisInput) => runBillingAnalysis(input),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: billingAnalysesQueryKey });
-      toast.success("Análise concluída.");
-    },
-    // A falha é comunicada dentro do modal, que oferece "Tentar novamente".
-    onError: async () => {
-      await queryClient.invalidateQueries({ queryKey: billingAnalysesQueryKey });
-    },
-  });
+  const backgroundAnalysis = useBackgroundAnalysis();
 
-  function handleSubmit(input: NewBillingAnalysisInput) {
+  // A análise roda em segundo plano; o modal fecha assim que ela é iniciada.
+  async function handleSubmit(input: NewBillingAnalysisInput) {
     setPage(1);
-    return analyzeMutation.mutateAsync(input);
+    backgroundAnalysis.start(input);
   }
 
   return (
@@ -213,7 +201,7 @@ export function BillingAnalysisPage() {
                 <Button
                   type="button"
                   className="w-full sm:w-auto"
-                  disabled={analyzeMutation.isPending}
+                  disabled={backgroundAnalysis.isProcessing}
                   onClick={handleNewAnalysis}
                 >
                   <Plus className="size-4" aria-hidden="true" />
@@ -363,13 +351,10 @@ export function BillingAnalysisPage() {
                                     {formatAnalysisDateTime(analysis.analyzedAt)}
                                   </DataTableCell>
                                   <DataTableCell>
-                                    <AnalysisResultBadge
-                                      analysis={analysis}
-                                      onOpen={setResultAnalysis}
-                                    />
+                                    <AnalysisResultBadge analysis={analysis} />
                                   </DataTableCell>
                                   <DataTableCell className="text-right">
-                                    <AnalysisActions analysis={analysis} onView={setXmlAnalysis} />
+                                    <AnalysisActions analysis={analysis} />
                                   </DataTableCell>
                                 </DataTableRow>
                               ))}
@@ -381,12 +366,7 @@ export function BillingAnalysisPage() {
                           {paginatedAnalyses.map((analysis) => (
                             <DataTableCard key={analysis.id} flat className="space-y-1.5 py-2.5">
                               <DataTableCardHeader
-                                title={
-                                  <AnalysisResultBadge
-                                    analysis={analysis}
-                                    onOpen={setResultAnalysis}
-                                  />
-                                }
+                                title={<AnalysisResultBadge analysis={analysis} />}
                                 subtitle={analysis.fileName}
                               />
                               <DataTableCardFields
@@ -402,7 +382,7 @@ export function BillingAnalysisPage() {
                                 ]}
                               />
                               <DataTableCardActions className="-mt-0.5 justify-end">
-                                <AnalysisActions analysis={analysis} onView={setXmlAnalysis} />
+                                <AnalysisActions analysis={analysis} />
                               </DataTableCardActions>
                             </DataTableCard>
                           ))}
@@ -472,8 +452,6 @@ export function BillingAnalysisPage() {
         onOpenChange={setModalOpen}
         onSubmit={handleSubmit}
       />
-      <AnalysisResultModal analysis={resultAnalysis} onClose={() => setResultAnalysis(null)} />
-      <XmlPreviewModal analysis={xmlAnalysis} onClose={() => setXmlAnalysis(null)} />
       <ConfirmDialog
         open={clearOpen}
         onOpenChange={setClearOpen}
@@ -504,16 +482,10 @@ function AnalysisFileName({ name }: { name: string }) {
 }
 
 /** Resultado da análise, com o detalhe dos itens não analisados em tooltip. */
-function AnalysisResultBadge({
-  analysis,
-  onOpen,
-}: {
-  analysis: BillingAnalysis;
-  onOpen: (analysis: BillingAnalysis) => void;
-}) {
+function AnalysisResultBadge({ analysis }: { analysis: BillingAnalysis }) {
   const hasDivergent = analysis.divergenceCount > 0;
   const hasUnanalyzed = analysis.unanalyzedCount > 0;
-  const actionable = analysis.status === "completed" && (hasDivergent || hasUnanalyzed);
+  const actionable = analysis.status === "completed";
 
   const badge = (
     <Badge variant={analysisResultBadgeVariant(analysis)} size="sm" className="shrink-0">
@@ -527,18 +499,20 @@ function AnalysisResultBadge({
         ? "Ver itens que exigem atenção"
         : hasDivergent
           ? "Ver divergências"
-          : "Ver itens não analisados";
+          : hasUnanalyzed
+            ? "Ver itens não analisados"
+            : "Ver resultado da análise";
     return (
       <Tooltip>
         <TooltipTrigger asChild>
-          <button
-            type="button"
-            onClick={() => onOpen(analysis)}
+          <Link
+            to="/analise-faturamento/$analysisId/resultado"
+            params={{ analysisId: analysis.id }}
             aria-label={`${analysisResultLabel(analysis)}. ${hint}`}
             className="inline-flex cursor-pointer rounded-full outline-none transition hover:opacity-80 hover:shadow-xs focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
           >
             {badge}
-          </button>
+          </Link>
         </TooltipTrigger>
         <TooltipContent>{hint}</TooltipContent>
       </Tooltip>
@@ -568,13 +542,7 @@ function AnalysisResultBadge({
 }
 
 /** Ações da linha, relacionadas ao arquivo XML original da análise. */
-function AnalysisActions({
-  analysis,
-  onView,
-}: {
-  analysis: BillingAnalysis;
-  onView: (analysis: BillingAnalysis) => void;
-}) {
+function AnalysisActions({ analysis }: { analysis: BillingAnalysis }) {
   const [downloading, setDownloading] = useState(false);
 
   const handleDownload = async () => {
@@ -595,19 +563,6 @@ function AnalysisActions({
 
   return (
     <div className="inline-flex items-center gap-1">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={`Visualizar XML ${analysis.fileName}`}
-            onClick={() => onView(analysis)}
-          >
-            <Eye className="size-4" aria-hidden="true" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Visualizar XML</TooltipContent>
-      </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
