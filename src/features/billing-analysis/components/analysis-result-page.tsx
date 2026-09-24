@@ -2,7 +2,14 @@ import { useState, type ReactNode } from "react";
 import { AlertTriangle, Check, ChevronDown, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
-import { AppModal } from "@/components/app-modal";
+import { Link } from "@tanstack/react-router";
+import { ArrowLeft } from "lucide-react";
+import { AppSidebar } from "@/components/app-sidebar";
+import { AppBreadcrumb } from "@/components/app-breadcrumb";
+import { PageHeader } from "@/components/page-header";
+import { SiteFooter } from "@/components/site-footer";
+import { SurfaceCard } from "@/components/surface-card";
+import { billingAnalysesQueryKey, listBillingAnalyses } from "../data/billing-analyses-service";
 import { Button } from "@/components/ui/button";
 import { ErrorState, LoadingState } from "@/components/data-state";
 
@@ -20,13 +27,62 @@ import {
 } from "../data/analysis-details";
 import { differenceOf, expectedOf, ItemStatusBadge } from "./analysis-details-page";
 
-interface AnalysisResultModalProps {
-  analysis: BillingAnalysis | null;
-  onClose: () => void;
+interface AnalysisResultPageProps {
+  analysisId: string;
 }
 
-/** Consulta rápida dos itens que exigem atenção (divergências e não analisados). */
-export function AnalysisResultModal({ analysis, onClose }: AnalysisResultModalProps) {
+/** Resultado de uma análise: contexto, resumo, itens que exigem atenção e conformidades. */
+export function AnalysisResultPage({ analysisId }: AnalysisResultPageProps) {
+  const analysesQuery = useQuery({
+    queryKey: billingAnalysesQueryKey,
+    queryFn: listBillingAnalyses,
+  });
+  const analysis = analysesQuery.data?.find((item) => item.id === analysisId) ?? null;
+
+  return (
+    <div className="flex min-h-screen bg-background">
+      <AppSidebar activeKey="analise-faturamento" />
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col pt-14 md:pt-0">
+        <main className="flex-1 space-y-6 p-6 pb-16">
+          <AppBreadcrumb />
+          <PageHeader
+            title="Resultado da análise"
+            description={analysis?.fileName}
+            actions={
+              <Button asChild variant="outline" className="w-full sm:w-auto">
+                <Link to="/analise-faturamento">
+                  <ArrowLeft className="size-4" aria-hidden="true" />
+                  Voltar para análises
+                </Link>
+              </Button>
+            }
+          />
+          <SurfaceCard padding="md">
+            {analysesQuery.isPending ? (
+              <LoadingState title="Carregando análise" />
+            ) : analysesQuery.isError ? (
+              <ErrorState
+                title="Não foi possível carregar a análise"
+                description="Tente novamente em alguns instantes."
+                onRetry={() => void analysesQuery.refetch()}
+              />
+            ) : !analysis ? (
+              <ErrorState
+                title="Análise não encontrada"
+                description="Ela pode ter sido removida. Volte para a lista de análises."
+              />
+            ) : (
+              <AnalysisResultContent analysis={analysis} />
+            )}
+          </SurfaceCard>
+        </main>
+        <SiteFooter />
+      </div>
+    </div>
+  );
+}
+
+function AnalysisResultContent({ analysis }: { analysis: BillingAnalysis }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [showConforming, setShowConforming] = useState(false);
   const toggle = (id: string) =>
@@ -38,47 +94,16 @@ export function AnalysisResultModal({ analysis, onClose }: AnalysisResultModalPr
     });
 
   const query = useQuery({
-    queryKey: analysisDetailsQueryKey(analysis?.id ?? ""),
-    queryFn: () => getAnalysisDetails(analysis?.id ?? ""),
-    enabled: analysis !== null,
+    queryKey: analysisDetailsQueryKey(analysis.id),
+    queryFn: () => getAnalysisDetails(analysis.id),
   });
 
   const allItems = query.data?.items ?? [];
   const items = allItems.filter((item) => item.status !== "ok");
   const conforming = allItems.filter((item) => item.status === "ok");
   const summary = summarizeItems(allItems);
-  const reset = () => {
-    setExpanded(new Set());
-    setShowConforming(false);
-  };
 
   return (
-    <>
-      <AppModal
-        open={analysis !== null}
-        onOpenChange={(open) => {
-          if (!open) {
-            reset();
-            onClose();
-          }
-        }}
-        title="Resultado da análise"
-        description={analysis?.fileName}
-        size="lg"
-        footer={
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              reset();
-              onClose();
-            }}
-          >
-            Fechar
-          </Button>
-        }
-      >
-        {analysis && (
           <div className="space-y-5">
             <dl className="grid grid-cols-1 gap-3 rounded-xl border border-border p-4 text-sm min-[380px]:grid-cols-3">
               <Info label="Contrato" value={analysis.contractCompany || "—"} />
@@ -231,9 +256,6 @@ export function AnalysisResultModal({ analysis, onClose }: AnalysisResultModalPr
               </div>
             )}
           </div>
-        )}
-      </AppModal>
-    </>
   );
 }
 
