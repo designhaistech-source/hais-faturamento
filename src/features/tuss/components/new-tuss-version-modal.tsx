@@ -31,21 +31,16 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
   const inputRef = useRef<HTMLInputElement>(null);
   const [tableName, setTableName] = useState("");
   const [tableTouched, setTableTouched] = useState(false);
-  const [versionMonth, setVersionMonth] = useState("");
-  const [versionTouched, setVersionTouched] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [fileTouched, setFileTouched] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [invalidFileMessage, setInvalidFileMessage] = useState<string | null>(null);
 
-  const validMonth = /^\d{4}-\d{2}$/.test(versionMonth);
   const validTable = tableName.trim() !== "";
-  const canSubmit = Boolean(file) && validMonth && validTable;
+  const canSubmit = Boolean(file) && validTable;
   const tableError = tableTouched && !validTable ? "Selecione a tabela TUSS." : undefined;
   const fileError =
-    invalidFileMessage ?? (fileTouched && !file ? "Selecione o arquivo da versão." : undefined);
-  const versionError =
-    versionTouched && !validMonth ? "Informe o mês e o ano da versão." : undefined;
+    invalidFileMessage ?? (fileTouched && !file ? "Selecione o arquivo da tabela." : undefined);
 
   function handleSelectedFile(selected: File | null) {
     setFileTouched(true);
@@ -66,8 +61,6 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
   function reset() {
     setTableName("");
     setTableTouched(false);
-    setVersionMonth("");
-    setVersionTouched(false);
     setFile(null);
     setFileTouched(false);
     setInvalidFileMessage(null);
@@ -81,10 +74,9 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
 
   function submit() {
     setFileTouched(true);
-    setVersionTouched(true);
     setTableTouched(true);
-    if (!file || !validMonth || !validTable) return;
-    onCreate({ file, versionMonth, tableName });
+    if (!file || !validTable) return;
+    onCreate({ file, tableName });
     reset();
     onOpenChange(false);
   }
@@ -94,7 +86,7 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
       open={open}
       onOpenChange={(next) => (next ? onOpenChange(true) : close())}
       title="Nova tabela TUSS"
-      description="Envie o arquivo de uma tabela TUSS e informe a versão do Padrão TISS a que pertence."
+      description="Selecione a tabela TUSS e envie o arquivo correspondente."
       icon={<BookMarked className="size-5" aria-hidden="true" />}
       footer={
         <>
@@ -128,22 +120,6 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
             setTableName(value);
           }}
         />
-        <Field
-          id="tuss-version-month"
-          label="Versão"
-          required
-          error={versionError}
-          hint="Mês e ano"
-        >
-          <Input
-            type="month"
-            value={versionMonth}
-            onChange={(event) => {
-              setVersionTouched(true);
-              setVersionMonth(event.target.value);
-            }}
-          />
-        </Field>
 
         <Field
           id="tuss-version-file"

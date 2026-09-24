@@ -50,7 +50,6 @@ export async function createTussVersion(input: NewTussVersionInput): Promise<voi
   if (uploadError) throw uploadError;
 
   const { error } = await supabase.from("tuss_versions").insert({
-    version_month: `${input.versionMonth}-01`,
     table_name: input.tableName.trim(),
     file_name: input.file.name,
     file_path: path,

@@ -1,0 +1,2 @@
+ALTER TABLE public.tuss_versions ALTER COLUMN version_month SET DEFAULT CURRENT_DATE;
+COMMENT ON COLUMN public.tuss_versions.version_month IS 'DEPRECATED: versioning is by table_name and created_at order';

@@ -39,7 +39,6 @@ import { NewTussVersionModal } from "./new-tuss-version-modal";
 import {
   currentTussTableIds,
   formatTussDateTime,
-  formatVersionMonth,
   tussTableLabel,
   type NewTussVersionInput,
   type TussVersion,
@@ -52,14 +51,7 @@ import {
   tussVersionsQueryKey,
 } from "../data/tuss-versions-service";
 
-const COLUMNS = [
-  "Arquivo",
-  "Tabela TUSS",
-  "Versão",
-  "Cadastrado por",
-  "Data do cadastro",
-  "Ações",
-] as const;
+const COLUMNS = ["Arquivo", "Tabela TUSS", "Cadastrado por", "Data do cadastro", "Ações"] as const;
 
 async function downloadVersionFile(version: TussVersion) {
   try {
@@ -184,7 +176,7 @@ export function TussPage() {
             <section className="space-y-4">
               {versionsQuery.isPending ? (
                 <SurfaceCard padding="none">
-                  <TableSkeleton rows={4} columns={6} />
+                  <TableSkeleton rows={4} columns={5} />
                 </SurfaceCard>
               ) : versionsQuery.isError ? (
                 <SurfaceCard padding="md">
@@ -299,17 +291,10 @@ export function TussPage() {
                                   <DataTableCell className="max-w-96">
                                     <div className="flex min-w-0 items-center gap-2">
                                       <VersionFileName name={version.file.name} />
-                                    </div>
-                                  </DataTableCell>
-                                  <DataTableCell>{tussTableLabel(version.tableName)}</DataTableCell>
-                                  <DataTableCell>
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-mono">
-                                        {formatVersionMonth(version.versionMonth)}
-                                      </span>
                                       {currentIds.has(version.id) && <CurrentBadge />}
                                     </div>
                                   </DataTableCell>
+                                  <DataTableCell>{tussTableLabel(version.tableName)}</DataTableCell>
                                   <DataTableCell>{version.createdBy}</DataTableCell>
                                   <DataTableCell>
                                     {formatTussDateTime(version.createdAt)}
@@ -330,6 +315,7 @@ export function TussPage() {
                                 title={
                                   <>
                                     <span>{tussTableLabel(version.tableName)}</span>
+                                    {currentIds.has(version.id) && <CurrentBadge />}
                                   </>
                                 }
                                 subtitle={version.file.name}
@@ -337,17 +323,6 @@ export function TussPage() {
                               <DataTableCardFields
                                 className="gap-x-4 gap-y-1"
                                 fields={[
-                                  {
-                                    label: "Versão",
-                                    value: (
-                                      <span className="inline-flex items-center gap-2">
-                                        <span className="font-mono">
-                                          {formatVersionMonth(version.versionMonth)}
-                                        </span>
-                                        {currentIds.has(version.id) && <CurrentBadge />}
-                                      </span>
-                                    ),
-                                  },
                                   { label: "Cadastrado por", value: version.createdBy },
                                   {
                                     label: "Data do cadastro",
