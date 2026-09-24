@@ -272,209 +272,213 @@ export function ContractsPage() {
             />
 
             <section className="space-y-4">
-            {contractsQuery.isPending ? (
-              <SurfaceCard padding="none">
-                <TableSkeleton rows={4} columns={5} />
-              </SurfaceCard>
-            ) : contractsQuery.isError ? (
-              <SurfaceCard padding="md">
-                <ErrorState
-                  title="Não foi possível carregar os contratos"
-                  description="Tente novamente em alguns instantes."
-                  onRetry={() => void contractsQuery.refetch()}
+              {contractsQuery.isPending ? (
+                <SurfaceCard padding="none">
+                  <TableSkeleton rows={4} columns={5} />
+                </SurfaceCard>
+              ) : contractsQuery.isError ? (
+                <SurfaceCard padding="md">
+                  <ErrorState
+                    title="Não foi possível carregar os contratos"
+                    description="Tente novamente em alguns instantes."
+                    onRetry={() => void contractsQuery.refetch()}
+                  />
+                </SurfaceCard>
+              ) : contracts.length === 0 ? (
+                <EmptyStateCard
+                  icon={<FileText className="size-10" aria-hidden="true" />}
+                  title="Nenhum contrato cadastrado"
+                  description="Cadastre um contrato para começar."
+                  action={
+                    <Button type="button" onClick={() => setModalOpen(true)}>
+                      <Plus className="size-4" aria-hidden="true" />
+                      Novo contrato
+                    </Button>
+                  }
                 />
-              </SurfaceCard>
-            ) : contracts.length === 0 ? (
-              <EmptyStateCard
-                icon={<FileText className="size-10" aria-hidden="true" />}
-                title="Nenhum contrato cadastrado"
-                description="Cadastre um contrato para começar."
-                action={
-                  <Button type="button" onClick={() => setModalOpen(true)}>
-                    <Plus className="size-4" aria-hidden="true" />
-                    Novo contrato
-                  </Button>
-                }
-              />
-            ) : (
-              <>
-                <FilterCard
-                  id="contracts-filters"
-                  variant="bar"
-                  activeCount={activeCount}
-                  onClear={handleClearFilters}
-                  clearDisabled={!hasFilters}
-                  barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_21rem_auto] lg:gap-4"
-                >
-                  <SearchField
-                    id="contracts-search"
-                    label="Buscar"
-                    fieldClassName="sm:col-span-2 lg:col-span-1"
-                    placeholder="Buscar por prestador ou CNPJ"
-                    value={search}
-                    clearable
-                    onChange={(event) => {
-                      setSearch(event.target.value);
-                      setPage(1);
-                    }}
-                    onClear={() => {
-                      setSearch("");
-                      setPage(1);
-                    }}
-                  />
-                  <fieldset className="min-w-0 space-y-1.5 sm:col-span-2 sm:space-y-2 lg:col-span-1">
-                    <legend className="text-xs font-medium leading-snug text-muted-foreground">
-                      Validade
-                    </legend>
-                    <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
-                      <span className="shrink-0 text-xs text-muted-foreground">De</span>
-                      <Input
-                        id="contracts-valid-from"
-                        type="date"
-                        aria-label="Validade de"
-                        className="min-w-0 flex-1"
-                        value={validFrom}
-                        max={validTo || undefined}
-                        onChange={(event) => {
-                          setValidFrom(event.target.value);
-                          setPage(1);
-                        }}
-                      />
-                      <span className="shrink-0 text-xs text-muted-foreground">até</span>
-                      <Input
-                        id="contracts-valid-to"
-                        type="date"
-                        aria-label="Validade até"
-                        className="min-w-0 flex-1"
-                        value={validTo}
-                        min={validFrom || undefined}
-                        onChange={(event) => {
-                          setValidTo(event.target.value);
-                          setPage(1);
-                        }}
-                      />
-                    </div>
-                  </fieldset>
-                </FilterCard>
+              ) : (
+                <>
+                  <FilterCard
+                    id="contracts-filters"
+                    variant="bar"
+                    activeCount={activeCount}
+                    onClear={handleClearFilters}
+                    clearDisabled={!hasFilters}
+                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_21rem_auto] lg:gap-4"
+                  >
+                    <SearchField
+                      id="contracts-search"
+                      label="Buscar"
+                      fieldClassName="sm:col-span-2 lg:col-span-1"
+                      placeholder="Buscar por prestador ou CNPJ"
+                      value={search}
+                      clearable
+                      onChange={(event) => {
+                        setSearch(event.target.value);
+                        setPage(1);
+                      }}
+                      onClear={() => {
+                        setSearch("");
+                        setPage(1);
+                      }}
+                    />
+                    <fieldset className="min-w-0 space-y-1.5 sm:col-span-2 sm:space-y-2 lg:col-span-1">
+                      <legend className="text-xs font-medium leading-snug text-muted-foreground">
+                        Validade
+                      </legend>
+                      <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
+                        <span className="shrink-0 text-xs text-muted-foreground">De</span>
+                        <Input
+                          id="contracts-valid-from"
+                          type="date"
+                          aria-label="Validade de"
+                          className="min-w-0 flex-1"
+                          value={validFrom}
+                          max={validTo || undefined}
+                          onChange={(event) => {
+                            setValidFrom(event.target.value);
+                            setPage(1);
+                          }}
+                        />
+                        <span className="shrink-0 text-xs text-muted-foreground">até</span>
+                        <Input
+                          id="contracts-valid-to"
+                          type="date"
+                          aria-label="Validade até"
+                          className="min-w-0 flex-1"
+                          value={validTo}
+                          min={validFrom || undefined}
+                          onChange={(event) => {
+                            setValidTo(event.target.value);
+                            setPage(1);
+                          }}
+                        />
+                      </div>
+                    </fieldset>
+                  </FilterCard>
 
-                {filteredContracts.length === 0 ? (
-                  <EmptyStateCard
-                    icon={<FileText className="size-10" aria-hidden="true" />}
-                    title="Nenhum contrato encontrado"
-                    description="Ajuste a busca ou o período de validade para ver outros resultados."
-                    action={
-                      <Button type="button" variant="outline" onClick={handleClearFilters}>
-                        Limpar filtros
-                      </Button>
-                    }
-                  />
-                ) : (
-                  <div className="mt-5 space-y-3">
-                    <h2 className="font-display text-base font-semibold tracking-tight text-foreground">
-                      Contratos cadastrados
-                    </h2>
-                    <DataTable>
-                      <DataTableDesktop>
-                        <DataTableRoot>
-                          <DataTableHeader>
-                            <tr>
-                              {COLUMNS.map((column) => (
-                                <DataTableHead
-                                  key={column}
-                                  className={column === "Ações" ? "text-right" : undefined}
-                                >
-                                  {column}
-                                </DataTableHead>
-                              ))}
-                            </tr>
-                          </DataTableHeader>
-                          <DataTableBody>
-                            {paginatedContracts.map((contract) => (
-                              <DataTableRow key={contract.id}>
-                                <DataTableCell className="font-medium">
-                                  {contract.company}
-                                </DataTableCell>
-                                <DataTableCell className="font-mono">
-                                  {contract.cnpj || "—"}
-                                </DataTableCell>
-                                <DataTableCell className="max-w-72">
-                                  <ContractFileName name={contract.file.name} />
-                                </DataTableCell>
-                                <DataTableCell>
-                                  {formatIsoToBr(contract.validUntil) || "—"}
-                                </DataTableCell>
-                                <DataTableCell>
-                                  <ContractRulesStatusBadge status={rulesStatusOf(contract.id)} />
-                                </DataTableCell>
-                                <DataTableCell className="text-right">
-                                  <ContractActions
-                                    contract={contract}
-                                    extractedDataAvailable={
-                                      rulesStatusOf(contract.id) === "available"
-                                    }
-                                    onViewExtractedData={setRulesContract}
-                                    onView={setPreviewContract}
-                                  />
-                                </DataTableCell>
-                              </DataTableRow>
-                            ))}
-                          </DataTableBody>
-                        </DataTableRoot>
-                      </DataTableDesktop>
-
-                      <DataTableCardList divided>
-                        {paginatedContracts.map((contract) => (
-                          <DataTableCard key={contract.id} flat className="space-y-1.5 py-2.5">
-                            <DataTableCardHeader title={contract.company} />
-                            <DataTableCardFields
-                              className="gap-x-4 gap-y-1"
-                              fields={[
-                                { label: "CNPJ", value: contract.cnpj || "—" },
-                                {
-                                  label: "Contrato",
-                                  value: <ContractFileName name={contract.file.name} />,
-                                },
-                                {
-                                  label: "Validade",
-                                  value: formatIsoToBr(contract.validUntil) || "—",
-                                },
-                                {
-                                  label: "Status da extração",
-                                  value: (
+                  {filteredContracts.length === 0 ? (
+                    <EmptyStateCard
+                      icon={<FileText className="size-10" aria-hidden="true" />}
+                      title="Nenhum contrato encontrado"
+                      description="Ajuste a busca ou o período de validade para ver outros resultados."
+                      action={
+                        <Button type="button" variant="outline" onClick={handleClearFilters}>
+                          Limpar filtros
+                        </Button>
+                      }
+                    />
+                  ) : (
+                    <div className="mt-5 space-y-3">
+                      <h2 className="font-display text-base font-semibold tracking-tight text-foreground">
+                        Contratos cadastrados
+                      </h2>
+                      <DataTable>
+                        <DataTableDesktop>
+                          <DataTableRoot>
+                            <DataTableHeader>
+                              <tr>
+                                {COLUMNS.map((column) => (
+                                  <DataTableHead
+                                    key={column}
+                                    className={column === "Ações" ? "text-right" : undefined}
+                                  >
+                                    {column}
+                                  </DataTableHead>
+                                ))}
+                              </tr>
+                            </DataTableHeader>
+                            <DataTableBody>
+                              {paginatedContracts.map((contract) => (
+                                <DataTableRow key={contract.id}>
+                                  <DataTableCell className="font-medium">
+                                    {contract.company}
+                                  </DataTableCell>
+                                  <DataTableCell className="font-mono">
+                                    {contract.cnpj || "—"}
+                                  </DataTableCell>
+                                  <DataTableCell className="max-w-72">
+                                    <ContractFileName name={contract.file.name} />
+                                  </DataTableCell>
+                                  <DataTableCell>
+                                    {formatIsoToBr(contract.validUntil) || "—"}
+                                  </DataTableCell>
+                                  <DataTableCell>
                                     <ContractRulesStatusBadge status={rulesStatusOf(contract.id)} />
-                                  ),
-                                },
-                              ]}
-                            />
-                            <DataTableCardActions className="-mt-0.5 justify-end">
-                              <ContractActions
-                                contract={contract}
-                                extractedDataAvailable={rulesStatusOf(contract.id) === "available"}
-                                onViewExtractedData={setRulesContract}
-                                onView={setPreviewContract}
-                              />
-                            </DataTableCardActions>
-                          </DataTableCard>
-                        ))}
-                      </DataTableCardList>
+                                  </DataTableCell>
+                                  <DataTableCell className="text-right">
+                                    <ContractActions
+                                      contract={contract}
+                                      extractedDataAvailable={
+                                        rulesStatusOf(contract.id) === "available"
+                                      }
+                                      onViewExtractedData={setRulesContract}
+                                      onView={setPreviewContract}
+                                    />
+                                  </DataTableCell>
+                                </DataTableRow>
+                              ))}
+                            </DataTableBody>
+                          </DataTableRoot>
+                        </DataTableDesktop>
 
-                      <TablePagination
-                        id="contracts"
-                        totalItems={filteredContracts.length}
-                        page={currentPage}
-                        pageSize={pageSize}
-                        onPageChange={setPage}
-                        onPageSizeChange={(size) => {
-                          setPageSize(size);
-                          setPage(1);
-                        }}
-                        className="px-4 pb-4"
-                      />
-                    </DataTable>
-                  </div>
-                )}
-              </>
-            )}
+                        <DataTableCardList divided>
+                          {paginatedContracts.map((contract) => (
+                            <DataTableCard key={contract.id} flat className="space-y-1.5 py-2.5">
+                              <DataTableCardHeader title={contract.company} />
+                              <DataTableCardFields
+                                className="gap-x-4 gap-y-1"
+                                fields={[
+                                  { label: "CNPJ", value: contract.cnpj || "—" },
+                                  {
+                                    label: "Contrato",
+                                    value: <ContractFileName name={contract.file.name} />,
+                                  },
+                                  {
+                                    label: "Validade",
+                                    value: formatIsoToBr(contract.validUntil) || "—",
+                                  },
+                                  {
+                                    label: "Status da extração",
+                                    value: (
+                                      <ContractRulesStatusBadge
+                                        status={rulesStatusOf(contract.id)}
+                                      />
+                                    ),
+                                  },
+                                ]}
+                              />
+                              <DataTableCardActions className="-mt-0.5 justify-end">
+                                <ContractActions
+                                  contract={contract}
+                                  extractedDataAvailable={
+                                    rulesStatusOf(contract.id) === "available"
+                                  }
+                                  onViewExtractedData={setRulesContract}
+                                  onView={setPreviewContract}
+                                />
+                              </DataTableCardActions>
+                            </DataTableCard>
+                          ))}
+                        </DataTableCardList>
+
+                        <TablePagination
+                          id="contracts"
+                          totalItems={filteredContracts.length}
+                          page={currentPage}
+                          pageSize={pageSize}
+                          onPageChange={setPage}
+                          onPageSizeChange={(size) => {
+                            setPageSize(size);
+                            setPage(1);
+                          }}
+                          className="px-4 pb-4"
+                        />
+                      </DataTable>
+                    </div>
+                  )}
+                </>
+              )}
             </section>
 
             {/* Ferramentas provisórias de testes: não fazem parte do produto. */}
