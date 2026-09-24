@@ -2,12 +2,21 @@ import { useRef, useState } from "react";
 import { BookMarked, Paperclip, Trash2, Upload } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
-import { Field } from "@/components/form-field";
+import { Field, SelectField } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import type { NewTussVersionInput } from "../data/tuss-versions";
+import {
+  TUSS_TABLE_NUMBERS,
+  tussTableLabel,
+  type NewTussVersionInput,
+} from "../data/tuss-versions";
+
+const TABLE_OPTIONS = TUSS_TABLE_NUMBERS.map((number) => ({
+  value: number,
+  label: tussTableLabel(number),
+}));
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
@@ -32,7 +41,7 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
   const validMonth = /^\d{4}-\d{2}$/.test(versionMonth);
   const validTable = tableName.trim() !== "";
   const canSubmit = Boolean(file) && validMonth && validTable;
-  const tableError = tableTouched && !validTable ? "Informe a tabela TUSS." : undefined;
+  const tableError = tableTouched && !validTable ? "Selecione a tabela TUSS." : undefined;
   const fileError =
     invalidFileMessage ?? (fileTouched && !file ? "Selecione o arquivo da versão." : undefined);
   const versionError =
@@ -105,16 +114,20 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
           submit();
         }}
       >
-        <Field id="tuss-table-name" label="Tabela TUSS" required error={tableError}>
-          <Input
-            value={tableName}
-            placeholder="Informe a tabela TUSS"
-            onChange={(event) => {
-              setTableTouched(true);
-              setTableName(event.target.value);
-            }}
-          />
-        </Field>
+        <SelectField
+          id="tuss-table-name"
+          label="Tabela TUSS"
+          required
+          placeholder="Selecione a tabela"
+          options={TABLE_OPTIONS}
+          triggerClassName="text-base/normal sm:text-sm/normal [&>span]:line-clamp-none [&>span]:block [&>span]:truncate"
+          value={tableName === "" ? undefined : tableName}
+          error={tableError}
+          onValueChange={(value) => {
+            setTableTouched(true);
+            setTableName(value);
+          }}
+        />
         <Field
           id="tuss-version-month"
           label="Versão"
