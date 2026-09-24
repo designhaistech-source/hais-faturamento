@@ -140,11 +140,16 @@ export function ContractsPage() {
   const [search, setSearch] = useState("");
   const [validFrom, setValidFrom] = useState("");
   const [validTo, setValidTo] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ContractRulesDisplayStatus | "all">("all");
 
-  const hasFilters = search.trim() !== "" || validFrom !== "" || validTo !== "";
-  const activeCount = [search.trim() !== "", validFrom !== "", validTo !== ""].filter(
-    Boolean,
-  ).length;
+  const hasFilters =
+    search.trim() !== "" || statusFilter !== "all" || validFrom !== "" || validTo !== "";
+  const activeCount = [
+    search.trim() !== "",
+    statusFilter !== "all",
+    validFrom !== "",
+    validTo !== "",
+  ].filter(Boolean).length;
 
   const filteredContracts = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -157,11 +162,17 @@ export function ContractsPage() {
         const matchesCnpj = termDigits.length > 0 && cnpjDigits.includes(termDigits);
         if (!matchesCompany && !matchesCnpj) return false;
       }
+      if (statusFilter !== "all") {
+        const status =
+          extractionStates[contract.id] ??
+          (rulesStatuses ? (rulesStatuses[contract.id] ?? "not_extracted") : null);
+        if (status !== statusFilter) return false;
+      }
       if (validFrom && (!contract.validUntil || contract.validUntil < validFrom)) return false;
       if (validTo && (!contract.validUntil || contract.validUntil > validTo)) return false;
       return true;
     });
-  }, [contracts, search, validFrom, validTo]);
+  }, [contracts, search, statusFilter, extractionStates, rulesStatuses, validFrom, validTo]);
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -175,6 +186,7 @@ export function ContractsPage() {
 
   function handleClearFilters() {
     setSearch("");
+    setStatusFilter("all");
     setValidFrom("");
     setValidTo("");
     setPage(1);
@@ -307,7 +319,7 @@ export function ContractsPage() {
                     activeCount={activeCount}
                     onClear={handleClearFilters}
                     clearDisabled={!hasFilters}
-                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_22rem_auto] lg:gap-4"
+                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_12rem] lg:gap-4 xl:grid-cols-[minmax(0,1fr)_12rem_22rem_auto]"
                   >
                     <SearchField
                       id="contracts-search"
@@ -322,6 +334,17 @@ export function ContractsPage() {
                       }}
                       onClear={() => {
                         setSearch("");
+                        setPage(1);
+                      }}
+                    />
+                    <SelectField
+                      id="contracts-extraction-status"
+                      label="Status da extração"
+                      className="sm:col-span-2 lg:col-span-1"
+                      value={statusFilter}
+                      options={EXTRACTION_STATUS_FILTER_OPTIONS}
+                      onValueChange={(value) => {
+                        setStatusFilter(value as ContractRulesDisplayStatus | "all");
                         setPage(1);
                       }}
                     />
@@ -560,6 +583,15 @@ export function ContractsPage() {
  * O texto identifica o estado; a cor apenas reforça. Quando acionável, o status
  * é um botão com ícone, sublinhado, foco visível e navegação por teclado.
  */
+const EXTRACTION_STATUS_FILTER_OPTIONS = [
+  { value: "all", label: "Todos os status" },
+  { value: "available", label: "Concluída" },
+  { value: "extracting", label: "Extraindo..." },
+  { value: "not_extracted", label: "Não extraída" },
+  { value: "not_identified", label: "Não identificados" },
+  { value: "failed", label: "Falha na extração" },
+];
+
 function ContractRulesStatusBadge({ status }: { status: ContractRulesDisplayStatus | null }) {
   if (status === null) {
     return <span className="text-sm text-muted-foreground">—</span>;
