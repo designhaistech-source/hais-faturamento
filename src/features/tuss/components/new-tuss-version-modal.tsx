@@ -31,37 +31,40 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
   const inputRef = useRef<HTMLInputElement>(null);
   const [tableName, setTableName] = useState("");
   const [tableTouched, setTableTouched] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [fileTouched, setFileTouched] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [invalidFileMessage, setInvalidFileMessage] = useState<string | null>(null);
 
   const validTable = tableName.trim() !== "";
-  const canSubmit = Boolean(file) && validTable;
+  const canSubmit = files.length > 0 && validTable;
   const tableError = tableTouched && !validTable ? "Selecione a tabela TUSS." : undefined;
   const fileError =
-    invalidFileMessage ?? (fileTouched && !file ? "Selecione o arquivo da tabela." : undefined);
+    invalidFileMessage ??
+    (fileTouched && files.length === 0 ? "Selecione ao menos um arquivo da tabela." : undefined);
 
-  function handleSelectedFile(selected: File | null) {
+  function addFiles(selected: FileList | null) {
     setFileTouched(true);
-    if (!selected) {
-      setInvalidFileMessage(null);
-      setFile(null);
-      return;
-    }
-    if (selected.size > MAX_FILE_SIZE_BYTES) {
-      setInvalidFileMessage("Arquivo maior que 150 MB.");
-      setFile(null);
-      return;
-    }
+    const incoming = Array.from(selected ?? []);
+    if (incoming.length === 0) return;
+    const accepted = incoming.filter((file) => file.size <= MAX_FILE_SIZE_BYTES);
+    setInvalidFileMessage(accepted.length < incoming.length ? "Arquivo maior que 150 MB." : null);
+    setFiles((previous) => {
+      const known = new Set(previous.map(fileKey));
+      return [...previous, ...accepted.filter((file) => !known.has(fileKey(file)))];
+    });
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  function removeFile(index: number) {
     setInvalidFileMessage(null);
-    setFile(selected);
+    setFiles((previous) => previous.filter((_, position) => position !== index));
   }
 
   function reset() {
     setTableName("");
     setTableTouched(false);
-    setFile(null);
+    setFiles([]);
     setFileTouched(false);
     setInvalidFileMessage(null);
     if (inputRef.current) inputRef.current.value = "";
@@ -75,8 +78,8 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
   function submit() {
     setFileTouched(true);
     setTableTouched(true);
-    if (!file || !validTable) return;
-    onCreate({ file, tableName });
+    if (files.length === 0 || !validTable) return;
+    onCreate({ files, tableName });
     reset();
     onOpenChange(false);
   }
@@ -86,7 +89,7 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
       open={open}
       onOpenChange={(next) => (next ? onOpenChange(true) : close())}
       title="Nova tabela TUSS"
-      description="Selecione a tabela TUSS e envie o arquivo correspondente."
+      description="Selecione a tabela TUSS e envie o(s) arquivo(s) correspondente(s)."
       icon={<BookMarked className="size-5" aria-hidden="true" />}
       footer={
         <>
@@ -123,110 +126,101 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
 
         <Field
           id="tuss-version-file"
-          label="Arquivo"
+          label="Arquivo(s)"
           required
           error={fileError}
-          hint="Máx. 150 MB"
+          hint="Um ou mais arquivos • Máx. 150 MB por arquivo"
           injectChildProps={false}
         >
-          <div
-            className="min-w-0"
-            onDragEnter={(event) => {
-              event.preventDefault();
-              setDragActive(true);
-            }}
-            onDragOver={(event) => {
-              event.preventDefault();
-              setDragActive(true);
-            }}
-            onDragLeave={(event) => {
-              if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
-              setDragActive(false);
-            }}
-            onDrop={(event) => {
-              event.preventDefault();
-              setDragActive(false);
-              const dropped = event.dataTransfer.files?.[0];
-              if (!dropped) return;
-              handleSelectedFile(dropped);
-              if (inputRef.current) inputRef.current.value = "";
-            }}
-          >
-            <input
-              ref={inputRef}
-              id="tuss-version-file"
-              type="file"
-              className="sr-only"
-              onChange={(event) => handleSelectedFile(event.target.files?.[0] ?? null)}
-            />
+          <div className="min-w-0 space-y-2">
+            <div
+              className={cn(
+                "flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-6 text-center transition-colors",
+                dragActive && "border-primary bg-primary-muted",
+              )}
+              onDragEnter={(event) => {
+                event.preventDefault();
+                setDragActive(true);
+              }}
+              onDragOver={(event) => {
+                event.preventDefault();
+                setDragActive(true);
+              }}
+              onDragLeave={(event) => {
+                if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+                setDragActive(false);
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                setDragActive(false);
+                addFiles(event.dataTransfer.files);
+              }}
+            >
+              <input
+                ref={inputRef}
+                id="tuss-version-file"
+                type="file"
+                multiple
+                className="sr-only"
+                onChange={(event) => addFiles(event.target.files)}
+              />
+              <Upload className="size-5 text-muted-foreground" aria-hidden="true" />
+              <p className="text-sm text-muted-foreground">Arraste e solte os arquivos aqui</p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => inputRef.current?.click()}
+              >
+                {files.length > 0 ? "Adicionar arquivos" : "Selecionar arquivos"}
+              </Button>
+            </div>
 
-            {file ? (
-              <div
-                className={cn(
-                  "flex min-w-0 flex-wrap items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-3 transition-colors",
-                  dragActive && "border-primary bg-primary-muted",
-                )}
+            {files.length > 0 && (
+              <ul
+                aria-label="Arquivos adicionados"
+                className="divide-y divide-border rounded-xl border border-border"
               >
-                <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                <TooltipProvider delayDuration={150}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span
-                        tabIndex={0}
-                        className="min-w-0 flex-1 truncate rounded-sm text-sm text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                      >
-                        {file.name}
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-80 break-all">{file.name}</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <div className="flex shrink-0 items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => inputRef.current?.click()}
-                  >
-                    Substituir
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => {
-                      handleSelectedFile(null);
-                      if (inputRef.current) inputRef.current.value = "";
-                    }}
-                  >
-                    <Trash2 className="size-4" aria-hidden="true" />
-                    Remover
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div
-                className={cn(
-                  "flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-6 text-center transition-colors",
-                  dragActive && "border-primary bg-primary-muted",
-                )}
-              >
-                <Upload className="size-5 text-muted-foreground" aria-hidden="true" />
-                <p className="text-sm text-muted-foreground">Arraste e solte o arquivo aqui</p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => inputRef.current?.click()}
-                >
-                  Selecionar arquivo
-                </Button>
-              </div>
+                {files.map((file, index) => (
+                  <li key={fileKey(file)} className="flex min-w-0 items-center gap-3 px-3 py-2">
+                    <Paperclip
+                      className="size-4 shrink-0 text-muted-foreground"
+                      aria-hidden="true"
+                    />
+                    <TooltipProvider delayDuration={150}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span
+                            tabIndex={0}
+                            className="min-w-0 flex-1 truncate rounded-sm text-sm text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                          >
+                            {file.name}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-80 break-all">{file.name}</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="shrink-0 text-destructive hover:text-destructive"
+                      aria-label={`Remover ${file.name}`}
+                      onClick={() => removeFile(index)}
+                    >
+                      <Trash2 className="size-4" aria-hidden="true" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
         </Field>
       </form>
     </AppModal>
   );
+}
+
+function fileKey(file: File): string {
+  return `${file.name}-${file.size}-${file.lastModified}`;
 }
