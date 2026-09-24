@@ -31,6 +31,7 @@ export type Database = {
           provider: string
           status: string
           unanalyzed_count: number
+          xml_content: string | null
         }
         Insert: {
           analyzed_at?: string
@@ -48,6 +49,7 @@ export type Database = {
           provider?: string
           status?: string
           unanalyzed_count?: number
+          xml_content?: string | null
         }
         Update: {
           analyzed_at?: string
@@ -65,6 +67,7 @@ export type Database = {
           provider?: string
           status?: string
           unanalyzed_count?: number
+          xml_content?: string | null
         }
         Relationships: [
           {
