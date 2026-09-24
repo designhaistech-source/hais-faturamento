@@ -239,7 +239,6 @@ export function ContractsPage() {
     mutationFn: (input: NewContractInput) => createContract(input),
     onSuccess: async (contract) => {
       await queryClient.invalidateQueries({ queryKey: contractsQueryKey });
-      toast.success("Contrato cadastrado com sucesso.");
       startRulesExtraction(contract);
     },
     onError: () => {
