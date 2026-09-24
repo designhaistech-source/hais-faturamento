@@ -115,7 +115,7 @@ export function AnalysisResultModal({ analysis, onClose }: AnalysisResultModalPr
                       {summary.divergences}{" "}
                       {summary.divergences === 1 ? "divergência" : "divergências"}
                     </SummaryPart>
-                    {(
+                    {summary.unanalyzed > 0 && (
                       <SummaryPart
                         icon={
                           <AlertTriangle className="h-3.5 w-3.5 text-warning" aria-hidden="true" />
