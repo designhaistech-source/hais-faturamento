@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, FileSearch, Paperclip, Trash2, Upload } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
+import { ErrorState, LoadingState } from "@/components/data-state";
 import { Field, SelectField, type SelectOption } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -30,8 +31,8 @@ export interface NewBillingAnalysisInput {
 interface NewBillingAnalysisModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Envio do XML + contrato: o processamento da análise será implementado depois. */
-  onSubmit?: (input: NewBillingAnalysisInput) => void;
+  /** Executa a análise; o modal permanece aberto em processamento até a promessa terminar. */
+  onSubmit: (input: NewBillingAnalysisInput) => Promise<unknown>;
 }
 
 /** Envio do arquivo XML TISS e do contrato usado na análise de faturamento. */
@@ -48,6 +49,8 @@ export function NewBillingAnalysisModal({
   const [dragActive, setDragActive] = useState(false);
   const [invalidFileMessage, setInvalidFileMessage] = useState<string | null>(null);
   const [rulesModalOpen, setRulesModalOpen] = useState(false);
+  const [phase, setPhase] = useState<"form" | "processing" | "error">("form");
+  const isProcessing = phase === "processing";
 
   const contractsQuery = useQuery<Contract[]>({
     queryKey: contractsQueryKey,
@@ -132,22 +135,30 @@ export function NewBillingAnalysisModal({
     setContractId("");
     setContractTouched(false);
     setInvalidFileMessage(null);
+    setPhase("form");
     if (inputRef.current) inputRef.current.value = "";
   }
 
   function close() {
+    if (isProcessing) return;
     reset();
     onOpenChange(false);
   }
 
-  function submit() {
+  async function submit() {
+    if (isProcessing) return;
     setFileTouched(true);
     setContractTouched(true);
     const contract = contracts.find((item) => item.id === contractId);
     if (!file || !contract || !rulesReady) return;
-    onSubmit?.({ file, contractId: contract.id, contractCompany: contract.company });
-    reset();
-    onOpenChange(false);
+    setPhase("processing");
+    try {
+      await onSubmit({ file, contractId: contract.id, contractCompany: contract.company });
+      reset();
+      onOpenChange(false);
+    } catch {
+      setPhase("error");
+    }
   }
 
   return (
@@ -158,22 +169,42 @@ export function NewBillingAnalysisModal({
         title="Nova análise de faturamento"
         description="Selecione o contrato e envie o arquivo XML TISS que deseja analisar."
         icon={<FileSearch className="size-5" aria-hidden="true" />}
+        hideCloseButton={isProcessing}
         footer={
+          isProcessing ? undefined : phase === "error" ? (
+            <Button type="button" variant="outline" size="sm" onClick={close}>
+              Cancelar
+            </Button>
+          ) : (
           <>
             <Button type="button" variant="outline" size="sm" onClick={close}>
               Cancelar
             </Button>
-            <Button type="button" size="sm" disabled={!canSubmit} onClick={submit}>
+            <Button type="button" size="sm" disabled={!canSubmit} onClick={() => void submit()}>
               Analisar
             </Button>
           </>
+          )
         }
       >
+        {isProcessing ? (
+          <LoadingState
+            title="Analisando o faturamento"
+            description="Estamos comparando os itens do XML com as regras do contrato e as bases de precificação. Isso pode levar alguns instantes."
+          />
+        ) : phase === "error" ? (
+          <ErrorState
+            title="Não foi possível concluir a análise"
+            description="Ocorreu uma falha ao processar o XML. Verifique o arquivo e tente novamente."
+            retryLabel="Tentar novamente"
+            onRetry={() => void submit()}
+          />
+        ) : (
         <form
           className="space-y-4"
           onSubmit={(event) => {
             event.preventDefault();
-            submit();
+            void submit();
           }}
         >
           <SelectField
