@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Eye, FileSearch, Plus } from "lucide-react";
+import { Download, Eye, FileSearch, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -36,6 +36,9 @@ import {
   type NewBillingAnalysisInput,
 } from "./new-billing-analysis-modal";
 import { AnalysisResultModal } from "./analysis-result-modal";
+import { XmlPreviewModal } from "./xml-preview-modal";
+import { getAnalysisXml } from "../data/billing-analyses-service";
+import { downloadXml } from "../data/xml-preview";
 import {
   analysisResultBadgeVariant,
   analysisResultLabel,
@@ -65,6 +68,7 @@ const COLUMNS = [
 export function BillingAnalysisPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [resultAnalysis, setResultAnalysis] = useState<BillingAnalysis | null>(null);
+  const [xmlAnalysis, setXmlAnalysis] = useState<BillingAnalysis | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
@@ -189,7 +193,7 @@ export function BillingAnalysisPage() {
                                 />
                               </DataTableCell>
                               <DataTableCell className="text-right">
-                                <AnalysisActions analysis={analysis} />
+                                <AnalysisActions analysis={analysis} onView={setXmlAnalysis} />
                               </DataTableCell>
                             </DataTableRow>
                           ))}
@@ -219,7 +223,7 @@ export function BillingAnalysisPage() {
                             ]}
                           />
                           <DataTableCardActions className="-mt-0.5 justify-end">
-                            <AnalysisActions analysis={analysis} />
+                            <AnalysisActions analysis={analysis} onView={setXmlAnalysis} />
                           </DataTableCardActions>
                         </DataTableCard>
                       ))}
@@ -253,6 +257,7 @@ export function BillingAnalysisPage() {
         onSubmit={handleSubmit}
       />
       <AnalysisResultModal analysis={resultAnalysis} onClose={() => setResultAnalysis(null)} />
+      <XmlPreviewModal analysis={xmlAnalysis} onClose={() => setXmlAnalysis(null)} />
     </TooltipProvider>
   );
 }
@@ -338,23 +343,60 @@ function AnalysisResultBadge({
   );
 }
 
-/** Ações da linha: visualizar o resultado detalhado (interface na próxima etapa). */
-function AnalysisActions({ analysis }: { analysis: BillingAnalysis }) {
+/** Ações da linha, relacionadas ao arquivo XML original da análise. */
+function AnalysisActions({
+  analysis,
+  onView,
+}: {
+  analysis: BillingAnalysis;
+  onView: (analysis: BillingAnalysis) => void;
+}) {
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      const xml = await getAnalysisXml(analysis.id);
+      if (!xml) {
+        toast.error("O XML original desta análise não está disponível.");
+        return;
+      }
+      downloadXml(analysis.fileName, xml);
+    } catch {
+      toast.error("Não foi possível baixar o XML.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <div className="inline-flex items-center gap-1">
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button asChild variant="ghost" size="icon">
-            <Link
-              to="/analise-faturamento/$analysisId"
-              params={{ analysisId: analysis.id }}
-              aria-label={`Visualizar análise completa de ${analysis.fileName}`}
-            >
-              <Eye className="size-4" aria-hidden="true" />
-            </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={`Visualizar XML ${analysis.fileName}`}
+            onClick={() => onView(analysis)}
+          >
+            <Eye className="size-4" aria-hidden="true" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Visualizar análise completa</TooltipContent>
+        <TooltipContent>Visualizar XML</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={`Baixar XML ${analysis.fileName}`}
+            disabled={downloading}
+            onClick={() => void handleDownload()}
+          >
+            <Download className="size-4" aria-hidden="true" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Baixar XML</TooltipContent>
       </Tooltip>
     </div>
   );

@@ -67,7 +67,12 @@ export function formatXml(text: string): string {
     if (token.startsWith("</")) {
       depth = Math.max(depth - 1, 0);
       lines.push("  ".repeat(depth) + token);
-    } else if (token.startsWith("<") && !token.startsWith("<?") && !token.startsWith("<!") && !token.endsWith("/>")) {
+    } else if (
+      token.startsWith("<") &&
+      !token.startsWith("<?") &&
+      !token.startsWith("<!") &&
+      !token.endsWith("/>")
+    ) {
       const text = tokens[i + 1];
       const close = tokens[i + 2];
       if (text && !text.startsWith("<") && close?.startsWith("</")) {
