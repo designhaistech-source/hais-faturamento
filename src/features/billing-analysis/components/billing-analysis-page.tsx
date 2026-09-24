@@ -88,15 +88,15 @@ export function BillingAnalysisPage() {
       await queryClient.invalidateQueries({ queryKey: billingAnalysesQueryKey });
       toast.success("Análise concluída.");
     },
-    onError: async (cause: unknown) => {
+    // A falha é comunicada dentro do modal, que oferece "Tentar novamente".
+    onError: async () => {
       await queryClient.invalidateQueries({ queryKey: billingAnalysesQueryKey });
-      toast.error(cause instanceof Error ? cause.message : "Não foi possível concluir a análise.");
     },
   });
 
   function handleSubmit(input: NewBillingAnalysisInput) {
     setPage(1);
-    analyzeMutation.mutate(input);
+    return analyzeMutation.mutateAsync(input);
   }
 
   return (
