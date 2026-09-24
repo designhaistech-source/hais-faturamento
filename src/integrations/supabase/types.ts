@@ -81,6 +81,7 @@ export type Database = {
           adjustment_percent: number | null
           analysis_id: string
           calculation: string | null
+          category: string
           code: string
           created_at: string
           description: string
@@ -104,6 +105,7 @@ export type Database = {
           adjustment_percent?: number | null
           analysis_id: string
           calculation?: string | null
+          category?: string
           code?: string
           created_at?: string
           description?: string
@@ -127,6 +129,7 @@ export type Database = {
           adjustment_percent?: number | null
           analysis_id?: string
           calculation?: string | null
+          category?: string
           code?: string
           created_at?: string
           description?: string

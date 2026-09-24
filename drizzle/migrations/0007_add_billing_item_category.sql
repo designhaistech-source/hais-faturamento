@@ -1,0 +1,1 @@
+ALTER TABLE public.billing_analysis_items ADD COLUMN IF NOT EXISTS category text NOT NULL DEFAULT '';

@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import type { ContractRule } from "@/features/contracts/data/contract-rules";
-import type { PricingBaseType, PricingVersion } from "@/features/pricing-base/data/pricing-versions";
+import type {
+  PricingBaseType,
+  PricingVersion,
+} from "@/features/pricing-base/data/pricing-versions";
 
 import { analyzeBilling } from "./analysis-engine";
 import { parsePricingCsv, type PricingBaseLookup } from "./pricing-lookup";
@@ -72,18 +75,85 @@ describe("analyzeBilling", () => {
     expect(byCode.M1).toMatchObject({ status: "divergent", expectedValue: 85, difference: 15 });
     expect(byCode.X1).toMatchObject({ status: "ok", expectedValue: 180, difference: 0 });
     expect(byCode.P1).toMatchObject({ status: "divergent", expectedValue: 300, difference: -20 });
-    expect(byCode.PK1).toMatchObject({ status: "ok", expectedValue: 850, referenceType: "contract" });
+    expect(byCode.PK1).toMatchObject({
+      status: "ok",
+      expectedValue: 850,
+      referenceType: "contract",
+    });
     expect(result.totals).toMatchObject({ itemCount: 4, divergenceCount: 2, unanalyzedCount: 0 });
   });
 
   it("registra motivo quando a regra está fora da vigência ou o código não existe", () => {
     const items = [
-      { lineNumber: 1, code: "M1", description: "", quantity: 1, unitValue: 100, totalValue: 100, executedAt: "2027-02-01", category: "medicamentos" },
-      { lineNumber: 2, code: "M9", description: "", quantity: 1, unitValue: 10, totalValue: 10, executedAt: "2026-02-01", category: "medicamentos" },
+      {
+        lineNumber: 1,
+        code: "M1",
+        description: "",
+        quantity: 1,
+        unitValue: 100,
+        totalValue: 100,
+        executedAt: "2027-02-01",
+        category: "medicamentos",
+      },
+      {
+        lineNumber: 2,
+        code: "M9",
+        description: "",
+        quantity: 1,
+        unitValue: 10,
+        totalValue: 10,
+        executedAt: "2026-02-01",
+        category: "medicamentos",
+      },
     ];
     const result = analyzeBilling(items, rules, bases);
     expect(result.items[0]).toMatchObject({ status: "unanalyzed", expectedValue: null });
     expect(result.items[0].reason).toContain("vigência");
     expect(result.items[1].reason).toContain("Código não encontrado");
+  });
+
+  it("usa outra regra vigente quando a base da categoria não contém o código", () => {
+    const items = [
+      {
+        lineNumber: 1,
+        code: "M1",
+        description: "",
+        quantity: 1,
+        unitValue: 100,
+        totalValue: 100,
+        executedAt: "2026-03-10",
+        category: "procedimentos",
+      },
+    ];
+    const result = analyzeBilling(items, rules, bases);
+    expect(result.items[0]).toMatchObject({
+      status: "divergent",
+      expectedValue: 85,
+      referenceType: "brasindice",
+      category: "procedimentos",
+    });
+  });
+
+  it("marca ambiguidade quando o código existe em mais de uma base aplicável", () => {
+    const ambiguous = new Map([
+      base("brasindice", "Código,Valor\nZ1,10"),
+      base("simpro", "Código,Valor\nZ1,20"),
+      base("cbhpm", "Código,Valor\nP1,300"),
+    ]);
+    const items = [
+      {
+        lineNumber: 1,
+        code: "Z1",
+        description: "",
+        quantity: 1,
+        unitValue: 10,
+        totalValue: 10,
+        executedAt: "2026-03-10",
+        category: "procedimentos",
+      },
+    ];
+    const result = analyzeBilling(items, rules, ambiguous);
+    expect(result.items[0].status).toBe("unanalyzed");
+    expect(result.items[0].reason).toContain("ambígua");
   });
 });
