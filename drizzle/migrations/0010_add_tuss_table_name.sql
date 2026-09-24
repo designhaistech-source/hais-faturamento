@@ -1,0 +1,1 @@
+ALTER TABLE public.tuss_versions ADD COLUMN table_name TEXT NOT NULL DEFAULT '';
