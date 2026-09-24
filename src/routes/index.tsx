@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Database, FileText } from "lucide-react";
+import { Database, FileCheck2, FileText } from "lucide-react";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteFooter } from "@/components/site-footer";
@@ -47,6 +47,13 @@ const FEATURES = [
     to: "/base-precificacao",
     action: "Acessar",
   },
+  {
+    icon: FileCheck2,
+    title: "Análise de faturamento",
+    description: "Analise arquivos XML TISS e identifique divergências nos valores faturados.",
+    to: "/analise-faturamento",
+    action: "Acessar",
+  },
 ] as const;
 
 function HomePage() {
@@ -60,7 +67,7 @@ function HomePage() {
             description="Antecipe inconsistências no faturamento antes do envio à operadora."
           />
 
-          <div className="grid gap-4 pt-2 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 pt-2 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((item) => (
               <FeatureCard key={item.to} {...item} />
             ))}
@@ -77,7 +84,8 @@ function FeatureCard({ icon: Icon, title, description, to, action }: (typeof FEA
   return (
     <SurfaceCard
       padding="sm"
-      className="flex flex-col items-start gap-0 transition-colors hover:border-primary/40 hover:shadow-sm"
+      className="flex h-full flex-col transition-colors hover:border-primary/40 hover:shadow-sm"
+      bodyClassName="flex flex-1 flex-col items-start"
     >
       <span className="inline-flex size-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
         <Icon className="size-6" aria-hidden="true" />
@@ -85,8 +93,8 @@ function FeatureCard({ icon: Icon, title, description, to, action }: (typeof FEA
       <h2 className="mt-4 font-display text-base font-semibold tracking-tight text-foreground">
         {title}
       </h2>
-      <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-      <Button variant="outline" size="sm" className="mt-4" asChild>
+      <p className="mt-2 mb-4 text-sm text-muted-foreground">{description}</p>
+      <Button variant="outline" size="sm" className="mt-auto" asChild>
         <Link to={to}>{action}</Link>
       </Button>
     </SurfaceCard>
