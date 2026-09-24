@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import { AlertTriangle, Check, ChevronDown, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 import { AppModal } from "@/components/app-modal";
@@ -13,6 +14,7 @@ import {
   formatCurrency,
   formatDecimal,
   getAnalysisDetails,
+  summarizeItems,
   referenceLabel,
   type AnalysisItemDetail,
 } from "../data/analysis-details";
@@ -26,6 +28,7 @@ interface AnalysisResultModalProps {
 /** Consulta rápida dos itens que exigem atenção (divergências e não analisados). */
 export function AnalysisResultModal({ analysis, onClose }: AnalysisResultModalProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [showConforming, setShowConforming] = useState(false);
   const toggle = (id: string) =>
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -33,8 +36,6 @@ export function AnalysisResultModal({ analysis, onClose }: AnalysisResultModalPr
       else next.add(id);
       return next;
     });
-  const showDivergent = (analysis?.divergenceCount ?? 0) > 0;
-  const showUnanalyzed = (analysis?.unanalyzedCount ?? 0) > 0;
 
   const query = useQuery({
     queryKey: analysisDetailsQueryKey(analysis?.id ?? ""),
@@ -42,11 +43,14 @@ export function AnalysisResultModal({ analysis, onClose }: AnalysisResultModalPr
     enabled: analysis !== null,
   });
 
-  const items = (query.data?.items ?? []).filter(
-    (item) =>
-      (showDivergent && item.status === "divergent") ||
-      (showUnanalyzed && item.status === "unanalyzed"),
-  );
+  const allItems = query.data?.items ?? [];
+  const items = allItems.filter((item) => item.status !== "ok");
+  const conforming = allItems.filter((item) => item.status === "ok");
+  const summary = summarizeItems(allItems);
+  const reset = () => {
+    setExpanded(new Set());
+    setShowConforming(false);
+  };
 
   return (
     <>
@@ -54,7 +58,7 @@ export function AnalysisResultModal({ analysis, onClose }: AnalysisResultModalPr
         open={analysis !== null}
         onOpenChange={(open) => {
           if (!open) {
-            setExpanded(new Set());
+            reset();
             onClose();
           }
         }}
@@ -66,7 +70,7 @@ export function AnalysisResultModal({ analysis, onClose }: AnalysisResultModalPr
             type="button"
             variant="outline"
             onClick={() => {
-              setExpanded(new Set());
+              reset();
               onClose();
             }}
           >
@@ -91,39 +95,135 @@ export function AnalysisResultModal({ analysis, onClose }: AnalysisResultModalPr
                 onRetry={() => void query.refetch()}
               />
             ) : (
-              <ul className="divide-y divide-border rounded-xl border border-border">
-                {items.map((item) => (
-                  <li key={item.id} className="space-y-2 px-4 py-3">
-                    <div className="flex min-w-0 items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="font-mono text-xs text-muted-foreground">{item.code}</p>
-                        <p className="break-words text-sm font-medium text-foreground">
-                          {item.description}
-                        </p>
-                      </div>
-                      <ItemStatusBadge status={item.status} />
-                    </div>
-                    <dl className="grid grid-cols-1 gap-2 text-xs min-[380px]:grid-cols-3">
-                      <Info label="Faturado" value={formatCurrency(item.billedValue)} mono />
-                      <Info label="Esperado" value={expectedOf(item)} mono />
-                      <Info label="Diferença" value={differenceOf(item)} mono />
-                    </dl>
-                    {item.status === "unanalyzed" && (
-                      <p className="rounded-md bg-warning-muted px-3 py-2 text-xs text-foreground">
-                        <span className="font-medium">Motivo: </span>
-                        {item.reason ?? "Informações insuficientes para o cálculo."}
+              <div className="space-y-5">
+                <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-foreground">
+                  <span className="font-medium">
+                    {summary.total} {summary.total === 1 ? "item" : "itens"}
+                  </span>
+                  <SummaryPart
+                    icon={<Check className="h-3.5 w-3.5 text-success" aria-hidden="true" />}
+                  >
+                    {summary.matches} {summary.matches === 1 ? "conforme" : "conformes"}
+                  </SummaryPart>
+                  <SummaryPart
+                    icon={<X className="h-3.5 w-3.5 text-destructive" aria-hidden="true" />}
+                  >
+                    {summary.divergences}{" "}
+                    {summary.divergences === 1 ? "divergência" : "divergências"}
+                  </SummaryPart>
+                  {summary.unanalyzed > 0 && (
+                    <SummaryPart
+                      icon={
+                        <AlertTriangle className="h-3.5 w-3.5 text-warning" aria-hidden="true" />
+                      }
+                    >
+                      {summary.unanalyzed} não{" "}
+                      {summary.unanalyzed === 1 ? "analisado" : "analisados"}
+                    </SummaryPart>
+                  )}
+                </p>
+
+                {items.length > 0 && (
+                  <section aria-labelledby="attention-title" className="space-y-2">
+                    <h3 id="attention-title" className="text-sm font-semibold text-foreground">
+                      Itens que exigem atenção
+                    </h3>
+                    <ul className="divide-y divide-border rounded-xl border border-border">
+                      {items.map((item) => (
+                        <li key={item.id} className="space-y-2 px-4 py-3">
+                          <div className="flex min-w-0 items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="font-mono text-xs text-muted-foreground">{item.code}</p>
+                              <p className="break-words text-sm font-medium text-foreground">
+                                {item.description}
+                              </p>
+                            </div>
+                            <ItemStatusBadge status={item.status} />
+                          </div>
+                          <dl className="grid grid-cols-1 gap-2 text-xs min-[380px]:grid-cols-3">
+                            <Info label="Faturado" value={formatCurrency(item.billedValue)} mono />
+                            <Info label="Esperado" value={expectedOf(item)} mono />
+                            <Info label="Diferença" value={differenceOf(item)} mono />
+                          </dl>
+                          {item.status === "unanalyzed" && (
+                            <p className="rounded-md bg-warning-muted px-3 py-2 text-xs text-foreground">
+                              <span className="font-medium">Motivo: </span>
+                              {item.reason ?? "Informações insuficientes para o cálculo."}
+                            </p>
+                          )}
+                          {item.status === "divergent" && (
+                            <RuleSummary
+                              item={item}
+                              expanded={expanded.has(item.id)}
+                              onToggle={() => toggle(item.id)}
+                            />
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+
+                {conforming.length > 0 && (
+                  <section className="rounded-xl border border-border">
+                    <div className="flex items-center justify-between gap-3 px-4 py-3">
+                      <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <Check className="h-4 w-4 text-success" aria-hidden="true" />
+                        {conforming.length}{" "}
+                        {conforming.length === 1 ? "item conforme" : "itens conformes"}
                       </p>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        aria-expanded={showConforming}
+                        aria-controls="conforming-items"
+                        onClick={() => setShowConforming((v) => !v)}
+                      >
+                        {showConforming ? "Ocultar itens" : "Ver itens"}
+                        <ChevronDown
+                          className={
+                            showConforming
+                              ? "h-4 w-4 rotate-180 transition-transform motion-reduce:transition-none"
+                              : "h-4 w-4 transition-transform motion-reduce:transition-none"
+                          }
+                          aria-hidden="true"
+                        />
+                      </Button>
+                    </div>
+                    {showConforming && (
+                      <ul
+                        id="conforming-items"
+                        className="divide-y divide-border border-t border-border"
+                      >
+                        {conforming.map((item) => (
+                          <li key={item.id} className="space-y-2 px-4 py-3">
+                            <div className="flex min-w-0 items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="font-mono text-xs text-muted-foreground">
+                                  {item.code}
+                                </p>
+                                <p className="break-words text-sm text-foreground">
+                                  {item.description}
+                                </p>
+                              </div>
+                              <ItemStatusBadge status={item.status} />
+                            </div>
+                            <dl className="grid grid-cols-2 gap-2 text-xs">
+                              <Info
+                                label="Faturado"
+                                value={formatCurrency(item.billedValue)}
+                                mono
+                              />
+                              <Info label="Esperado" value={expectedOf(item)} mono />
+                            </dl>
+                          </li>
+                        ))}
+                      </ul>
                     )}
-                    {item.status === "divergent" && (
-                      <RuleSummary
-                        item={item}
-                        expanded={expanded.has(item.id)}
-                        onToggle={() => toggle(item.id)}
-                      />
-                    )}
-                  </li>
-                ))}
-              </ul>
+                  </section>
+                )}
+              </div>
             )}
           </div>
         )}
@@ -215,5 +315,15 @@ function CalcRow({ label, value }: { label: string; value: string }) {
       <dt className="text-muted-foreground">{label}:</dt>
       <dd className="break-words font-mono text-foreground">{value}</dd>
     </div>
+  );
+}
+
+function SummaryPart({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1 text-muted-foreground">
+      <span aria-hidden="true">·</span>
+      {icon}
+      {children}
+    </span>
   );
 }

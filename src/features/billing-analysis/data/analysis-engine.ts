@@ -12,7 +12,7 @@ import type { PricingBaseType } from "@/features/pricing-base/data/pricing-versi
 import { normalizeCode, type PricingBaseLookup } from "./pricing-lookup";
 import type { TissItem } from "./tiss-xml";
 
-/** "ok" = Match, "divergent" = Divergência, "unanalyzed" = Não analisado. */
+/** "ok" = Conforme, "divergent" = Divergência, "unanalyzed" = Não analisado. */
 export type AnalysisItemStatus = "ok" | "divergent" | "unanalyzed";
 
 export interface AnalysisItemResult {

@@ -1,6 +1,15 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, Eye, FileSearch, ListChecks, XCircle } from "lucide-react";
+import {
+  AlertTriangle,
+  Check,
+  CheckCircle2,
+  Eye,
+  FileSearch,
+  ListChecks,
+  X,
+  XCircle,
+} from "lucide-react";
 import type { ReactNode } from "react";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -55,7 +64,7 @@ type ResultFilter = "all" | AnalysisItemStatus;
 
 const RESULT_OPTIONS = [
   { value: "all", label: "Todos" },
-  { value: "ok", label: "Matches" },
+  { value: "ok", label: "Conformes" },
   { value: "divergent", label: "Divergências" },
   { value: "unanalyzed", label: "Não analisados" },
 ];
@@ -183,7 +192,7 @@ export function AnalysisDetailsPage({ analysisId }: { analysisId: string }) {
                     />
                     <SummaryTile
                       icon={<CheckCircle2 className="size-4 text-success" />}
-                      label="Matches"
+                      label="Conformes"
                       value={summary.matches}
                     />
                     <SummaryTile
@@ -386,6 +395,7 @@ function SummaryTile({ icon, label, value }: { icon: ReactNode; label: string; v
 export function ItemStatusBadge({ status }: { status: AnalysisItemStatus }) {
   return (
     <Badge variant={ITEM_STATUS_BADGE[status]} size="sm" className="shrink-0">
+      <ItemStatusIcon status={status} />
       {ITEM_STATUS_LABEL[status]}
     </Badge>
   );
@@ -534,4 +544,9 @@ function DetailRow({ label, value, mono }: { label: string; value: string; mono?
       </dd>
     </div>
   );
+}
+
+export function ItemStatusIcon({ status }: { status: AnalysisItemStatus }) {
+  const Icon = status === "ok" ? Check : status === "divergent" ? X : AlertTriangle;
+  return <Icon className="h-3 w-3" aria-hidden="true" />;
 }

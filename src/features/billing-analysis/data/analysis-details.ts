@@ -110,7 +110,7 @@ export function summarizeItems(items: AnalysisItemDetail[]): AnalysisSummary {
 }
 
 export const ITEM_STATUS_LABEL: Record<AnalysisItemStatus, string> = {
-  ok: "Match",
+  ok: "Conforme",
   divergent: "Divergência",
   unanalyzed: "Não analisado",
 };
