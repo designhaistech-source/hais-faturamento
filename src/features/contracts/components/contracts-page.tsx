@@ -117,11 +117,11 @@ export function ContractsPage() {
   // "Revisar regras" do aviso global chega pela URL e abre o modal do contrato.
   useEffect(() => {
     const id = reviewRequest.revisarRegras;
-    const target = id ? contracts?.find((item) => item.id === id) : undefined;
+    const target = id ? storedContracts.find((item) => item.id === id) : undefined;
     if (!target) return;
     setRulesContract(target);
     void navigate({ to: "/contratos", search: {}, replace: true });
-  }, [reviewRequest.revisarRegras, contracts, navigate]);
+  }, [reviewRequest.revisarRegras, storedContracts, navigate]);
 
   const [simulateEmpty, setSimulateEmpty] = useState(false);
   const contracts = simulateEmpty ? [] : storedContracts;
@@ -558,8 +558,8 @@ function ContractRulesStatusBadge({
       : status === "pending_review"
         ? "info-soft"
         : status === "failed"
-            ? "destructive-soft"
-            : "secondary";
+          ? "destructive-soft"
+          : "secondary";
   const label = contractRulesStatusLabel(status);
   const StatusIcon =
     status === "reviewed"
