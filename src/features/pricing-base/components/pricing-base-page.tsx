@@ -471,7 +471,6 @@ function CurrentBadge() {
   );
 }
 
-
 /** Nome do arquivo truncado, com o valor completo em tooltip (mouse e teclado). */
 function VersionFileName({ name }: { name: string }) {
   return (

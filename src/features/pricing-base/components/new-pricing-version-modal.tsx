@@ -137,7 +137,6 @@ export function NewPricingVersionModal({
           }}
         />
 
-
         <Field
           id="pricing-version-file"
           label="Arquivo CSV ou TXT"
