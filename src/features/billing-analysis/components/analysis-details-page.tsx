@@ -145,7 +145,10 @@ export function AnalysisDetailsPage({ analysisId }: { analysisId: string }) {
                   <dl className="grid grid-cols-1 gap-4 text-sm min-[380px]:grid-cols-2 lg:grid-cols-4">
                     <InfoField label="Contrato" value={analysis.contractCompany || "—"} />
                     <InfoField label="Prestador" value={analysis.provider || UNIDENTIFIED_LABEL} />
-                    <InfoField label="Operadora" value={analysis.healthPlan || UNIDENTIFIED_LABEL} />
+                    <InfoField
+                      label="Operadora"
+                      value={analysis.healthPlan || UNIDENTIFIED_LABEL}
+                    />
                     <InfoField
                       label="Data da análise"
                       value={formatAnalysisDateTime(analysis.analyzedAt)}
@@ -272,8 +275,12 @@ export function AnalysisDetailsPage({ analysisId }: { analysisId: string }) {
                           <DataTableBody>
                             {paginated.map((item) => (
                               <DataTableRow key={item.id}>
-                                <DataTableCell className="font-mono text-xs">{item.code}</DataTableCell>
-                                <DataTableCell className="max-w-80">{item.description}</DataTableCell>
+                                <DataTableCell className="font-mono text-xs">
+                                  {item.code}
+                                </DataTableCell>
+                                <DataTableCell className="max-w-80">
+                                  {item.description}
+                                </DataTableCell>
                                 <DataTableCell className="text-right font-mono text-xs">
                                   {formatCurrency(item.billedValue)}
                                 </DataTableCell>
@@ -506,7 +513,13 @@ function DetailRow({ label, value, mono }: { label: string; value: string; mono?
   return (
     <div className="grid grid-cols-1 gap-1 px-4 py-2.5 text-sm sm:grid-cols-[12rem_minmax(0,1fr)] sm:gap-3">
       <dt className="text-xs font-medium text-muted-foreground sm:text-sm">{label}</dt>
-      <dd className={mono ? "break-words font-mono text-xs text-foreground sm:text-sm" : "break-words text-foreground"}>
+      <dd
+        className={
+          mono
+            ? "break-words font-mono text-xs text-foreground sm:text-sm"
+            : "break-words text-foreground"
+        }
+      >
         {value}
       </dd>
     </div>
