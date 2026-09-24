@@ -267,18 +267,52 @@ function AnalysisFileName({ name }: { name: string }) {
 }
 
 /** Resultado da análise, com o detalhe dos itens não analisados em tooltip. */
-function AnalysisResultBadge({ analysis }: { analysis: BillingAnalysis }) {
+function AnalysisResultBadge({
+  analysis,
+  onOpen,
+}: {
+  analysis: BillingAnalysis;
+  onOpen: (analysis: BillingAnalysis) => void;
+}) {
+  const hasDivergent = analysis.divergenceCount > 0;
+  const hasUnanalyzed = analysis.unanalyzedCount > 0;
+  const actionable = analysis.status === "completed" && (hasDivergent || hasUnanalyzed);
+
+  const badge = (
+    <Badge variant={analysisResultBadgeVariant(analysis)} size="sm" className="shrink-0">
+      {analysisResultLabel(analysis)}
+    </Badge>
+  );
+
+  if (actionable) {
+    const hint =
+      hasDivergent && hasUnanalyzed
+        ? "Ver itens que exigem atenção"
+        : hasDivergent
+          ? "Ver divergências"
+          : "Ver itens não analisados";
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            onClick={() => onOpen(analysis)}
+            aria-label={`${analysisResultLabel(analysis)}. ${hint}`}
+            className="inline-flex cursor-pointer rounded-full outline-none transition hover:opacity-80 hover:shadow-xs focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+          >
+            {badge}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>{hint}</TooltipContent>
+      </Tooltip>
+    );
+  }
+
   const detail =
     analysis.status === "failed"
       ? (analysis.errorMessage ?? "A análise não pôde ser concluída.")
       : analysis.status === "completed"
-        ? `${analysis.itemCount} ${analysis.itemCount === 1 ? "item lido" : "itens lidos"}${
-            analysis.unanalyzedCount > 0
-              ? ` · ${analysis.unanalyzedCount} não ${
-                  analysis.unanalyzedCount === 1 ? "analisado" : "analisados"
-                }`
-              : ""
-          }`
+        ? `${analysis.itemCount} ${analysis.itemCount === 1 ? "item lido" : "itens lidos"}`
         : "Processando o arquivo enviado.";
 
   return (
@@ -288,9 +322,7 @@ function AnalysisResultBadge({ analysis }: { analysis: BillingAnalysis }) {
           tabIndex={0}
           className="inline-flex rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Badge variant={analysisResultBadgeVariant(analysis)} size="sm" className="shrink-0">
-            {analysisResultLabel(analysis)}
-          </Badge>
+          {badge}
         </span>
       </TooltipTrigger>
       <TooltipContent className="max-w-80">{detail}</TooltipContent>
