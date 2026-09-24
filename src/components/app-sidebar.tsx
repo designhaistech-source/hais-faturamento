@@ -238,20 +238,20 @@ function SidebarNav({
           onNavigate={onNavigate}
         />
         <SidebarItem
-          icon={Database}
-          label="Base de precificação"
-          to="/base-precificacao"
-          active={activeKey === "base-precificacao"}
-          hint="Versões da base de valores utilizada na análise do faturamento."
-          collapsed={collapsed}
-          onNavigate={onNavigate}
-        />
-        <SidebarItem
           icon={BookMarked}
           label="TUSS"
           to="/tuss"
           active={activeKey === "tuss"}
           hint="Versões da TUSS utilizadas na identificação e classificação dos itens do faturamento."
+          collapsed={collapsed}
+          onNavigate={onNavigate}
+        />
+        <SidebarItem
+          icon={Database}
+          label="Base de precificação"
+          to="/base-precificacao"
+          active={activeKey === "base-precificacao"}
+          hint="Versões da base de valores utilizada na análise do faturamento."
           collapsed={collapsed}
           onNavigate={onNavigate}
         />
