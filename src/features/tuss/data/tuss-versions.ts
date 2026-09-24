@@ -57,3 +57,19 @@ export function currentTussTableIds(versions: TussVersion[]): Set<string> {
   }
   return new Set(current.values());
 }
+
+/**
+ * Numbered TUSS tables offered in the registration select. Only the table number
+ * is stored; each number keeps its own version history.
+ */
+export const TUSS_TABLE_NUMBERS = [
+  "18",
+  "19",
+  "20",
+  "22",
+  ...Array.from({ length: 87 - 23 + 1 }, (_, index) => String(23 + index)),
+] as const;
+
+export function tussTableLabel(tableName: string): string {
+  return /^\d+$/.test(tableName) ? `Tabela ${tableName}` : tableName || "—";
+}
