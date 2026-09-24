@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { CircleCheck, LoaderCircle, TriangleAlert, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -14,6 +22,8 @@ export interface BackgroundTaskOutcome extends TaskMessage {
 
 /** Descrição de uma tarefa longa: textos de cada estado e o trabalho a executar. */
 export interface BackgroundTaskDefinition {
+  /** Identifica o tipo de processamento, p. ex. para desabilitar ações do mesmo tipo. */
+  kind: string;
   fileName: string;
   processing: TaskMessage;
   failure: TaskMessage;
@@ -22,14 +32,14 @@ export interface BackgroundTaskDefinition {
   retryable?: boolean;
 }
 
-type TaskState =
-  | { status: "idle" }
+type TaskState = { id: number } & (
   | { status: "processing"; task: BackgroundTaskDefinition }
   | { status: "completed"; task: BackgroundTaskDefinition; outcome: BackgroundTaskOutcome }
-  | { status: "failed"; task: BackgroundTaskDefinition };
+  | { status: "failed"; task: BackgroundTaskDefinition }
+);
 
 interface BackgroundTaskContextValue {
-  isProcessing: boolean;
+  isProcessing: (kind: string) => boolean;
   start: (task: BackgroundTaskDefinition) => void;
 }
 
@@ -40,29 +50,68 @@ const BackgroundTaskContext = createContext<BackgroundTaskContextValue | null>(n
  * Fica na raiz para sobreviver à navegação; não bloqueia a interface.
  */
 export function BackgroundTaskProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<TaskState>({ status: "idle" });
+  const [tasks, setTasks] = useState<TaskState[]>([]);
+  const nextId = useRef(0);
 
-  const start = useCallback((task: BackgroundTaskDefinition) => {
-    setState({ status: "processing", task });
-    task
-      .run()
-      .then((outcome) => setState({ status: "completed", task, outcome }))
-      .catch(() => setState({ status: "failed", task }));
+  // Cada tarefa atualiza apenas o próprio card; as demais seguem intactas.
+  const update = useCallback((next: TaskState) => {
+    setTasks((current) => current.map((item) => (item.id === next.id ? next : item)));
   }, []);
 
-  const value = useMemo(
-    () => ({ isProcessing: state.status === "processing", start }),
-    [state.status, start],
+  const run = useCallback(
+    (id: number, task: BackgroundTaskDefinition) => {
+      task
+        .run()
+        .then((outcome) => update({ id, status: "completed", task, outcome }))
+        .catch(() => update({ id, status: "failed", task }));
+    },
+    [update],
   );
+
+  const start = useCallback(
+    (task: BackgroundTaskDefinition) => {
+      nextId.current += 1;
+      const id = nextId.current;
+      setTasks((current) => [...current, { id, status: "processing", task }]);
+      run(id, task);
+    },
+    [run],
+  );
+
+  const retry = useCallback(
+    (id: number, task: BackgroundTaskDefinition) => {
+      update({ id, status: "processing", task });
+      run(id, task);
+    },
+    [run, update],
+  );
+
+  const dismiss = useCallback((id: number) => {
+    setTasks((current) => current.filter((item) => item.id !== id));
+  }, []);
+
+  const isProcessing = useCallback(
+    (kind: string) => tasks.some((item) => item.status === "processing" && item.task.kind === kind),
+    [tasks],
+  );
+
+  const value = useMemo(() => ({ isProcessing, start }), [isProcessing, start]);
 
   return (
     <BackgroundTaskContext.Provider value={value}>
       {children}
-      <BackgroundTaskIndicator
-        state={state}
-        onDismiss={() => setState({ status: "idle" })}
-        onRetry={start}
-      />
+      {tasks.length > 0 && (
+        <div className="fixed right-4 bottom-4 left-4 z-50 flex flex-col gap-2 sm:left-auto sm:w-96">
+          {tasks.map((item) => (
+            <BackgroundTaskIndicator
+              key={item.id}
+              state={item}
+              onDismiss={() => dismiss(item.id)}
+              onRetry={(task) => retry(item.id, task)}
+            />
+          ))}
+        </div>
+      )}
     </BackgroundTaskContext.Provider>
   );
 }
@@ -82,7 +131,6 @@ function BackgroundTaskIndicator({
   onDismiss: () => void;
   onRetry: (task: BackgroundTaskDefinition) => void;
 }) {
-  if (state.status === "idle") return null;
   const { task } = state;
 
   const content =
@@ -116,7 +164,7 @@ function BackgroundTaskIndicator({
     <div
       role={state.status === "failed" ? "alert" : "status"}
       aria-live="polite"
-      className="fixed right-4 bottom-4 left-4 z-50 rounded-xl border border-border bg-card p-4 shadow-lg sm:left-auto sm:w-96"
+      className="rounded-xl border border-border bg-card p-4 shadow-lg"
     >
       <div className="flex items-start gap-3">
         <span className="mt-0.5 shrink-0">{content.icon}</span>
