@@ -23,6 +23,7 @@ const badgeVariants = cva(
         "warning-soft": "border-warning/30 bg-warning-muted text-warning-foreground",
         "info-soft": "border-info/30 bg-info-muted text-info",
         "destructive-soft": "border-destructive/30 bg-destructive/10 text-destructive",
+        "neutral-soft": "border-border bg-muted text-muted-foreground",
         outline: "border-border text-foreground bg-transparent",
       },
       size: {

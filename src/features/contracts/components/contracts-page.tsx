@@ -9,10 +9,13 @@ import {
   EyeOff,
   FileSearch,
   FileText,
-  Hourglass,
+  LoaderCircle,
   Plus,
   Trash2,
+  TriangleAlert,
+  type LucideIcon,
 } from "lucide-react";
+import { StatusBadge, type StatusTone } from "@/components/status-badge";
 import { toast } from "sonner";
 
 import { useBackgroundTask } from "@/components/background-task";
@@ -562,26 +565,15 @@ function ContractRulesStatusBadge({ status }: { status: ContractRulesDisplayStat
     return <span className="text-sm text-muted-foreground">—</span>;
   }
   const label = contractRulesStatusLabel(status);
-  const variant =
-    status === "available"
-      ? "success-soft"
-      : status === "failed"
-        ? "destructive-soft"
-        : "secondary";
-  const Icon =
-    status === "available"
-      ? CircleCheck
-      : status === "extracting"
-        ? Hourglass
-        : status === "failed"
-          ? CircleAlert
-          : FileSearch;
-  return (
-    <Badge variant={variant} size="md">
-      <Icon className="size-3" aria-hidden="true" />
-      {label}
-    </Badge>
-  );
+  const config = {
+    available: { tone: "success", icon: CircleCheck },
+    extracting: { tone: "info", icon: LoaderCircle },
+    not_identified: { tone: "warning", icon: TriangleAlert },
+    failed: { tone: "danger", icon: CircleAlert },
+    not_extracted: { tone: "neutral", icon: FileSearch },
+  } as const satisfies Record<ContractRulesDisplayStatus, { tone: StatusTone; icon: LucideIcon }>;
+  const { tone, icon } = config[status];
+  return <StatusBadge tone={tone} icon={icon} label={label} spinning={status === "extracting"} />;
 }
 
 /** Nome do arquivo truncado, com o valor completo em tooltip (mouse e teclado). */

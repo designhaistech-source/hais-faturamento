@@ -1,7 +1,21 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Download, Eye, EyeOff, FileSearch, Plus, Trash2 } from "lucide-react";
+import {
+  CircleAlert,
+  CircleCheck,
+  CircleX,
+  Download,
+  Eye,
+  EyeOff,
+  FileSearch,
+  LoaderCircle,
+  Plus,
+  Trash2,
+  TriangleAlert,
+  type LucideIcon,
+} from "lucide-react";
+import { StatusBadge, type StatusTone } from "@/components/status-badge";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { FilterCard } from "@/components/filter-card";
 import { SearchField, SelectField } from "@/components/form-field";
@@ -483,10 +497,31 @@ function AnalysisFileName({ name }: { name: string }) {
 
 /** Resultado da análise, com o detalhe dos itens não analisados em tooltip. */
 function AnalysisResultBadge({ analysis }: { analysis: BillingAnalysis }) {
+  const tone: StatusTone =
+    analysis.status === "processing"
+      ? "info"
+      : analysis.status === "failed" || analysis.divergenceCount > 0
+        ? "danger"
+        : analysis.unanalyzedCount > 0
+          ? "warning"
+          : "success";
+  const icon: LucideIcon =
+    analysis.status === "processing"
+      ? LoaderCircle
+      : analysis.status === "failed"
+        ? CircleAlert
+        : analysis.divergenceCount > 0
+          ? CircleX
+          : analysis.unanalyzedCount > 0
+            ? TriangleAlert
+            : CircleCheck;
   const badge = (
-    <Badge variant={analysisResultBadgeVariant(analysis)} size="sm" className="shrink-0">
-      {analysisResultLabel(analysis)}
-    </Badge>
+    <StatusBadge
+      tone={tone}
+      icon={icon}
+      label={analysisResultLabel(analysis)}
+      spinning={analysis.status === "processing"}
+    />
   );
 
   const detail =
