@@ -35,6 +35,7 @@ import {
   NewBillingAnalysisModal,
   type NewBillingAnalysisInput,
 } from "./new-billing-analysis-modal";
+import { AnalysisResultModal } from "./analysis-result-modal";
 import {
   analysisResultBadgeVariant,
   analysisResultLabel,
@@ -63,6 +64,7 @@ const COLUMNS = [
  */
 export function BillingAnalysisPage() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [resultAnalysis, setResultAnalysis] = useState<BillingAnalysis | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
@@ -181,7 +183,10 @@ export function BillingAnalysisPage() {
                                 {formatAnalysisDateTime(analysis.analyzedAt)}
                               </DataTableCell>
                               <DataTableCell>
-                                <AnalysisResultBadge analysis={analysis} />
+                                <AnalysisResultBadge
+                                  analysis={analysis}
+                                  onOpen={setResultAnalysis}
+                                />
                               </DataTableCell>
                               <DataTableCell className="text-right">
                                 <AnalysisActions analysis={analysis} />
@@ -196,7 +201,9 @@ export function BillingAnalysisPage() {
                       {paginatedAnalyses.map((analysis) => (
                         <DataTableCard key={analysis.id} flat className="space-y-1.5 py-2.5">
                           <DataTableCardHeader
-                            title={<AnalysisResultBadge analysis={analysis} />}
+                            title={
+                              <AnalysisResultBadge analysis={analysis} onOpen={setResultAnalysis} />
+                            }
                             subtitle={analysis.fileName}
                           />
                           <DataTableCardFields
@@ -245,6 +252,7 @@ export function BillingAnalysisPage() {
         onOpenChange={setModalOpen}
         onSubmit={handleSubmit}
       />
+      <AnalysisResultModal analysis={resultAnalysis} onClose={() => setResultAnalysis(null)} />
     </TooltipProvider>
   );
 }
@@ -267,18 +275,52 @@ function AnalysisFileName({ name }: { name: string }) {
 }
 
 /** Resultado da análise, com o detalhe dos itens não analisados em tooltip. */
-function AnalysisResultBadge({ analysis }: { analysis: BillingAnalysis }) {
+function AnalysisResultBadge({
+  analysis,
+  onOpen,
+}: {
+  analysis: BillingAnalysis;
+  onOpen: (analysis: BillingAnalysis) => void;
+}) {
+  const hasDivergent = analysis.divergenceCount > 0;
+  const hasUnanalyzed = analysis.unanalyzedCount > 0;
+  const actionable = analysis.status === "completed" && (hasDivergent || hasUnanalyzed);
+
+  const badge = (
+    <Badge variant={analysisResultBadgeVariant(analysis)} size="sm" className="shrink-0">
+      {analysisResultLabel(analysis)}
+    </Badge>
+  );
+
+  if (actionable) {
+    const hint =
+      hasDivergent && hasUnanalyzed
+        ? "Ver itens que exigem atenção"
+        : hasDivergent
+          ? "Ver divergências"
+          : "Ver itens não analisados";
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            onClick={() => onOpen(analysis)}
+            aria-label={`${analysisResultLabel(analysis)}. ${hint}`}
+            className="inline-flex cursor-pointer rounded-full outline-none transition hover:opacity-80 hover:shadow-xs focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+          >
+            {badge}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>{hint}</TooltipContent>
+      </Tooltip>
+    );
+  }
+
   const detail =
     analysis.status === "failed"
       ? (analysis.errorMessage ?? "A análise não pôde ser concluída.")
       : analysis.status === "completed"
-        ? `${analysis.itemCount} ${analysis.itemCount === 1 ? "item lido" : "itens lidos"}${
-            analysis.unanalyzedCount > 0
-              ? ` · ${analysis.unanalyzedCount} não ${
-                  analysis.unanalyzedCount === 1 ? "analisado" : "analisados"
-                }`
-              : ""
-          }`
+        ? `${analysis.itemCount} ${analysis.itemCount === 1 ? "item lido" : "itens lidos"}`
         : "Processando o arquivo enviado.";
 
   return (
@@ -288,9 +330,7 @@ function AnalysisResultBadge({ analysis }: { analysis: BillingAnalysis }) {
           tabIndex={0}
           className="inline-flex rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Badge variant={analysisResultBadgeVariant(analysis)} size="sm" className="shrink-0">
-            {analysisResultLabel(analysis)}
-          </Badge>
+          {badge}
         </span>
       </TooltipTrigger>
       <TooltipContent className="max-w-80">{detail}</TooltipContent>
@@ -308,13 +348,13 @@ function AnalysisActions({ analysis }: { analysis: BillingAnalysis }) {
             <Link
               to="/analise-faturamento/$analysisId"
               params={{ analysisId: analysis.id }}
-              aria-label={`Visualizar análise de ${analysis.fileName}`}
+              aria-label={`Visualizar análise completa de ${analysis.fileName}`}
             >
               <Eye className="size-4" aria-hidden="true" />
             </Link>
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Visualizar análise</TooltipContent>
+        <TooltipContent>Visualizar análise completa</TooltipContent>
       </Tooltip>
     </div>
   );
