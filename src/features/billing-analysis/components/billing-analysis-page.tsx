@@ -35,6 +35,7 @@ import {
   NewBillingAnalysisModal,
   type NewBillingAnalysisInput,
 } from "./new-billing-analysis-modal";
+import { AnalysisResultModal } from "./analysis-result-modal";
 import {
   analysisResultBadgeVariant,
   analysisResultLabel,
@@ -63,6 +64,7 @@ const COLUMNS = [
  */
 export function BillingAnalysisPage() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [resultAnalysis, setResultAnalysis] = useState<BillingAnalysis | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
@@ -181,7 +183,10 @@ export function BillingAnalysisPage() {
                                 {formatAnalysisDateTime(analysis.analyzedAt)}
                               </DataTableCell>
                               <DataTableCell>
-                                <AnalysisResultBadge analysis={analysis} />
+                                <AnalysisResultBadge
+                                  analysis={analysis}
+                                  onOpen={setResultAnalysis}
+                                />
                               </DataTableCell>
                               <DataTableCell className="text-right">
                                 <AnalysisActions analysis={analysis} />
@@ -196,7 +201,9 @@ export function BillingAnalysisPage() {
                       {paginatedAnalyses.map((analysis) => (
                         <DataTableCard key={analysis.id} flat className="space-y-1.5 py-2.5">
                           <DataTableCardHeader
-                            title={<AnalysisResultBadge analysis={analysis} />}
+                            title={
+                              <AnalysisResultBadge analysis={analysis} onOpen={setResultAnalysis} />
+                            }
                             subtitle={analysis.fileName}
                           />
                           <DataTableCardFields
@@ -245,6 +252,7 @@ export function BillingAnalysisPage() {
         onOpenChange={setModalOpen}
         onSubmit={handleSubmit}
       />
+      <AnalysisResultModal analysis={resultAnalysis} onClose={() => setResultAnalysis(null)} />
     </TooltipProvider>
   );
 }
@@ -340,13 +348,13 @@ function AnalysisActions({ analysis }: { analysis: BillingAnalysis }) {
             <Link
               to="/analise-faturamento/$analysisId"
               params={{ analysisId: analysis.id }}
-              aria-label={`Visualizar análise de ${analysis.fileName}`}
+              aria-label={`Visualizar análise completa de ${analysis.fileName}`}
             >
               <Eye className="size-4" aria-hidden="true" />
             </Link>
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Visualizar análise</TooltipContent>
+        <TooltipContent>Visualizar análise completa</TooltipContent>
       </Tooltip>
     </div>
   );

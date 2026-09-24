@@ -116,7 +116,13 @@ function Info({ label, value, mono }: { label: string; value: string; mono?: boo
   return (
     <div className="min-w-0">
       <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
-      <dd className={mono ? "mt-0.5 font-mono text-foreground" : "mt-0.5 break-words font-medium text-foreground"}>
+      <dd
+        className={
+          mono
+            ? "mt-0.5 font-mono text-foreground"
+            : "mt-0.5 break-words font-medium text-foreground"
+        }
+      >
         {value}
       </dd>
     </div>
