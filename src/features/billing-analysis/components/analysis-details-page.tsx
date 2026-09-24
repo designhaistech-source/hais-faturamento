@@ -461,14 +461,14 @@ export function ItemDetailsContent({ item }: { item: AnalysisItemDetail }) {
       <DetailGroup title="Item faturado">
         <DetailRow label="Código" value={item.code} mono />
         <DetailRow label="Descrição" value={item.description} />
-        <DetailRow label="Categoria identificada" value={item.category || "—"} />
+        <DetailRow label="Categoria identificada no XML" value={categoryLabel(item.category)} />
         <DetailRow label="Quantidade" value={formatDecimal(item.quantity)} mono />
         <DetailRow label="Valor faturado" value={formatCurrency(item.billedValue)} mono />
       </DetailGroup>
 
       {!unanalyzed && (
         <DetailGroup title="Como o valor esperado foi calculado">
-          <DetailRow label="Regra contratual" value={item.ruleDescription ?? "—"} />
+          <DetailRow label="Regra contratual aplicada" value={appliedRuleLabel(item.ruleDescription)} />
           <DetailRow label="Referência utilizada" value={referenceLabel(item)} />
           {item.referenceType !== "contract" && (
             <>

@@ -161,3 +161,27 @@ export function referenceLabel(item: AnalysisItemDetail): string {
   if (item.referenceType) return REFERENCE_LABEL[item.referenceType] ?? item.referenceType;
   return item.source || "—";
 }
+
+function capitalize(value: string): string {
+  const trimmed = value.trim();
+  return trimmed ? trimmed.charAt(0).toLocaleUpperCase("pt-BR") + trimmed.slice(1) : "";
+}
+
+/** Categoria lida no XML, com capitalização para exibição. */
+export function categoryLabel(category: string): string {
+  return capitalize(category) || "—";
+}
+
+/**
+ * Nome da regra aplicada: a categoria da regra quando existe; caso contrário, a
+ * descrição salva (ex.: valor negociado), já que referência e ajuste têm linhas próprias.
+ */
+export function appliedRuleLabel(ruleDescription: string | null): string {
+  if (!ruleDescription) return "—";
+  const category = ruleDescription
+    .split(" · ")
+    .find((part) => part.startsWith("categoria "));
+  if (category) return capitalize(category.slice("categoria ".length));
+  if (ruleDescription.startsWith("Valor negociado")) return ruleDescription;
+  return "Regra geral do contrato";
+}
