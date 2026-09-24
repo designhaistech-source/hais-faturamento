@@ -49,6 +49,8 @@ export interface PricingVersion {
   /** ISO timestamp of the upload. */
   createdAt: string;
   createdBy: string;
+  /** Reference month as "YYYY-MM"; empty for versions registered before this field existed. */
+  versionMonth: string;
   baseType: PricingBaseType;
   file: PricingVersionFile;
 }
@@ -56,8 +58,16 @@ export interface PricingVersion {
 /** Data collected in the form before the version is persisted. */
 export interface NewPricingVersionInput {
   file: File;
+  /** Reference month, as "YYYY-MM". */
+  versionMonth: string;
   /** Optional while the modal has no base type selector. */
   baseType?: PricingBaseType;
+}
+
+/** Formats "YYYY-MM" as "MM/AAAA"; "—" when absent. */
+export function formatPricingVersionMonth(value: string): string {
+  const match = /^(\d{4})-(\d{2})/.exec(value);
+  return match ? `${match[2]}/${match[1]}` : "—";
 }
 
 /** Formats an ISO timestamp as "dd/MM/yyyy HH:mm" in the local timezone. */

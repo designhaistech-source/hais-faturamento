@@ -4,6 +4,7 @@ import { Database, Info, Paperclip, Trash2, Upload } from "lucide-react";
 import { AppModal } from "@/components/app-modal";
 import { Field, SelectField, type SelectOption } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {
@@ -43,7 +44,12 @@ export function NewPricingVersionModal({
   const [dragActive, setDragActive] = useState(false);
   const [invalidFileMessage, setInvalidFileMessage] = useState<string | null>(null);
 
-  const canSubmit = Boolean(file) && baseType !== "";
+  const [versionMonth, setVersionMonth] = useState("");
+  const [versionTouched, setVersionTouched] = useState(false);
+  const validMonth = /^\d{4}-\d{2}$/.test(versionMonth);
+  const versionError =
+    versionTouched && !validMonth ? "Informe o mês e o ano da versão." : undefined;
+  const canSubmit = Boolean(file) && baseType !== "" && validMonth;
   const fileError =
     invalidFileMessage ??
     (fileTouched && !file ? "Selecione o arquivo CSV ou TXT da base." : undefined);
@@ -74,6 +80,8 @@ export function NewPricingVersionModal({
 
   function reset() {
     setBaseType("");
+    setVersionMonth("");
+    setVersionTouched(false);
     setBaseTypeTouched(false);
     setFile(null);
     setFileTouched(false);
@@ -89,8 +97,9 @@ export function NewPricingVersionModal({
   function submit() {
     setFileTouched(true);
     setBaseTypeTouched(true);
-    if (!file || baseType === "") return;
-    onCreate({ file, baseType });
+    setVersionTouched(true);
+    if (!file || baseType === "" || !validMonth) return;
+    onCreate({ file, baseType, versionMonth });
     reset();
     onOpenChange(false);
   }
@@ -135,6 +144,23 @@ export function NewPricingVersionModal({
             setBaseType(value as PricingBaseType);
           }}
         />
+
+        <Field
+          id="pricing-version-month"
+          label="Versão"
+          required
+          error={versionError}
+          hint="Mês e ano"
+        >
+          <Input
+            type="month"
+            value={versionMonth}
+            onChange={(event) => {
+              setVersionTouched(true);
+              setVersionMonth(event.target.value);
+            }}
+          />
+        </Field>
 
         <Field
           id="pricing-version-file"

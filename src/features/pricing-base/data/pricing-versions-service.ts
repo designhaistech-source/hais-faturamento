@@ -66,7 +66,7 @@ export function downloadPricingVersionBlob(path: string): Promise<Blob> {
 export async function listPricingVersions(): Promise<PricingVersion[]> {
   const { data, error } = await supabase
     .from("pricing_versions")
-    .select("id, created_at, created_by, base_type, file_name, file_path, file_type")
+    .select("id, created_at, created_by, base_type, version_month, file_name, file_path, file_type")
     .order("created_at", { ascending: false });
   if (error) throw error;
 
@@ -74,6 +74,7 @@ export async function listPricingVersions(): Promise<PricingVersion[]> {
     id: row.id,
     createdAt: row.created_at,
     createdBy: row.created_by,
+    versionMonth: row.version_month?.slice(0, 7) ?? "",
     baseType: toPricingBaseType(row.base_type),
     file: {
       name: row.file_name,
@@ -97,6 +98,7 @@ export async function createPricingVersion(input: NewPricingVersionInput): Promi
     file_name: input.file.name,
     file_path: path,
     file_type: input.file.type,
+    version_month: `${input.versionMonth}-01`,
     base_type: input.baseType ?? inferPricingBaseType(input.file.name),
     created_by: CURRENT_USER.name,
   });
