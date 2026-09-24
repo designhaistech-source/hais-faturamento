@@ -552,6 +552,7 @@ function AnalysisActions({ analysis }: { analysis: BillingAnalysis }) {
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
+            type="button"
             variant="ghost"
             size="icon"
             aria-label={`Baixar XML ${analysis.fileName}`}
