@@ -271,6 +271,7 @@ export function ContractsPage() {
               }
             />
 
+            <section className="space-y-4">
             {contractsQuery.isPending ? (
               <SurfaceCard padding="none">
                 <TableSkeleton rows={4} columns={5} />
@@ -474,6 +475,7 @@ export function ContractsPage() {
                 )}
               </>
             )}
+            </section>
 
             {/* Ferramentas provisórias de testes: não fazem parte do produto. */}
             {storedContracts.length > 0 && (
