@@ -102,8 +102,39 @@ export async function loadPricingBases(): Promise<Map<PricingBaseType, PricingBa
   const bases = new Map<PricingBaseType, PricingBaseLookup>();
   for (const [baseType, version] of latestByType) {
     const blob = await downloadPricingVersionBlob(version.file.path);
-    const values = parsePricingCsv(await blob.text());
+    const values = parsePricingFile(version.file.name, await blob.text());
     bases.set(baseType, { version, values });
   }
   return bases;
+}
+
+/**
+ * TXT não tem estrutura garantida: quando o cabeçalho traz um delimitador e as
+ * colunas de código e valor, é lido como tabela delimitada; caso contrário, cada
+ * linha é tratada como registro posicional (código no início, valor no fim).
+ */
+export function parsePricingTxt(content: string): Map<string, number> {
+  const delimited = parsePricingCsv(content);
+  if (delimited.size > 0) return delimited;
+
+  const values = new Map<string, number>();
+  for (const line of content.split(/\r?\n/)) {
+    const tokens = line
+      .trim()
+      .split(/\s{2,}|\t/)
+      .filter((token) => token !== "");
+    if (tokens.length < 2) continue;
+    const code = normalizeCode(tokens[0] ?? "");
+    const value = parseNumber(tokens[tokens.length - 1] ?? "");
+    if (code === "" || value === null) continue;
+    if (!values.has(code)) values.set(code, value);
+  }
+  return values;
+}
+
+/** Escolhe o leitor pelo formato do arquivo cadastrado. */
+export function parsePricingFile(fileName: string, content: string): Map<string, number> {
+  return fileName.toLowerCase().endsWith(".txt")
+    ? parsePricingTxt(content)
+    : parsePricingCsv(content);
 }
