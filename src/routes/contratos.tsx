@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ContractsPage } from "@/features/contracts";
 
 interface ContractsSearch {
-  revisarRegras?: string;
+  dadosExtraidos?: string;
 }
 
 export const Route = createFileRoute("/contratos")({
@@ -25,6 +25,6 @@ export const Route = createFileRoute("/contratos")({
     ],
   }),
   validateSearch: (search: Record<string, unknown>): ContractsSearch =>
-    typeof search.revisarRegras === "string" ? { revisarRegras: search.revisarRegras } : {},
+    typeof search.dadosExtraidos === "string" ? { dadosExtraidos: search.dadosExtraidos } : {},
   component: ContractsPage,
 });

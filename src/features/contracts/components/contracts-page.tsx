@@ -51,7 +51,7 @@ import {
 import { formatIsoToBr } from "@/lib/date";
 import { NewContractModal } from "./new-contract-modal";
 import { ContractPreviewModal } from "./contract-preview-modal";
-import { ContractRulesModal } from "./contract-rules-modal";
+import { ContractExtractedDataModal } from "./contract-extracted-data-modal";
 import type { Contract, NewContractInput } from "../data/contracts";
 import {
   contractsQueryKey,
@@ -94,7 +94,7 @@ export function ContractsPage() {
   const queryClient = useQueryClient();
 
   const navigate = useNavigate();
-  const reviewRequest = useSearch({ strict: false }) as { revisarRegras?: string };
+  const reviewRequest = useSearch({ strict: false }) as { dadosExtraidos?: string };
   const contractsQuery = useQuery({
     queryKey: contractsQueryKey,
     queryFn: listContracts,
@@ -112,18 +112,18 @@ export function ContractsPage() {
   const rulesStatusOf = (contractId: string): ContractRulesDisplayStatus | null => {
     const extraction = extractionStates[contractId];
     if (extraction) return extraction;
-    return rulesStatuses ? (rulesStatuses[contractId] ?? "not_extracted") : null;
+    return rulesStatuses ? (rulesStatuses[contractId] ?? "not_identified") : null;
   };
 
   /** Ferramenta provisória de testes: simula a página sem contratos, sem alterar dados. */
-  // "Revisar regras" do aviso global chega pela URL e abre o modal do contrato.
+  // "Ver dados extraídos" do aviso global chega pela URL e abre o modal do contrato.
   useEffect(() => {
-    const id = reviewRequest.revisarRegras;
+    const id = reviewRequest.dadosExtraidos;
     const target = id ? contractsQuery.data?.find((item) => item.id === id) : undefined;
     if (!target) return;
     setRulesContract(target);
     void navigate({ to: "/contratos", search: {}, replace: true });
-  }, [reviewRequest.revisarRegras, contractsQuery.data, navigate]);
+  }, [reviewRequest.dadosExtraidos, contractsQuery.data, navigate]);
 
   const [simulateEmpty, setSimulateEmpty] = useState(false);
   const contracts = simulateEmpty ? [] : storedContracts;
@@ -182,27 +182,30 @@ export function ContractsPage() {
       kind: "contract-rules",
       fileName: contract.file.name,
       processing: {
-        title: "Analisando contrato",
-        description: "Extraindo as regras de remuneração...",
+        title: "Extraindo dados do contrato",
+        description: "Extraindo as informações do contrato...",
       },
       failure: {
-        title: "Não foi possível analisar o contrato",
-        description: "Não foi possível extrair as regras de remuneração.",
+        title: "Falha na extração",
+        description: "Não foi possível extrair os dados do contrato.",
       },
       run: async () => {
         try {
           const drafts = await extractContractRulesFor(contract);
           return {
-            title: "Contrato analisado",
+            title: drafts.length > 0 ? "Dados extraídos" : "Nenhum dado identificado",
             description:
               drafts.length > 0
-                ? "As regras estão disponíveis para revisão."
-                : "Nenhuma regra de remuneração foi identificada.",
-            action: {
-              label: "Revisar regras",
-              onSelect: () =>
-                void navigate({ to: "/contratos", search: { revisarRegras: contract.id } }),
-            },
+                ? "Os dados do contrato estão disponíveis para consulta."
+                : "Nenhuma informação relevante foi identificada no contrato.",
+            action:
+              drafts.length > 0
+                ? {
+                    label: "Ver dados extraídos",
+                    onSelect: () =>
+                      void navigate({ to: "/contratos", search: { dadosExtraidos: contract.id } }),
+                  }
+                : undefined,
           };
         } finally {
           await queryClient.invalidateQueries({ queryKey: contractRulesStatusQueryKey });
@@ -516,7 +519,7 @@ export function ContractsPage() {
         onDownload={(contract) => void downloadContractFile(contract)}
       />
 
-      <ContractRulesModal
+      <ContractExtractedDataModal
         contract={rulesContract}
         open={rulesContract !== null}
         onOpenChange={(next) => {
@@ -553,41 +556,20 @@ function ContractRulesStatusBadge({
   if (status === null) {
     return <span className="text-sm text-muted-foreground">—</span>;
   }
-  const variant =
-    status === "reviewed"
-      ? "success-soft"
-      : status === "pending_review"
-        ? "info-soft"
-        : status === "failed"
-          ? "destructive-soft"
-          : "secondary";
   const label = contractRulesStatusLabel(status);
-  const StatusIcon =
-    status === "reviewed"
-      ? CircleCheck
-      : status === "pending_review"
-        ? Clock3
-        : status === "failed"
-          ? CircleAlert
-          : FileSearch;
 
-  if (status === "extracting") {
+  if (status !== "available") {
+    const Icon =
+      status === "extracting" ? Hourglass : status === "failed" ? CircleAlert : FileSearch;
     return (
-      <Badge variant={variant} size="md">
-        <Hourglass className="size-3" aria-hidden="true" />
+      <Badge variant={status === "failed" ? "destructive-soft" : "secondary"} size="md">
+        <Icon className="size-3" aria-hidden="true" />
         {label}
       </Badge>
     );
   }
 
-  const hint =
-    status === "reviewed"
-      ? "Consultar e editar as regras de remuneração"
-      : status === "pending_review"
-        ? "Revisar as regras de remuneração"
-        : status === "failed"
-          ? "Ver o motivo da falha e tentar novamente"
-          : "Extrair as regras de remuneração";
+  const hint = "Consultar os dados extraídos";
 
   return (
     <Tooltip>
@@ -599,11 +581,11 @@ function ContractRulesStatusBadge({
           className="group cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <Badge
-            variant={variant}
+            variant="success-soft"
             size="md"
             className="transition-colors group-hover:brightness-95"
           >
-            <StatusIcon className="size-3" aria-hidden="true" />
+            <CircleCheck className="size-3" aria-hidden="true" />
             {label}
           </Badge>
         </button>
