@@ -281,6 +281,36 @@ export type Database = {
         }
         Relationships: []
       }
+      tuss_versions: {
+        Row: {
+          created_at: string
+          created_by: string
+          file_name: string
+          file_path: string
+          file_type: string | null
+          id: string
+          version_month: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          file_name: string
+          file_path: string
+          file_type?: string | null
+          id?: string
+          version_month: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          file_name?: string
+          file_path?: string
+          file_type?: string | null
+          id?: string
+          version_month?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
