@@ -87,7 +87,9 @@ export async function createPricingVersion(input: NewPricingVersionInput): Promi
   const path = `${crypto.randomUUID()}-${sanitizeFileName(input.file.name)}`;
 
   const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, input.file, {
-    contentType: input.file.type || "text/csv",
+    contentType:
+      input.file.type ||
+      (input.file.name.toLowerCase().endsWith(".txt") ? "text/plain" : "text/csv"),
   });
   if (uploadError) throw uploadError;
 

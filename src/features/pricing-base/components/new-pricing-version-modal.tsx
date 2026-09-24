@@ -28,7 +28,7 @@ interface NewPricingVersionModalProps {
   existingBaseTypes?: readonly PricingBaseType[];
 }
 
-/** Cadastro de uma nova versão da base de precificação (tipo da base + arquivo CSV). */
+/** Cadastro de uma nova versão da base de precificação (tipo da base + arquivo CSV ou TXT). */
 export function NewPricingVersionModal({
   open,
   onOpenChange,
@@ -45,7 +45,8 @@ export function NewPricingVersionModal({
 
   const canSubmit = Boolean(file) && baseType !== "";
   const fileError =
-    invalidFileMessage ?? (fileTouched && !file ? "Selecione o arquivo CSV da base." : undefined);
+    invalidFileMessage ??
+    (fileTouched && !file ? "Selecione o arquivo CSV ou TXT da base." : undefined);
   const baseTypeError =
     baseTypeTouched && baseType === "" ? "Selecione o tipo da base." : undefined;
   const replacesCurrent = baseType !== "" && existingBaseTypes.includes(baseType);
@@ -57,8 +58,8 @@ export function NewPricingVersionModal({
       setFile(null);
       return;
     }
-    if (!selected.name.toLowerCase().endsWith(".csv")) {
-      setInvalidFileMessage("Formato não aceito. Envie um arquivo CSV.");
+    if (!/\.(csv|txt)$/i.test(selected.name)) {
+      setInvalidFileMessage("Formato não aceito. Envie um arquivo CSV ou TXT.");
       setFile(null);
       return;
     }
@@ -99,7 +100,7 @@ export function NewPricingVersionModal({
       open={open}
       onOpenChange={(next) => (next ? onOpenChange(true) : close())}
       title="Cadastrar nova versão"
-      description="Envie o arquivo CSV com os valores atualizados da base de precificação."
+      description="Envie o arquivo CSV ou TXT com os valores atualizados da base de precificação."
       icon={<Database className="size-5" aria-hidden="true" />}
       footer={
         <>
@@ -137,10 +138,10 @@ export function NewPricingVersionModal({
 
         <Field
           id="pricing-version-file"
-          label="Arquivo CSV"
+          label="Arquivo CSV ou TXT"
           required
           error={fileError}
-          hint="CSV • Máx. 10 MB"
+          hint="CSV ou TXT • Máx. 10 MB"
           injectChildProps={false}
         >
           <div
@@ -170,7 +171,7 @@ export function NewPricingVersionModal({
               ref={inputRef}
               id="pricing-version-file"
               type="file"
-              accept=".csv,text/csv"
+              accept=".csv,.txt,text/csv,text/plain"
               className="sr-only"
               onChange={(event) => handleSelectedFile(event.target.files?.[0] ?? null)}
             />
