@@ -42,7 +42,7 @@ export function formatAnalysisDateTime(iso: string): string {
   });
 }
 
-function firstTagValue(document: Document, tagNames: readonly string[]): string | null {
+export function firstTagValue(document: Document, tagNames: readonly string[]): string | null {
   for (const tagName of tagNames) {
     const elements = Array.from(document.getElementsByTagName("*")).filter(
       (element) => element.localName === tagName,
@@ -55,18 +55,18 @@ function firstTagValue(document: Document, tagNames: readonly string[]): string 
   return null;
 }
 
-const PROVIDER_TAGS = ["nomeContratado", "nomePrestador", "razaoSocial"] as const;
-const PROVIDER_CNPJ_TAGS = [
+export const PROVIDER_TAGS = ["nomeContratado", "nomePrestador", "razaoSocial"] as const;
+export const PROVIDER_CNPJ_TAGS = [
   "cnpjContratado",
   "CNPJ",
   "cnpj",
   "codigoPrestadorNaOperadora",
 ] as const;
-const HEALTH_PLAN_TAGS = ["nomeOperadora", "razaoSocialOperadora"] as const;
-const HEALTH_PLAN_ANS_TAGS = ["registroANS", "numeroRegistroANS"] as const;
+export const HEALTH_PLAN_TAGS = ["nomeOperadora", "razaoSocialOperadora"] as const;
+export const HEALTH_PLAN_ANS_TAGS = ["registroANS", "numeroRegistroANS"] as const;
 
 /** Formata 14 dígitos como CNPJ (00.000.000/0000-00); retorna null se não houver 14 dígitos. */
-function formatCnpj(value: string): string | null {
+export function formatCnpj(value: string): string | null {
   const digits = value.replace(/\D/g, "");
   if (digits.length !== 14) return null;
   return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;

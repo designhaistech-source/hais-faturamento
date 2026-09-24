@@ -1,0 +1,1 @@
+ALTER TABLE public.billing_analyses ADD COLUMN IF NOT EXISTS xml_content TEXT;
