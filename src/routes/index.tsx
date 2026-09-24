@@ -84,7 +84,8 @@ function FeatureCard({ icon: Icon, title, description, to, action }: (typeof FEA
   return (
     <SurfaceCard
       padding="sm"
-      className="flex h-full flex-col items-start gap-0 transition-colors hover:border-primary/40 hover:shadow-sm"
+      className="flex h-full flex-col transition-colors hover:border-primary/40 hover:shadow-sm"
+      bodyClassName="flex flex-1 flex-col items-start"
     >
       <span className="inline-flex size-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
         <Icon className="size-6" aria-hidden="true" />
