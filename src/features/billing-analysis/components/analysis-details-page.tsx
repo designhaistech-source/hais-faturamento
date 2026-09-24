@@ -421,7 +421,6 @@ export function ItemDetailsModal({
   item: AnalysisItemDetail | null;
   onClose: () => void;
 }) {
-  const unanalyzed = item?.status === "unanalyzed";
   return (
     <AppModal
       open={item !== null}
@@ -434,7 +433,15 @@ export function ItemDetailsModal({
         </Button>
       }
     >
-      {item && (
+      {item && <ItemDetailsContent item={item} />}
+    </AppModal>
+  );
+}
+
+/** Memória de cálculo do item, reutilizada no modal e na navegação interna do resultado. */
+export function ItemDetailsContent({ item }: { item: AnalysisItemDetail }) {
+  const unanalyzed = item.status === "unanalyzed";
+  return (
         <div className="space-y-5">
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium text-muted-foreground">Resultado</span>
@@ -495,8 +502,7 @@ export function ItemDetailsModal({
             </DetailGroup>
           )}
         </div>
-      )}
-    </AppModal>
+
   );
 }
 
