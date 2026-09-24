@@ -4,6 +4,7 @@ import {
   contractRuleBaseLabel,
   describeContractRule,
   matchRuleForItem,
+  parseRuleCodes,
   type ContractRule,
 } from "@/features/contracts/data/contract-rules";
 import type { PricingBaseType } from "@/features/pricing-base/data/pricing-versions";
@@ -22,6 +23,8 @@ export interface AnalysisItemResult {
   unitValue: number | null;
   totalValue: number | null;
   executedAt: string;
+  /** Categoria identificada a partir do XML. */
+  category: string;
   status: AnalysisItemStatus;
   /** Motivo quando o item não pôde ser analisado. */
   reason: string | null;
@@ -80,6 +83,7 @@ function baseResult(item: TissItem): AnalysisItemResult {
     unitValue: item.unitValue,
     totalValue: item.totalValue,
     executedAt: item.executedAt,
+    category: item.category,
     status: "unanalyzed",
     reason: null,
     source: "",
@@ -103,24 +107,44 @@ function unanalyzed(item: TissItem, reason: string, rule?: ContractRule): Analys
   };
 }
 
+type BaseLookupResult =
+  | { kind: "single"; rule: ContractRule }
+  | { kind: "ambiguous"; rules: ContractRule[] }
+  | { kind: "none" };
+
 /**
- * Sem código nem categoria compatível, usa a regra por base somente quando o
- * código do item existe em exatamente uma das bases exigidas pelas regras.
+ * Regras por base (sem códigos específicos), vigentes na data do item, cuja
+ * base contém o código. Usada quando a categoria não leva a uma regra capaz
+ * de precificar o item.
  */
 function ruleByBaseLookup(
   rules: ContractRule[],
   item: TissItem,
   bases: Map<PricingBaseType, PricingBaseLookup>,
-): ContractRule | null {
-  if (item.code.trim() === "") return null;
+  exclude?: ContractRule,
+): BaseLookupResult {
+  if (item.code.trim() === "") return { kind: "none" };
   const code = normalizeCode(item.code);
   const candidates = rules.filter((rule) => {
+    if (rule === exclude) return false;
     if (rule.codes.trim() !== "" || !isPricingBase(rule.baseType)) return false;
     if (item.executedAt && rule.validFrom && item.executedAt < rule.validFrom) return false;
     if (item.executedAt && rule.validTo && item.executedAt > rule.validTo) return false;
     return bases.get(rule.baseType)?.values.has(code) ?? false;
   });
-  return candidates.length === 1 ? candidates[0] : null;
+  if (candidates.length === 1) return { kind: "single", rule: candidates[0] };
+  if (candidates.length > 1) return { kind: "ambiguous", rules: candidates };
+  return { kind: "none" };
+}
+
+function ambiguityReason(rules: ContractRule[]): string {
+  const labels = Array.from(new Set(rules.map((rule) => contractRuleBaseLabel(rule.baseType))));
+  return `Regra contratual ambígua: o código existe em mais de uma base aplicável (${labels.join(", ")}).`;
+}
+
+function isCodeSpecific(rule: ContractRule, item: TissItem): boolean {
+  const code = item.code.trim().toUpperCase();
+  return code !== "" && parseRuleCodes(rule.codes).includes(code);
 }
 
 function analyzeItem(
@@ -130,7 +154,22 @@ function analyzeItem(
 ): AnalysisItemResult {
   const match = matchRuleForItem(rules, item);
   let rule: ContractRule | null = match.kind === "matched" ? match.rule : null;
-  if (!rule) rule = ruleByBaseLookup(rules, item, bases);
+  if (!rule) {
+    const lookup = ruleByBaseLookup(rules, item, bases);
+    if (lookup.kind === "ambiguous") return unanalyzed(item, ambiguityReason(lookup.rules));
+    if (lookup.kind === "single") rule = lookup.rule;
+  } else if (
+    isPricingBase(rule.baseType) &&
+    !isCodeSpecific(rule, item) &&
+    item.code.trim() !== "" &&
+    bases.has(rule.baseType) &&
+    !bases.get(rule.baseType)?.values.has(normalizeCode(item.code))
+  ) {
+    // A categoria indicou uma regra cuja base não conhece o código: tenta as demais regras vigentes.
+    const lookup = ruleByBaseLookup(rules, item, bases, rule);
+    if (lookup.kind === "ambiguous") return unanalyzed(item, ambiguityReason(lookup.rules), rule);
+    if (lookup.kind === "single") rule = lookup.rule;
+  }
   if (!rule) {
     return match.kind === "out_of_validity"
       ? unanalyzed(item, "Regra fora da vigência na data de execução do item.", match.rule)

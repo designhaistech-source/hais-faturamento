@@ -89,6 +89,7 @@ async function saveItems(analysisId: string, items: AnalysisItemResult[]): Promi
       factor: item.factor,
       adjustment_percent: item.adjustmentPercent,
       calculation: item.calculation,
+      category: item.category,
     })),
   );
   if (error) throw error;
