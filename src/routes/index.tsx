@@ -92,8 +92,8 @@ function FeatureCard({ icon: Icon, title, description, to, action }: (typeof FEA
       <h2 className="mt-4 font-display text-base font-semibold tracking-tight text-foreground">
         {title}
       </h2>
-      <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-      <Button variant="outline" size="sm" className="mt-4" asChild>
+      <p className="mt-2 mb-4 text-sm text-muted-foreground">{description}</p>
+      <Button variant="outline" size="sm" className="mt-auto" asChild>
         <Link to={to}>{action}</Link>
       </Button>
     </SurfaceCard>
