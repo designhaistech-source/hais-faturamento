@@ -119,7 +119,7 @@ export function analysisResultLabel(analysis: BillingAnalysis): string {
   if (divergences > 0 && unanalyzed > 0) return `${divergenceLabel} · ${unanalyzedLabel}`;
   if (divergences > 0) return divergenceLabel;
   if (unanalyzed > 0) return unanalyzedLabel;
-  return "Sem divergências";
+  return "Conforme";
 }
 
 /** Variante do Badge usada para cada estado do resultado. */

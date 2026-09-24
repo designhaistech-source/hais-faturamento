@@ -64,7 +64,7 @@ type ResultFilter = "all" | AnalysisItemStatus;
 
 const RESULT_OPTIONS = [
   { value: "all", label: "Todos" },
-  { value: "ok", label: "Conformes" },
+  { value: "ok", label: "Conformidades" },
   { value: "divergent", label: "Divergências" },
   { value: "unanalyzed", label: "Não analisados" },
 ];
@@ -192,7 +192,7 @@ export function AnalysisDetailsPage({ analysisId }: { analysisId: string }) {
                     />
                     <SummaryTile
                       icon={<CheckCircle2 className="size-4 text-success" />}
-                      label="Conformes"
+                      label="Conformidades"
                       value={summary.matches}
                     />
                     <SummaryTile

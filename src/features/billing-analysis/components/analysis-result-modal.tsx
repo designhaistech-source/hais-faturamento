@@ -107,7 +107,7 @@ export function AnalysisResultModal({ analysis, onClose }: AnalysisResultModalPr
                     <SummaryPart
                       icon={<Check className="h-3.5 w-3.5 text-success" aria-hidden="true" />}
                     >
-                      {summary.matches} {summary.matches === 1 ? "conforme" : "conformes"}
+                      {summary.matches} {summary.matches === 1 ? "conformidade" : "conformidades"}
                     </SummaryPart>
                     <SummaryPart
                       icon={<X className="h-3.5 w-3.5 text-destructive" aria-hidden="true" />}
@@ -115,7 +115,7 @@ export function AnalysisResultModal({ analysis, onClose }: AnalysisResultModalPr
                       {summary.divergences}{" "}
                       {summary.divergences === 1 ? "divergência" : "divergências"}
                     </SummaryPart>
-                    {summary.unanalyzed > 0 && (
+                    {(
                       <SummaryPart
                         icon={
                           <AlertTriangle className="h-3.5 w-3.5 text-warning" aria-hidden="true" />
