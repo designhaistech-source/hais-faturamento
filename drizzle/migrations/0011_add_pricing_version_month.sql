@@ -1,0 +1,1 @@
+ALTER TABLE public.pricing_versions ADD COLUMN version_month DATE;
