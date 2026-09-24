@@ -59,7 +59,6 @@ export interface PricingVersion {
 export interface NewPricingVersionInput {
   file: File;
   /** Reference month, as "YYYY-MM". */
-  versionMonth: string;
   /** Optional while the modal has no base type selector. */
   baseType?: PricingBaseType;
 }
