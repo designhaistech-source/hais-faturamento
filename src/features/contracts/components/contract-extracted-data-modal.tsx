@@ -55,7 +55,7 @@ export function ContractExtractedDataModal({
         />
       ) : query.data.length === 0 ? (
         <EmptyState
-          icon={FileSearch}
+          icon={<FileSearch className="size-5" aria-hidden="true" />}
           title="Nenhum dado identificado"
           description="Nenhuma informação relevante foi identificada neste contrato."
         />
