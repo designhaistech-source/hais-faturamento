@@ -4,6 +4,7 @@ import { Database, Download, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import { useBackgroundTask } from "@/components/background-task";
 import { SiteFooter } from "@/components/site-footer";
 import { PageHeader } from "@/components/page-header";
 import { AppBreadcrumb } from "@/components/app-breadcrumb";
@@ -148,17 +149,33 @@ export function PricingBasePage() {
     [],
   );
 
-  const createMutation = useMutation({
-    mutationFn: (input: NewPricingVersionInput) => createPricingVersion(input),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: pricingVersionsQueryKey });
-      setPage(1);
-      toast.success("Versão cadastrada com sucesso.");
-    },
-    onError: () => {
-      toast.error("Não foi possível cadastrar a versão.");
-    },
-  });
+  const backgroundTask = useBackgroundTask();
+
+  // Runs in the global background task so it survives navigation; the task card is the only feedback.
+  function startBaseProcessing(input: NewPricingVersionInput) {
+    backgroundTask.start({
+      kind: "pricing-base",
+      fileName: input.file.name,
+      processing: {
+        title: "Processando base de precificação",
+        description: "Processando os dados da base...",
+      },
+      failure: {
+        title: "Não foi possível processar a base",
+        description: "Não foi possível processar o arquivo.",
+      },
+      retryable: true,
+      run: async () => {
+        await createPricingVersion(input);
+        await queryClient.invalidateQueries({ queryKey: pricingVersionsQueryKey });
+        setPage(1);
+        return {
+          title: "Base de precificação cadastrada",
+          description: "A nova versão está disponível para uso.",
+        };
+      },
+    });
+  }
 
   const clearMutation = useMutation({
     mutationFn: deleteAllPricingVersions,
@@ -448,7 +465,7 @@ export function PricingBasePage() {
         open={modalOpen}
         onOpenChange={setModalOpen}
         existingBaseTypes={existingBaseTypes}
-        onCreate={(input) => createMutation.mutate(input)}
+        onCreate={startBaseProcessing}
       />
 
       <ConfirmDialog
