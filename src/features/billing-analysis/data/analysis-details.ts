@@ -178,9 +178,7 @@ export function categoryLabel(category: string): string {
  */
 export function appliedRuleLabel(ruleDescription: string | null): string {
   if (!ruleDescription) return "—";
-  const category = ruleDescription
-    .split(" · ")
-    .find((part) => part.startsWith("categoria "));
+  const category = ruleDescription.split(" · ").find((part) => part.startsWith("categoria "));
   if (category) return capitalize(category.slice("categoria ".length));
   if (ruleDescription.startsWith("Valor negociado")) return ruleDescription;
   return "Regra geral do contrato";

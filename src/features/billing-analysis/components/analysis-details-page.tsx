@@ -47,6 +47,8 @@ import {
   summarizeItems,
   type AnalysisItemDetail,
   type AnalysisItemStatus,
+  appliedRuleLabel,
+  categoryLabel,
 } from "../data/analysis-details";
 
 type ResultFilter = "all" | AnalysisItemStatus;
@@ -468,7 +470,10 @@ export function ItemDetailsContent({ item }: { item: AnalysisItemDetail }) {
 
       {!unanalyzed && (
         <DetailGroup title="Como o valor esperado foi calculado">
-          <DetailRow label="Regra contratual aplicada" value={appliedRuleLabel(item.ruleDescription)} />
+          <DetailRow
+            label="Regra contratual aplicada"
+            value={appliedRuleLabel(item.ruleDescription)}
+          />
           <DetailRow label="Referência utilizada" value={referenceLabel(item)} />
           {item.referenceType !== "contract" && (
             <>
