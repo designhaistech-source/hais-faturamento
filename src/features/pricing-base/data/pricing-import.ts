@@ -95,13 +95,28 @@ const LAYOUTS: Record<
   PricingBaseType,
   { keyFields: ReadonlyArray<"tiss" | "code">; extraCodeAliases: string[]; keyLabel: string }
 > = {
-  brasindice: { keyFields: ["tiss", "code"], extraCodeAliases: [], keyLabel: "código (TISS ou código do item)" },
-  simpro: { keyFields: ["code"], extraCodeAliases: ["cdsimpro", "codsimpro", "codigosimpro"], keyLabel: "código SIMPRO (CD_SIMPRO)" },
-  cbhpm: { keyFields: ["code"], extraCodeAliases: ["codigocbhpm", "codcbhpm", "cdcbhpm"], keyLabel: "código do procedimento" },
+  brasindice: {
+    keyFields: ["tiss", "code"],
+    extraCodeAliases: [],
+    keyLabel: "código (TISS ou código do item)",
+  },
+  simpro: {
+    keyFields: ["code"],
+    extraCodeAliases: ["cdsimpro", "codsimpro", "codigosimpro"],
+    keyLabel: "código SIMPRO (CD_SIMPRO)",
+  },
+  cbhpm: {
+    keyFields: ["code"],
+    extraCodeAliases: ["codigocbhpm", "codcbhpm", "cdcbhpm"],
+    keyLabel: "código do procedimento",
+  },
 };
 
 /** Mapeia cada campo conhecido para a primeira coluna do cabeçalho que o representa. */
-function mapColumns(headers: string[], baseType: PricingBaseType): Partial<Record<ImportField, number>> {
+function mapColumns(
+  headers: string[],
+  baseType: PricingBaseType,
+): Partial<Record<ImportField, number>> {
   const layout = LAYOUTS[baseType];
   // "TIPO_PRECO" descreve o tipo do preço, não o valor.
   const normalized = headers.map((header) => {
@@ -120,9 +135,7 @@ function mapColumns(headers: string[], baseType: PricingBaseType): Partial<Recor
           ? [...FIELD_ALIASES.code, ...layout.extraCodeAliases].includes(header)
           : field === "tiss" && !layout.keyFields.includes("tiss")
             ? false
-            : FIELD_ALIASES[field].some(
-                (alias) => header === alias || header.includes(alias),
-              )),
+            : FIELD_ALIASES[field].some((alias) => header === alias || header.includes(alias))),
     );
     if (index !== -1) {
       columns[field] = index;
