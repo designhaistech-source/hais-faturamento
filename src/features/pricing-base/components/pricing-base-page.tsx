@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CircleAlert, Database, Download, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
+import { Database, Download, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -37,11 +37,9 @@ import {
 } from "@/components/data-table";
 
 import { NewPricingVersionModal } from "./new-pricing-version-modal";
-import { PricingProcessingDetailsModal, PricingVersionStatusBadge } from "./pricing-version-status";
 import {
   currentVersionIdsByType,
   formatVersionDateTime,
-  hasProcessingDetails,
   pricingBaseTypeLabel,
   PRICING_BASE_TYPES,
   type NewPricingVersionInput,
@@ -54,17 +52,9 @@ import {
   deleteAllPricingVersions,
   listPricingVersions,
   pricingVersionsQueryKey,
-  retryPricingVersion,
 } from "../data/pricing-versions-service";
 
-const COLUMNS = [
-  "Arquivo",
-  "Tipo da base",
-  "Cadastrado por",
-  "Data do cadastro",
-  "Status",
-  "Ações",
-] as const;
+const COLUMNS = ["Arquivo", "Tipo da base", "Cadastrado por", "Data do cadastro", "Ações"] as const;
 
 async function downloadVersionFile(version: PricingVersion) {
   try {
@@ -87,13 +77,7 @@ export function PricingBasePage() {
   const versionsQuery = useQuery({
     queryKey: pricingVersionsQueryKey,
     queryFn: listPricingVersions,
-    // Keeps the persisted status fresh while any file is still being processed.
-    refetchInterval: (query) =>
-      (query.state.data ?? []).some((v) => v.status === "PENDING" || v.status === "PROCESSING")
-        ? 3000
-        : false,
   });
-  const [detailsVersion, setDetailsVersion] = useState<PricingVersion | null>(null);
   const storedVersions = versionsQuery.data ?? [];
   const [clearOpen, setClearOpen] = useState(false);
   /** Ferramenta provisória de testes: simula a página sem versões, sem alterar dados. */
@@ -182,42 +166,9 @@ export function PricingBasePage() {
       },
       retryable: true,
       run: async () => {
-        try {
-          await createPricingVersion(input, () => {
-            setPage(1);
-            void queryClient.invalidateQueries({ queryKey: pricingVersionsQueryKey });
-          });
-        } finally {
-          await queryClient.invalidateQueries({ queryKey: pricingVersionsQueryKey });
-        }
-        return {
-          title: "Base de precificação cadastrada",
-          description: "A nova versão está disponível para uso.",
-        };
-      },
-    });
-  }
-
-  function startRetry(version: PricingVersion) {
-    setDetailsVersion(null);
-    backgroundTask.start({
-      kind: "pricing-base",
-      fileName: version.file.name,
-      processing: {
-        title: "Processando base de precificação",
-        description: "Processando os dados da base...",
-      },
-      failure: {
-        title: "Não foi possível processar a base",
-        description: "Não foi possível processar o arquivo.",
-      },
-      retryable: true,
-      run: async () => {
-        try {
-          await retryPricingVersion(version);
-        } finally {
-          await queryClient.invalidateQueries({ queryKey: pricingVersionsQueryKey });
-        }
+        await createPricingVersion(input);
+        await queryClient.invalidateQueries({ queryKey: pricingVersionsQueryKey });
+        setPage(1);
         return {
           title: "Base de precificação cadastrada",
           description: "A nova versão está disponível para uso.",
@@ -264,7 +215,7 @@ export function PricingBasePage() {
             <section className="space-y-4">
               {versionsQuery.isPending ? (
                 <SurfaceCard padding="none">
-                  <TableSkeleton rows={4} columns={6} />
+                  <TableSkeleton rows={4} columns={5} />
                 </SurfaceCard>
               ) : versionsQuery.isError ? (
                 <SurfaceCard padding="md">
@@ -409,15 +360,9 @@ export function PricingBasePage() {
                                   <DataTableCell>
                                     {formatVersionDateTime(version.createdAt)}
                                   </DataTableCell>
-                                  <DataTableCell>
-                                    <PricingVersionStatusBadge status={version.status} />
-                                  </DataTableCell>
 
                                   <DataTableCell className="text-right">
-                                    <VersionActions
-                                      version={version}
-                                      onDetails={setDetailsVersion}
-                                    />
+                                    <VersionActions version={version} />
                                   </DataTableCell>
                                 </DataTableRow>
                               ))}
@@ -447,15 +392,11 @@ export function PricingBasePage() {
                                     label: "Data do cadastro",
                                     value: formatVersionDateTime(version.createdAt),
                                   },
-                                  {
-                                    label: "Status",
-                                    value: <PricingVersionStatusBadge status={version.status} />,
-                                  },
                                 ]}
                               />
 
                               <DataTableCardActions className="-mt-0.5 justify-end">
-                                <VersionActions version={version} onDetails={setDetailsVersion} />
+                                <VersionActions version={version} />
                               </DataTableCardActions>
                             </DataTableCard>
                           ))}
@@ -527,16 +468,6 @@ export function PricingBasePage() {
         onCreate={startBaseProcessing}
       />
 
-      <PricingProcessingDetailsModal
-        version={detailsVersion}
-        onOpenChange={(open) => !open && setDetailsVersion(null)}
-        onRetry={startRetry}
-        onUploadNew={() => {
-          setDetailsVersion(null);
-          setModalOpen(true);
-        }}
-      />
-
       <ConfirmDialog
         open={clearOpen}
         onOpenChange={setClearOpen}
@@ -574,32 +505,10 @@ function VersionFileName({ name }: { name: string }) {
   );
 }
 
-/** Ações da linha: detalhes do processamento (quando relevante) e baixar o arquivo. */
-function VersionActions({
-  version,
-  onDetails,
-}: {
-  version: PricingVersion;
-  onDetails: (version: PricingVersion) => void;
-}) {
+/** Ações da linha: apenas baixar o arquivo original da versão. */
+function VersionActions({ version }: { version: PricingVersion }) {
   return (
     <div className="inline-flex items-center gap-1">
-      {hasProcessingDetails(version) && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label={`Ver detalhes do processamento de ${version.file.name}`}
-              onClick={() => onDetails(version)}
-            >
-              <CircleAlert className="size-4" aria-hidden="true" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Ver detalhes do processamento</TooltipContent>
-        </Tooltip>
-      )}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

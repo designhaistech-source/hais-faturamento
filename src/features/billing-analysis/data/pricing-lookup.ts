@@ -4,10 +4,9 @@ import {
   downloadPricingVersionBlob,
   listPricingVersions,
 } from "@/features/pricing-base/data/pricing-versions-service";
-import {
-  currentVersionIdsByType,
-  type PricingBaseType,
-  type PricingVersion,
+import type {
+  PricingBaseType,
+  PricingVersion,
 } from "@/features/pricing-base/data/pricing-versions";
 
 import { parseNumber } from "./tiss-xml";
@@ -95,10 +94,9 @@ export function parsePricingCsv(content: string): Map<string, number> {
  */
 export async function loadPricingBases(): Promise<Map<PricingBaseType, PricingBaseLookup>> {
   const versions = await listPricingVersions();
-  const currentIds = currentVersionIdsByType(versions);
   const latestByType = new Map<PricingBaseType, PricingVersion>();
   for (const version of versions) {
-    if (currentIds.has(version.id)) latestByType.set(version.baseType, version);
+    if (!latestByType.has(version.baseType)) latestByType.set(version.baseType, version);
   }
 
   const bases = new Map<PricingBaseType, PricingBaseLookup>();
