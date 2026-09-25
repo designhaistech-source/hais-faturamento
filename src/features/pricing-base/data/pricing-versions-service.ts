@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CURRENT_USER } from "@/lib/current-user";
 import {
-  parsePricingImport,
+  parsePricingImportSet,
   isKnownImportStatus,
   toImportStatus,
   type ImportErrorRow,
@@ -12,6 +12,7 @@ import {
   toPricingBaseType,
   type NewPricingVersionInput,
   type PricingVersion,
+  type PricingVersionFile,
 } from "./pricing-versions";
 
 const BUCKET = "pricing-versions";
@@ -74,22 +75,22 @@ export async function listPricingVersions(): Promise<PricingVersion[]> {
   const { data, error } = await supabase
     .from("pricing_versions")
     .select(
-      "id, created_at, created_by, base_type, version_month, file_name, file_path, file_type, status, status_problem, processed_count, unprocessed_count, unprocessed_reasons",
+      "id, created_at, created_by, base_type, version_month, file_name, file_path, file_type, files, status, status_problem, processed_count, unprocessed_count, unprocessed_reasons",
     )
     .order("created_at", { ascending: false });
   if (error) throw error;
 
-  return (data ?? []).map((row) => ({
+  return (data ?? []).map((row) => {
+    const first = { name: row.file_name, path: row.file_path, type: row.file_type ?? "" };
+    const files = toFiles(row.files);
+    return {
     id: row.id,
     createdAt: row.created_at,
     createdBy: row.created_by,
     versionMonth: row.version_month?.slice(0, 7) ?? "",
     baseType: toPricingBaseType(row.base_type),
-    file: {
-      name: row.file_name,
-      path: row.file_path,
-      type: row.file_type ?? "",
-    },
+    file: first,
+    files: files.length > 0 ? files : [first],
     importStatus: toImportStatus(row.status),
     importProblem: row.status_problem,
     processedCount: row.processed_count,
@@ -100,7 +101,18 @@ export async function listPricingVersions(): Promise<PricingVersion[]> {
         : isKnownImportStatus(row.status) && row.status !== "COMPLETED",
     errorCount: row.unprocessed_count,
     errorRows: toErrorRows(row.unprocessed_reasons),
-  }));
+    };
+  });
+}
+
+function toFiles(value: unknown): PricingVersionFile[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item: unknown) => {
+    if (typeof item !== "object" || item === null) return [];
+    const file = item as Record<string, unknown>;
+    if (typeof file.name !== "string" || typeof file.path !== "string") return [];
+    return [{ name: file.name, path: file.path, type: String(file.type ?? "") }];
+  });
 }
 
 function toErrorRows(value: unknown): ImportErrorRow[] {
@@ -109,7 +121,14 @@ function toErrorRows(value: unknown): ImportErrorRow[] {
     if (typeof item !== "object" || item === null) return [];
     const row = item as Record<string, unknown>;
     if (typeof row.line !== "number" || typeof row.reason !== "string") return [];
-    return [{ line: row.line, reason: row.reason, content: String(row.content ?? "") }];
+    return [
+      {
+        line: row.line,
+        reason: row.reason,
+        content: String(row.content ?? ""),
+        ...(typeof row.file === "string" ? { file: row.file } : {}),
+      },
+    ];
   });
 }
 
@@ -118,19 +137,24 @@ async function sha256(file: File): Promise<string> {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-/** Cadastra o arquivo e registra o resultado da importação; devolve o status obtido. */
+/** Cadastra os arquivos como uma única versão e registra o resultado; devolve o status obtido. */
 export async function createPricingVersion(input: NewPricingVersionInput): Promise<ImportStatus> {
-  const baseType = input.baseType ?? inferPricingBaseType(input.file.name);
-  const hash = await sha256(input.file);
+  const [firstFile] = input.files;
+  if (!firstFile) throw new Error("Nenhum arquivo selecionado.");
+  const baseType = input.baseType ?? inferPricingBaseType(firstFile.name);
+  const hash = await sha256(firstFile);
 
   let status: ImportStatus;
   let problem: string | null = null;
   let processedCount: number | null = null;
   let errorCount: number | null = null;
   let errorRows: ImportErrorRow[] = [];
-  // Arquivos repetidos são tratados como uma nova versão; FAILED indica apenas falhas inesperadas.
+  // O conjunto é processado junto; FAILED indica apenas falhas inesperadas.
   try {
-    const result = parsePricingImport(await input.file.text());
+    const parts = await Promise.all(
+      input.files.map(async (file) => ({ name: file.name, content: await file.text() })),
+    );
+    const result = parsePricingImportSet(parts);
     status = result.status;
     problem = result.problem;
     if (result.problem === null) {
@@ -143,29 +167,40 @@ export async function createPricingVersion(input: NewPricingVersionInput): Promi
     problem = cause instanceof Error ? cause.message : "Erro inesperado durante a importação.";
   }
 
-  const path = `${crypto.randomUUID()}-${sanitizeFileName(input.file.name)}`;
+  const stored: PricingVersionFile[] = [];
+  try {
+    for (const file of input.files) {
+      const path = `${crypto.randomUUID()}-${sanitizeFileName(file.name)}`;
+      const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file, {
+        contentType:
+          file.type || (file.name.toLowerCase().endsWith(".txt") ? "text/plain" : "text/csv"),
+      });
+      if (uploadError) throw uploadError;
+      stored.push({ name: file.name, path, type: file.type });
+    }
 
-  const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, input.file, {
-    contentType:
-      input.file.type ||
-      (input.file.name.toLowerCase().endsWith(".txt") ? "text/plain" : "text/csv"),
-  });
-  if (uploadError) throw uploadError;
-
-  const { error } = await supabase.from("pricing_versions").insert({
-    file_name: input.file.name,
-    file_path: path,
-    file_type: input.file.type,
-    base_type: baseType,
-    created_by: CURRENT_USER.name,
-    file_hash: hash,
-    status,
-    status_problem: problem,
-    processed_count: processedCount,
-    unprocessed_count: errorCount,
-    unprocessed_reasons: errorRows.map((row) => ({ ...row })),
-  });
-  if (error) throw error;
+    const { error } = await supabase.from("pricing_versions").insert({
+      file_name: firstFile.name,
+      file_path: stored[0].path,
+      file_type: firstFile.type,
+      files: stored.map((file) => ({ ...file })),
+      base_type: baseType,
+      created_by: CURRENT_USER.name,
+      file_hash: hash,
+      status,
+      status_problem: problem,
+      processed_count: processedCount,
+      unprocessed_count: errorCount,
+      unprocessed_reasons: errorRows.map((row) => ({ ...row })),
+    });
+    if (error) throw error;
+  } catch (cause) {
+    // Nenhuma parte fica solta no storage se o cadastro não for concluído.
+    if (stored.length > 0) {
+      await supabase.storage.from(BUCKET).remove(stored.map((file) => file.path));
+    }
+    throw cause;
+  }
   return status;
 }
 
@@ -173,10 +208,12 @@ export async function createPricingVersion(input: NewPricingVersionInput): Promi
 export async function deleteAllPricingVersions(): Promise<void> {
   const { data, error: listError } = await supabase
     .from("pricing_versions")
-    .select("id, file_path");
+    .select("id, file_path, files");
   if (listError) throw listError;
 
-  const paths = (data ?? []).map((row) => row.file_path).filter(Boolean);
+  const paths = (data ?? [])
+    .flatMap((row) => [row.file_path, ...toFiles(row.files).map((file) => file.path)])
+    .filter((path, index, all) => Boolean(path) && all.indexOf(path) === index);
   if (paths.length > 0) {
     const { error: removeError } = await supabase.storage.from(BUCKET).remove(paths);
     if (removeError) throw removeError;
