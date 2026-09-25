@@ -25,6 +25,79 @@ function sanitizeFileName(name: string): string {
 }
 
 /** Cria uma URL temporária para baixar o arquivo salvo no storage. */
+/** Cria uma URL temporária para baixar o arquivo salvo no storage. */
+export async function createPricingVersionFileUrl(
+  path: string,
+  downloadAs?: string,
+): Promise<string> {
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrl(
+      path,
+      SIGNED_URL_TTL_SECONDS,
+      downloadAs ? { download: downloadAs } : undefined,
+    );
+  if (error || !data) throw error ?? new Error("Não foi possível abrir o arquivo da versão.");
+  return data.signedUrl;
+}
+
+/** Cache em memória (por sessão) dos arquivos já baixados do storage. */
+const pricingBlobCache = new Map<string, Promise<Blob>>();
+
+/** Baixa o CSV da versão para uso nas análises de faturamento. */
+export function downloadPricingVersionBlob(path: string): Promise<Blob> {
+  const cached = pricingBlobCache.get(path);
+  if (cached) return cached;
+
+  const request = supabase.storage
+    .from(BUCKET)
+    .download(path)
+    .then(({ data, error }) => {
+      if (error || !data) {
+        throw error ?? new Error("Não foi possível carregar o arquivo da versão.");
+      }
+      return data;
+    })
+    .catch((cause: unknown) => {
+      pricingBlobCache.delete(path);
+      throw cause;
+    });
+
+  pricingBlobCache.set(path, request);
+  return request;
+}
+
+/** Versões da base de precificação, da mais recente para a mais antiga. */
+export async function listPricingVersions(): Promise<PricingVersion[]> {
+  const { data, error } = await supabase
+    .from("pricing_versions")
+    .select(
+      "id, created_at, created_by, base_type, version_month, file_name, file_path, file_type, status, status_problem, status_guidance, processed_count, unprocessed_count, unprocessed_reasons, retryable",
+    )
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    createdAt: row.created_at,
+    createdBy: row.created_by,
+    versionMonth: row.version_month?.slice(0, 7) ?? "",
+    baseType: toPricingBaseType(row.base_type),
+    file: {
+      name: row.file_name,
+      path: row.file_path,
+      type: row.file_type ?? "",
+    },
+    status: toPricingVersionStatus(row.status),
+    statusProblem: row.status_problem,
+    statusGuidance: row.status_guidance,
+    processedCount: row.processed_count,
+    unprocessedCount: row.unprocessed_count,
+    unprocessedReasons: toReasons(row.unprocessed_reasons),
+    retryable: row.retryable,
+  }));
+}
+
 function toReasons(value: unknown): PricingUnprocessedReason[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((item: unknown) => {
