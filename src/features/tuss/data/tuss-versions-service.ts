@@ -136,6 +136,7 @@ export async function createTussVersion(
 ): Promise<TussProcessingResult> {
   if (input.files.length === 0) throw new Error("Nenhum arquivo informado.");
   const uploaded: { name: string; path: string; type: string }[] = [];
+  let registered = false;
   try {
     for (const file of input.files) {
       const path = `${crypto.randomUUID()}-${sanitizeFileName(file.name)}`;
@@ -176,6 +177,7 @@ export async function createTussVersion(
       await supabase.from("tuss_versions").delete().eq("id", version.id);
       throw partsError;
     }
+    registered = true;
     await onRegistered?.();
     return await runProcessing(
       version.id,
@@ -185,7 +187,7 @@ export async function createTussVersion(
       throw cause;
     });
   } catch (cause) {
-    if (uploaded.length > 0) {
+    if (!registered && uploaded.length > 0) {
       await supabase.storage.from(BUCKET).remove(uploaded.map((part) => part.path));
     }
     throw cause;
