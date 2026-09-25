@@ -436,7 +436,7 @@ export function PricingBasePage() {
                                               type="button"
                                               variant="ghost"
                                               size="icon"
-                                              className="-ml-2 size-8 shrink-0"
+                                              className="-my-1 -ml-3 size-10 shrink-0 rounded-md hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
                                               aria-expanded={expanded}
                                               aria-controls={`pricing-version-files-${version.id}`}
                                               aria-label={
@@ -457,7 +457,7 @@ export function PricingBasePage() {
                                           ) : (
                                             hasMultiFileRow && (
                                               <span
-                                                className="-ml-2 size-8 shrink-0"
+                                                className="-ml-3 size-10 shrink-0"
                                                 aria-hidden="true"
                                               />
                                             )
@@ -497,7 +497,7 @@ export function PricingBasePage() {
                                           }
                                           className="bg-muted/40"
                                         >
-                                          <DataTableCell colSpan={5} className="py-2">
+                                          <DataTableCell colSpan={5} className="py-1">
                                             <div className="flex min-w-0 items-center gap-2 pl-8 before:h-4 before:w-3 before:shrink-0 before:border-b before:border-l before:border-border before:content-['']">
                                               <Paperclip
                                                 className="size-4 shrink-0 text-muted-foreground"
@@ -508,7 +508,7 @@ export function PricingBasePage() {
                                               </span>
                                             </div>
                                           </DataTableCell>
-                                          <DataTableCell className="py-2 text-right">
+                                          <DataTableCell className="py-1 text-right">
                                             <FileDownloadButton file={file} />
                                           </DataTableCell>
                                         </DataTableRow>
