@@ -1,6 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 
-import type { BillingAnalysis, BillingAnalysisStatus } from "./billing-analyses";
+import {
+  toProcessingDetails,
+  toProcessingStatus,
+  type BillingAnalysis,
+  type BillingAnalysisStatus,
+} from "./billing-analyses";
 
 export type AnalysisItemStatus = "ok" | "divergent" | "unanalyzed";
 
