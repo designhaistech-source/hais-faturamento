@@ -340,9 +340,8 @@ export function PricingBasePage() {
                     activeCount={activeCount}
                     onClear={handleClearFilters}
                     clearDisabled={!hasFilters}
-                    // Colunas flexíveis no lg para a barra caber em uma única linha —
-                    // mesma altura visual da barra de filtros de Contratos.
-                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_12rem_12rem] lg:gap-4 min-[1440px]:grid-cols-[minmax(10rem,1fr)_11rem_11rem_22rem_auto]"
+                    // Mesmas colunas de Análise de faturamento; linha única a partir de 1440px, onde cabem todos os filtros.
+                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_11rem_11rem] lg:gap-4 min-[1440px]:grid-cols-[minmax(10rem,1fr)_12rem_11rem_22rem_auto]"
                   >
                     <SearchField
                       id="pricing-versions-search"
