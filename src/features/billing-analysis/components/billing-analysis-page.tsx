@@ -1,3 +1,4 @@
+import { ActionIcon } from "@/components/action-icons";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -672,7 +673,7 @@ function AnalysisActions({
                 aria-label={`Ver detalhes do processamento ${analysis.fileName}`}
                 onClick={() => onShowDetails(analysis)}
               >
-                <CircleAlert className="size-4" aria-hidden="true" />
+                <ActionIcon.inspectProcessing className="size-4" aria-hidden="true" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>Ver detalhes do processamento</TooltipContent>
