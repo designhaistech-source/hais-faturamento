@@ -256,30 +256,54 @@ export type Database = {
           base_type: string
           created_at: string
           created_by: string
+          file_hash: string | null
           file_name: string
           file_path: string
           file_type: string | null
           id: string
+          processed_count: number | null
+          retryable: boolean
+          status: string
+          status_guidance: string | null
+          status_problem: string | null
+          unprocessed_count: number | null
+          unprocessed_reasons: Json | null
           version_month: string | null
         }
         Insert: {
           base_type?: string
           created_at?: string
           created_by: string
+          file_hash?: string | null
           file_name: string
           file_path: string
           file_type?: string | null
           id?: string
+          processed_count?: number | null
+          retryable?: boolean
+          status?: string
+          status_guidance?: string | null
+          status_problem?: string | null
+          unprocessed_count?: number | null
+          unprocessed_reasons?: Json | null
           version_month?: string | null
         }
         Update: {
           base_type?: string
           created_at?: string
           created_by?: string
+          file_hash?: string | null
           file_name?: string
           file_path?: string
           file_type?: string | null
           id?: string
+          processed_count?: number | null
+          retryable?: boolean
+          status?: string
+          status_guidance?: string | null
+          status_problem?: string | null
+          unprocessed_count?: number | null
+          unprocessed_reasons?: Json | null
           version_month?: string | null
         }
         Relationships: []
