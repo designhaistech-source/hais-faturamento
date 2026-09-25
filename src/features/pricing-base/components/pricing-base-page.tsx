@@ -7,6 +7,7 @@ import {
   Download,
   Eye,
   EyeOff,
+  FlaskConical,
   FileSearch,
   Paperclip,
   Plus,
@@ -136,6 +137,7 @@ export function PricingBasePage() {
   const [clearOpen, setClearOpen] = useState(false);
   /** Ferramenta provisória de testes: simula a página sem versões, sem alterar dados. */
   const [simulateEmpty, setSimulateEmpty] = useState(false);
+  const [simulateFailure, setSimulateFailure] = useState(false);
   const versions = simulateEmpty ? [] : storedVersions;
   const currentVersionIds = useMemo(() => currentVersionIdsByType(versions), [versions]);
   /** Tipos que já possuem versão cadastrada (independe da simulação de estado vazio). */
@@ -225,6 +227,9 @@ export function PricingBasePage() {
 
   // Runs in the global background task so it survives navigation; the task card is the only feedback.
   function startBaseProcessing(input: NewPricingVersionInput) {
+    // Simulação provisória vale só para um cadastro e é desligada em seguida.
+    const failNext = simulateFailure;
+    setSimulateFailure(false);
     backgroundTask.start({
       kind: "pricing-base",
       fileName:
@@ -241,7 +246,7 @@ export function PricingBasePage() {
       },
       retryable: true,
       run: async () => {
-        const status = await createPricingVersion(input);
+        const status = await createPricingVersion(input, { simulateFailure: failNext });
         await queryClient.invalidateQueries({ queryKey: pricingVersionsQueryKey });
         setPage(1);
         if (status === "COMPLETED_WITH_ERRORS") {
@@ -625,8 +630,23 @@ export function PricingBasePage() {
             </section>
 
             {/* Ferramentas provisórias de testes: não fazem parte do produto. */}
+            <div className="flex flex-wrap justify-end gap-2 border-t border-dashed border-border pt-4">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs text-muted-foreground"
+                aria-pressed={simulateFailure}
+                onClick={() => setSimulateFailure((previous) => !previous)}
+              >
+                <FlaskConical className="size-3.5" aria-hidden="true" />
+                {simulateFailure
+                  ? "Simulação de falha ativa: próximo cadastro terá Falha na importação · Temporário"
+                  : "Simular Falha na importação no próximo cadastro · Temporário"}
+              </Button>
+            </div>
             {storedVersions.length > 0 && (
-              <div className="flex flex-wrap justify-end gap-2 border-t border-dashed border-border pt-4">
+              <div className="flex flex-wrap justify-end gap-2">
                 <Button
                   type="button"
                   variant="ghost"
