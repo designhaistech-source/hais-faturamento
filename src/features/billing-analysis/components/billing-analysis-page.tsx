@@ -64,7 +64,9 @@ import {
   formatAnalysisDateTime,
   hasAnalysisResult,
   hasProcessingIssue,
+  PROCESSING_STATUS_LABEL,
   type BillingAnalysis,
+  type ProcessingStatus,
 } from "../data/billing-analyses";
 import {
   billingAnalysesQueryKey,
@@ -93,6 +95,14 @@ function matchesResultFilter(analysis: BillingAnalysis, filter: ResultFilter): b
   }
   return true;
 }
+
+const STATUS_FILTER_OPTIONS = [
+  { value: "all", label: "Todos os status" },
+  ...(Object.keys(PROCESSING_STATUS_LABEL) as ProcessingStatus[]).map((value) => ({
+    value,
+    label: PROCESSING_STATUS_LABEL[value],
+  })),
+];
 
 const COLUMNS = [
   "Arquivo",
@@ -153,11 +163,13 @@ export function BillingAnalysisPage() {
   const handleNewAnalysis = () => setModalOpen(true);
 
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ProcessingStatus | "all">("all");
   const [resultFilter, setResultFilter] = useState<ResultFilter>("all");
   const [analyzedFrom, setAnalyzedFrom] = useState("");
   const [analyzedTo, setAnalyzedTo] = useState("");
   const activeCount = [
     search.trim() !== "",
+    statusFilter !== "all",
     resultFilter !== "all",
     analyzedFrom !== "",
     analyzedTo !== "",
@@ -181,6 +193,7 @@ export function BillingAnalysisPage() {
           digits.length >= 3 && fields.some((field) => field.replace(/\D/g, "").includes(digits));
         if (!textMatch && !digitMatch) return false;
       }
+      if (statusFilter !== "all" && analysis.processingStatus !== statusFilter) return false;
       if (!matchesResultFilter(analysis, resultFilter)) return false;
       if (analyzedFrom || analyzedTo) {
         const analyzed = new Date(analysis.analyzedAt);
@@ -191,10 +204,11 @@ export function BillingAnalysisPage() {
       }
       return true;
     });
-  }, [analyses, search, resultFilter, analyzedFrom, analyzedTo]);
+  }, [analyses, search, statusFilter, resultFilter, analyzedFrom, analyzedTo]);
 
   function handleClearFilters() {
     setSearch("");
+    setStatusFilter("all");
     setResultFilter("all");
     setAnalyzedFrom("");
     setAnalyzedTo("");
@@ -272,7 +286,7 @@ export function BillingAnalysisPage() {
                     activeCount={activeCount}
                     onClear={handleClearFilters}
                     clearDisabled={!hasFilters}
-                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_11rem] lg:gap-4 xl:grid-cols-[minmax(0,1fr)_11rem_22rem_auto]"
+                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_11rem_11rem] lg:gap-4 xl:grid-cols-[minmax(0,1fr)_12rem_11rem_22rem_auto]"
                   >
                     <SearchField
                       id="billing-analyses-search"
@@ -287,6 +301,17 @@ export function BillingAnalysisPage() {
                       }}
                       onClear={() => {
                         setSearch("");
+                        setPage(1);
+                      }}
+                    />
+                    <SelectField
+                      id="billing-analyses-status"
+                      label="Status"
+                      className="sm:col-span-2 lg:col-span-1"
+                      value={statusFilter}
+                      options={STATUS_FILTER_OPTIONS}
+                      onValueChange={(value) => {
+                        setStatusFilter(value as ProcessingStatus | "all");
                         setPage(1);
                       }}
                     />
