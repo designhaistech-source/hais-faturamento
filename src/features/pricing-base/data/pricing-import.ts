@@ -20,11 +20,15 @@ export type ImportField = "description" | "code" | "tiss" | "tuss" | "ean" | "pr
 
 export interface ImportedRecord {
   line: number;
+  /** Arquivo de origem quando a versão tem mais de um arquivo. */
+  file?: string;
   values: Partial<Record<ImportField, string>>;
 }
 
 export interface ImportErrorRow {
   line: number;
+  /** Arquivo de origem quando a versão tem mais de um arquivo. */
+  file?: string;
   reason: string;
   content: string;
 }
@@ -107,9 +111,10 @@ const PRICE_PATTERN = /^-?(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d+)?$|^-?\d+(?:\.\d+)?
 
 function validateRow(
   values: Partial<Record<ImportField, string>>,
-  seenKeys: Map<string, number>,
+  seenKeys: Map<string, number | string>,
   keyField: "tiss" | "code",
   line: number,
+  location: number | string = line,
 ): string | null {
   const price = values.price ?? "";
   if (price === "") return "O preço está vazio.";
@@ -138,7 +143,7 @@ function validateRow(
       ? `O código TISS ${key} já apareceu na linha ${previous}.`
       : `O código ${key} já apareceu na linha ${previous}.`;
   }
-  seenKeys.set(key, line);
+  seenKeys.set(key, location);
   return null;
 }
 
@@ -152,7 +157,11 @@ function failure(status: ImportStatus, problem: string): PricingImportResult {
  * de decidir e a interface apenas exibe o que for retornado.
  */
 /** Lê e valida o conteúdo do arquivo. Números de linha contam a partir do cabeçalho (linha 1). */
-export function parsePricingImport(content: string): PricingImportResult {
+export function parsePricingImport(
+  content: string,
+  seenKeys: Map<string, number | string> = new Map(),
+  fileName?: string,
+): PricingImportResult {
   if (content.includes("\u0000")) {
     return failure("INVALID_FORMAT", "O conteúdo do arquivo não é texto delimitado (CSV/TXT).");
   }
@@ -185,7 +194,6 @@ export function parsePricingImport(content: string): PricingImportResult {
   const fields = DISPLAY_ORDER.filter((field) => columns[field] !== undefined);
   const records: ImportedRecord[] = [];
   const errors: ImportErrorRow[] = [];
-  const seenKeys = new Map<string, number>();
   let totalLines = 0;
 
   rawLines.forEach((raw, index) => {
@@ -195,9 +203,11 @@ export function parsePricingImport(content: string): PricingImportResult {
     const cells = splitLine(raw, delimiter);
     const values: Partial<Record<ImportField, string>> = {};
     for (const field of fields) values[field] = cells[columns[field] ?? -1] ?? "";
-    const reason = validateRow(values, seenKeys, keyField, line);
-    if (reason) errors.push({ line, reason, content: raw.trim() });
-    else records.push({ line, values });
+    const location = fileName ? `${line} de ${fileName}` : line;
+    const reason = validateRow(values, seenKeys, keyField, line, location);
+    const origin = fileName ? { file: fileName } : {};
+    if (reason) errors.push({ line, ...origin, reason, content: raw.trim() });
+    else records.push({ line, ...origin, values });
   });
 
   if (totalLines === 0) {
@@ -211,6 +221,41 @@ export function parsePricingImport(content: string): PricingImportResult {
     records,
     errors,
     totalLines,
+  };
+}
+
+export interface PricingImportSource {
+  name: string;
+  content: string;
+}
+
+/**
+ * Processa todos os arquivos de uma mesma versão como um conjunto: o status só é
+ * decidido depois de ler todos, e códigos repetidos são checados entre arquivos.
+ */
+export function parsePricingImportFiles(sources: PricingImportSource[]): PricingImportResult {
+  if (sources.length === 1) return parsePricingImport(sources[0].content);
+  const seenKeys = new Map<string, number | string>();
+  const results = sources.map((source) => ({
+    source,
+    result: parsePricingImport(source.content, seenKeys, source.name),
+  }));
+  const blocked = results.find(({ result }) => result.problem !== null);
+  if (blocked) {
+    return failure(blocked.result.status, `${blocked.source.name}: ${blocked.result.problem}`);
+  }
+  const fields = DISPLAY_ORDER.filter((field) =>
+    results.some(({ result }) => result.fields.includes(field)),
+  );
+  const records = results.flatMap(({ result }) => result.records);
+  const errors = results.flatMap(({ result }) => result.errors);
+  return {
+    status: errors.length > 0 ? "COMPLETED_WITH_ERRORS" : "COMPLETED",
+    problem: null,
+    fields,
+    records,
+    errors,
+    totalLines: results.reduce((sum, { result }) => sum + result.totalLines, 0),
   };
 }
 

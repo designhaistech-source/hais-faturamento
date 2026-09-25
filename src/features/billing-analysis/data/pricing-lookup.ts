@@ -103,8 +103,14 @@ export async function loadPricingBases(): Promise<Map<PricingBaseType, PricingBa
 
   const bases = new Map<PricingBaseType, PricingBaseLookup>();
   for (const [baseType, version] of latestByType) {
-    const blob = await downloadPricingVersionBlob(version.file.path);
-    const values = parsePricingFile(version.file.name, await blob.text());
+    // Versões com vários arquivos (Brasíndice) somam os valores de todas as partes.
+    const values = new Map<string, number>();
+    for (const part of version.files) {
+      const blob = await downloadPricingVersionBlob(part.path);
+      for (const [code, value] of parsePricingFile(part.name, await blob.text())) {
+        if (!values.has(code)) values.set(code, value);
+      }
+    }
     bases.set(baseType, { version, values });
   }
   return bases;

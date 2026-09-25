@@ -102,9 +102,9 @@ const STATUS_FILTER_OPTIONS = [
   ...(Object.keys(PROCESSING_STATUS_LABEL) as ProcessingStatus[])
     .filter((value) => value !== "PENDING" && value !== "PROCESSING")
     .map((value) => ({
-    value,
-    label: PROCESSING_STATUS_LABEL[value],
-  })),
+      value,
+      label: PROCESSING_STATUS_LABEL[value],
+    })),
 ];
 
 const COLUMNS = [

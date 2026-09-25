@@ -66,13 +66,15 @@ const COLUMNS = [
 
 async function downloadVersionFile(version: PricingVersion) {
   try {
-    const url = await createPricingVersionFileUrl(version.file.path, version.file.name);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = version.file.name;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    for (const part of version.files) {
+      const url = await createPricingVersionFileUrl(part.path, part.name);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = part.name;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
   } catch {
     toast.error("Não foi possível baixar o arquivo desta versão.");
   }
@@ -116,7 +118,9 @@ export function PricingBasePage() {
     const term = search.trim().toLowerCase();
 
     return versions.filter((version) => {
-      if (term && !version.file.name.toLowerCase().includes(term)) return false;
+      if (term && !version.files.some((part) => part.name.toLowerCase().includes(term))) {
+        return false;
+      }
       if (baseTypeFilter !== "all" && version.baseType !== baseTypeFilter) return false;
       if (createdFrom || createdTo) {
         const created = new Date(version.createdAt);
@@ -164,7 +168,10 @@ export function PricingBasePage() {
   function startBaseProcessing(input: NewPricingVersionInput) {
     backgroundTask.start({
       kind: "pricing-base",
-      fileName: input.file.name,
+      fileName:
+        input.files.length > 1
+          ? `${input.files[0].name} +${input.files.length - 1} ${input.files.length - 1 === 1 ? "arquivo" : "arquivos"}`
+          : (input.files[0]?.name ?? ""),
       processing: {
         title: "Processando base de precificação",
         description: "Processando os dados da base...",
@@ -371,7 +378,7 @@ export function PricingBasePage() {
                                 <DataTableRow key={version.id}>
                                   <DataTableCell className="max-w-96">
                                     <div className="flex min-w-0 items-center gap-2">
-                                      <VersionFileName name={version.file.name} />
+                                      <VersionFileName files={version.files} />
                                       {currentVersionIds.has(version.id) && <CurrentBadge />}
                                     </div>
                                   </DataTableCell>
@@ -412,7 +419,7 @@ export function PricingBasePage() {
                                     {currentVersionIds.has(version.id) && <CurrentBadge />}
                                   </>
                                 }
-                                subtitle={version.file.name}
+                                subtitle={<VersionFileName files={version.files} />}
                               />
                               <DataTableCardFields
                                 className="gap-x-4 gap-y-1"
@@ -533,18 +540,35 @@ function CurrentBadge() {
 }
 
 /** Nome do arquivo truncado, com o valor completo em tooltip (mouse e teclado). */
-function VersionFileName({ name }: { name: string }) {
+function VersionFileName({ files }: { files: PricingVersion["files"] }) {
+  const [first] = files;
+  const extra = files.length - 1;
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <span
           tabIndex={0}
-          className="block min-w-0 truncate rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex min-w-0 items-center gap-1.5 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          {name}
+          <span className="min-w-0 truncate">{first?.name}</span>
+          {extra > 0 && (
+            <span className="shrink-0 text-xs text-muted-foreground">
+              {`+${extra} ${extra === 1 ? "arquivo" : "arquivos"}`}
+            </span>
+          )}
         </span>
       </TooltipTrigger>
-      <TooltipContent className="max-w-80 break-all">{name}</TooltipContent>
+      <TooltipContent className="max-w-80 break-all">
+        {files.length > 1 ? (
+          <ul className="space-y-0.5">
+            {files.map((part) => (
+              <li key={part.path}>{part.name}</li>
+            ))}
+          </ul>
+        ) : (
+          first?.name
+        )}
+      </TooltipContent>
     </Tooltip>
   );
 }
