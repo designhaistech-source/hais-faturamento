@@ -778,7 +778,6 @@ function FileDownloadButton({ file }: { file: PricingVersionFile }) {
           type="button"
           variant="ghost"
           size="icon"
-          className="size-8"
           aria-label={`Baixar arquivo ${file.name}`}
           onClick={() => void downloadSingleFile(file)}
         >
