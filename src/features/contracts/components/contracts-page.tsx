@@ -94,8 +94,6 @@ async function downloadContractFile(contract: Contract) {
   }
 }
 
-// Ação oculta temporariamente; modal e lógica de dados extraídos seguem ativos.
-const SHOW_EXTRACTED_DATA_ACTION = false;
 
 export function ContractsPage() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -627,7 +625,7 @@ function ContractFileName({ name }: { name: string }) {
   );
 }
 
-/** Ações da linha: dados extraídos (quando concluída), visualizar e baixar o contrato. */
+/** Ações da linha: visualizar, dados extraídos (quando concluída) e baixar o contrato. */
 function ContractActions({
   contract,
   extractedDataAvailable,
@@ -641,23 +639,6 @@ function ContractActions({
 }) {
   return (
     <div className="inline-flex items-center gap-1">
-      {SHOW_EXTRACTED_DATA_ACTION && extractedDataAvailable && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label={`Ver dados extraídos do contrato de ${contract.company}`}
-              onClick={() => onViewExtractedData(contract)}
-            >
-              <FileSearch className="size-4" aria-hidden="true" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Ver dados extraídos</TooltipContent>
-        </Tooltip>
-      )}
-
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -674,6 +655,23 @@ function ContractActions({
         </TooltipTrigger>
         <TooltipContent>Visualizar contrato</TooltipContent>
       </Tooltip>
+
+      {extractedDataAvailable && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={`Ver dados extraídos do contrato de ${contract.company}`}
+              onClick={() => onViewExtractedData(contract)}
+            >
+              <FileSearch className="size-4" aria-hidden="true" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Ver dados extraídos</TooltipContent>
+        </Tooltip>
+      )}
 
       <Tooltip>
         <TooltipTrigger asChild>
