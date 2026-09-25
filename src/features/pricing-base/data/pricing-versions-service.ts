@@ -2,7 +2,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { CURRENT_USER } from "@/lib/current-user";
 import {
   parsePricingImportSet,
-  simulateImportResult,
   isKnownImportStatus,
   toImportStatus,
   type ImportErrorRow,
@@ -155,10 +154,7 @@ export async function createPricingVersion(input: NewPricingVersionInput): Promi
     const parts = await Promise.all(
       input.files.map(async (file) => ({ name: file.name, content: await file.text() })),
     );
-    const parsed = parsePricingImportSet(parts);
-    const result = input.simulateStatus
-      ? simulateImportResult(parsed, input.simulateStatus)
-      : parsed;
+    const result = parsePricingImportSet(parts);
     status = result.status;
     problem = result.problem;
     if (result.problem === null) {
