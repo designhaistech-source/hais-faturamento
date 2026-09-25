@@ -111,7 +111,13 @@ export async function reprocessTussVersion(
   id: string,
   files: TussVersionFile[],
 ): Promise<TussProcessingResult> {
-  await saveProcessingResult(id, { ...PROCESSING_FAILURE, status: "PROCESSING", problem: null, guidance: null, retryable: false });
+  await saveProcessingResult(id, {
+    ...PROCESSING_FAILURE,
+    status: "PROCESSING",
+    problem: null,
+    guidance: null,
+    retryable: false,
+  });
   try {
     const blobs = [];
     for (const file of files) {

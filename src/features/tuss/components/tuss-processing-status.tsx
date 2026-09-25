@@ -1,4 +1,11 @@
-import { CircleAlert, CircleCheck, CircleX, LoaderCircle, RotateCw, TriangleAlert } from "lucide-react";
+import {
+  CircleAlert,
+  CircleCheck,
+  CircleX,
+  LoaderCircle,
+  RotateCw,
+  TriangleAlert,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
@@ -87,12 +94,8 @@ export function TussProcessingDetailsModal({
               </Detail>
             </div>
           )}
-          <Detail label="Problema identificado">
-            {processing.problem ?? "Não informado."}
-          </Detail>
-          {processing.guidance && (
-            <Detail label="Como resolver">{processing.guidance}</Detail>
-          )}
+          <Detail label="Problema identificado">{processing.problem ?? "Não informado."}</Detail>
+          {processing.guidance && <Detail label="Como resolver">{processing.guidance}</Detail>}
         </dl>
       )}
     </AppModal>
