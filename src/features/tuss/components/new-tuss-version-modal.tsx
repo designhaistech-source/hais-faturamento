@@ -12,6 +12,8 @@ import {
   tussTableLabel,
   type NewTussVersionInput,
 } from "../data/tuss-versions";
+import { sha256 } from "../data/tuss-processing";
+import { findDuplicateTussFiles } from "../data/tuss-versions-service";
 
 const TABLE_OPTIONS = TUSS_TABLE_NUMBERS.map((number) => ({
   value: number,
@@ -35,6 +37,7 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
   const [fileTouched, setFileTouched] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [invalidFileMessage, setInvalidFileMessage] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
 
   const validTable = tableName.trim() !== "";
   const canSubmit = files.length > 0 && validTable;
@@ -75,11 +78,30 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
     onOpenChange(false);
   }
 
-  function submit() {
+  async function submit() {
     setFileTouched(true);
     setTableTouched(true);
-    if (files.length === 0 || !validTable) return;
-    onCreate({ files, tableName });
+    if (files.length === 0 || !validTable || checking) return;
+    setChecking(true);
+    let hashes: string[];
+    try {
+      hashes = await Promise.all(files.map(sha256));
+      const duplicates = await findDuplicateTussFiles(hashes);
+      if (duplicates.length > 0) {
+        setInvalidFileMessage(
+          duplicates.length === 1
+            ? `Este arquivo já foi cadastrado (${duplicates[0]}).`
+            : `Estes arquivos já foram cadastrados: ${duplicates.join(", ")}.`,
+        );
+        return;
+      }
+    } catch {
+      setInvalidFileMessage("Não foi possível verificar os arquivos. Tente novamente.");
+      return;
+    } finally {
+      setChecking(false);
+    }
+    onCreate({ files, tableName, hashes });
     reset();
     onOpenChange(false);
   }
@@ -96,8 +118,13 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
           <Button type="button" variant="outline" size="sm" onClick={close}>
             Cancelar
           </Button>
-          <Button type="button" size="sm" disabled={!canSubmit} onClick={submit}>
-            Cadastrar
+          <Button
+            type="button"
+            size="sm"
+            disabled={!canSubmit || checking}
+            onClick={() => void submit()}
+          >
+            {checking ? "Verificando..." : "Cadastrar"}
           </Button>
         </>
       }
@@ -106,7 +133,7 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
         className="space-y-4"
         onSubmit={(event) => {
           event.preventDefault();
-          submit();
+          void submit();
         }}
       >
         <SelectField
