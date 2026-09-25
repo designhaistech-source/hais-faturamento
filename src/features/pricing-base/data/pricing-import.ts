@@ -22,6 +22,8 @@ export interface ImportedRecord {
   line: number;
   /** Arquivo de origem quando a versão é composta por vários arquivos. */
   file?: string;
+  /** Conteúdo bruto da linha, quando as colunas não foram reconhecidas. */
+  content?: string;
   values: Partial<Record<ImportField, string>>;
 }
 
