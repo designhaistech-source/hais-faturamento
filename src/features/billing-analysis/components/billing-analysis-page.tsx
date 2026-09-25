@@ -672,7 +672,7 @@ function AnalysisActions({
                 aria-label={`Ver detalhes do processamento ${analysis.fileName}`}
                 onClick={() => onShowDetails(analysis)}
               >
-                <CircleAlert className="size-4" aria-hidden="true" />
+                <ActionIcon.inspectProcessing className="size-4" aria-hidden="true" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>Ver detalhes do processamento</TooltipContent>

@@ -418,10 +418,10 @@ export function DetailsButton({
           aria-label={`Ver detalhes do item ${item.code}`}
           onClick={() => onOpen(item)}
         >
-          <Eye className="size-4" aria-hidden="true" />
+          <ActionIcon.inspectProcessing className="size-4" aria-hidden="true" />
         </Button>
       </TooltipTrigger>
-      <TooltipContent>Ver detalhes</TooltipContent>
+      <TooltipContent>Ver detalhes do item</TooltipContent>
     </Tooltip>
   );
 }
