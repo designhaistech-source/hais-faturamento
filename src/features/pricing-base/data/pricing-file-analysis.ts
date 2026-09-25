@@ -12,13 +12,26 @@ export type PricingFileAnalysis =
     };
 
 const CODE_HEADERS = ["codigo", "cod", "tuss", "codtuss", "codigotuss", "codigoitem", "id"];
-const VALUE_HEADERS = ["valor", "preco", "precounitario", "valorunitario", "pmc", "pfb", "porte", "valorreferencia"];
+const VALUE_HEADERS = [
+  "valor",
+  "preco",
+  "precounitario",
+  "valorunitario",
+  "pmc",
+  "pfb",
+  "porte",
+  "valorreferencia",
+];
 
 const REASON_MISSING_CODE = "Registro sem código";
 const REASON_INVALID_VALUE = "Valor ausente ou em formato inválido";
 
 function normalizeHeader(header: string): string {
-  return header.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+  return header
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toLowerCase();
 }
 
 function detectDelimiter(line: string): string {
@@ -34,17 +47,27 @@ function isValidNumber(raw: string): boolean {
   return Number.isFinite(Number(normalized));
 }
 
-function summarize(missingCode: number, invalidValue: number, processed: number): PricingFileAnalysis {
+function summarize(
+  missingCode: number,
+  invalidValue: number,
+  processed: number,
+): PricingFileAnalysis {
   const reasons: PricingUnprocessedReason[] = [];
   if (missingCode > 0) reasons.push({ reason: REASON_MISSING_CODE, count: missingCode });
   if (invalidValue > 0) reasons.push({ reason: REASON_INVALID_VALUE, count: invalidValue });
-  return { kind: "ok", processedCount: processed, unprocessedCount: missingCode + invalidValue, reasons };
+  return {
+    kind: "ok",
+    processedCount: processed,
+    unprocessedCount: missingCode + invalidValue,
+    reasons,
+  };
 }
 
 const NO_RECORDS: PricingFileAnalysis = {
   kind: "invalid",
   problem: "Não foi possível identificar registros de código e valor no arquivo enviado.",
-  guidance: "Verifique se o arquivo possui colunas de código e valor e envie um novo arquivo CSV ou TXT.",
+  guidance:
+    "Verifique se o arquivo possui colunas de código e valor e envie um novo arquivo CSV ou TXT.",
 };
 
 export function analyzePricingContent(fileName: string, content: string): PricingFileAnalysis {
@@ -76,7 +99,10 @@ export function analyzePricingContent(fileName: string, content: string): Pricin
   } else if (fileName.toLowerCase().endsWith(".txt")) {
     // Positional TXT: code at the start, value at the end of each line.
     for (const line of lines) {
-      const tokens = line.trim().split(/\s{2,}|\t/).filter((token) => token !== "");
+      const tokens = line
+        .trim()
+        .split(/\s{2,}|\t/)
+        .filter((token) => token !== "");
       if (tokens.length < 2) {
         missingCode += 1;
         continue;
