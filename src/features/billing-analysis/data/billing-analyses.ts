@@ -32,6 +32,34 @@ export interface ProcessingDetails {
   duplicateOf?: { id: string; analyzedAt: string };
 }
 
+const PROCESSING_STATUSES: readonly ProcessingStatus[] = [
+  "PENDING",
+  "PROCESSING",
+  "EXTRACTED",
+  "PARTIALLY_EXTRACTED",
+  "INVALID_FILE",
+  "PROCESSING_ERROR",
+  "DUPLICATE_FILE",
+];
+
+/** Registros anteriores à coluna derivam o status técnico do estado da análise. */
+export function toProcessingStatus(
+  value: string | null,
+  status: BillingAnalysisStatus,
+): ProcessingStatus {
+  const known = PROCESSING_STATUSES.find((candidate) => candidate === value);
+  if (known) return known;
+  if (status === "completed") return "EXTRACTED";
+  if (status === "failed") return "PROCESSING_ERROR";
+  return "PROCESSING";
+}
+
+export function toProcessingDetails(value: unknown): ProcessingDetails {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as ProcessingDetails)
+    : {};
+}
+
 export function hasProcessingIssue(status: ProcessingStatus): boolean {
   return (
     status === "PARTIALLY_EXTRACTED" ||

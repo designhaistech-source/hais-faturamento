@@ -72,6 +72,8 @@ export async function getAnalysisDetails(
       divergenceCount: row.divergence_count,
       unanalyzedCount: row.unanalyzed_count,
       errorMessage: row.error_message ?? null,
+      processingStatus: toProcessingStatus(row.processing_status, toStatus(row.status)),
+      processingDetails: toProcessingDetails(row.processing_details),
     },
     items: (itemsResult.data ?? []).map((item) => ({
       id: item.id,

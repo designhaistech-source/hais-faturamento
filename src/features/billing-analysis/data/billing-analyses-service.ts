@@ -9,34 +9,11 @@ import {
   UNIDENTIFIED_LABEL,
   type BillingAnalysis,
   type BillingAnalysisStatus,
+  toProcessingDetails,
+  toProcessingStatus,
   type ProcessingDetails,
   type ProcessingStatus,
 } from "./billing-analyses";
-
-const PROCESSING_STATUSES: readonly ProcessingStatus[] = [
-  "PENDING",
-  "PROCESSING",
-  "EXTRACTED",
-  "PARTIALLY_EXTRACTED",
-  "INVALID_FILE",
-  "PROCESSING_ERROR",
-  "DUPLICATE_FILE",
-];
-
-/** Registros anteriores à coluna derivam o status técnico do estado da análise. */
-function toProcessingStatus(value: string | null, status: BillingAnalysisStatus): ProcessingStatus {
-  const known = PROCESSING_STATUSES.find((candidate) => candidate === value);
-  if (known) return known;
-  if (status === "completed") return "EXTRACTED";
-  if (status === "failed") return "PROCESSING_ERROR";
-  return "PROCESSING";
-}
-
-function toProcessingDetails(value: unknown): ProcessingDetails {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as ProcessingDetails)
-    : {};
-}
 
 async function sha256(text: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
