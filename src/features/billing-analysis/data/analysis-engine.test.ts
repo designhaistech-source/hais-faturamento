@@ -8,7 +8,7 @@ import type {
 
 import { analyzeBilling } from "./analysis-engine";
 import { parsePricingCsv, type PricingBaseLookup } from "./pricing-lookup";
-import { readTissItems } from "./tiss-xml";
+import { readTissItems, readTissItemsDetailed } from "./tiss-xml";
 
 /** Dados sintéticos de teste; não representam contratos reais. */
 function rule(patch: Partial<ContractRule>): ContractRule {
@@ -155,5 +155,25 @@ describe("analyzeBilling", () => {
     const result = analyzeBilling(items, rules, ambiguous);
     expect(result.items[0].status).toBe("unanalyzed");
     expect(result.items[0].reason).toContain("ambígua");
+  });
+
+  it("código fora da base gera item Não analisado sem tornar a extração parcial", () => {
+    const xml = XML.replace("<ans:codigoProcedimento>M1<", "<ans:codigoProcedimento>M404<");
+    const doc = new DOMParser().parseFromString(xml, "application/xml");
+    const { items, skipped } = readTissItemsDetailed(doc);
+    expect(skipped).toHaveLength(0);
+    const result = analyzeBilling(items, rules, bases);
+    expect(result.items.find((item) => item.code === "M404")?.status).toBe("unanalyzed");
+  });
+
+  it("somente trecho não suportado torna a extração parcial", () => {
+    const xml = XML.replace(
+      "</ans:outrasDespesas>",
+      "<ans:despesa><ans:observacao>formato desconhecido</ans:observacao></ans:despesa></ans:outrasDespesas>",
+    );
+    const doc = new DOMParser().parseFromString(xml, "application/xml");
+    const { items, skipped } = readTissItemsDetailed(doc);
+    expect(items).toHaveLength(4);
+    expect(skipped).toHaveLength(1);
   });
 });

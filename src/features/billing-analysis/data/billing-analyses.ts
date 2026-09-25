@@ -30,6 +30,8 @@ export interface ProcessingDetails {
   technicalMessage?: string;
   /** Análise anterior com o mesmo arquivo (duplicidade). */
   duplicateOf?: { id: string; analyzedAt: string };
+  /** Cenário provisório de teste de falha interna. */
+  simulated?: boolean;
 }
 
 const PROCESSING_STATUSES: readonly ProcessingStatus[] = [

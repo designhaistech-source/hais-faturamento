@@ -8,6 +8,7 @@ import {
   Copy,
   FileX,
   LoaderCircle,
+  RotateCw,
   TriangleAlert,
   type LucideIcon,
 } from "lucide-react";
@@ -71,14 +72,14 @@ function guidanceFor(analysis: BillingAnalysis): Guidance {
     case "PROCESSING_ERROR":
       return {
         explanation:
-          "Ocorreu uma falha durante o processamento e a análise não foi concluída. Nenhum resultado foi gerado.",
+          "Ocorreu um erro interno durante o processamento do arquivo e as tentativas automáticas se esgotaram. A análise não foi concluída e nenhum resultado foi gerado.",
         resolution:
-          "Tente fazer a análise novamente. Se a falha continuar, verifique se o contrato possui dados extraídos e se as bases de precificação estão cadastradas.",
+          "Use Tentar novamente para colocar o arquivo de volta na fila de processamento. Se a falha continuar, verifique se o contrato possui dados extraídos e se as bases de precificação estão cadastradas.",
       };
     case "PARTIALLY_EXTRACTED":
       return {
         explanation:
-          "O arquivo foi processado, mas alguns trechos não puderam ser lidos por não informarem código nem valores. Esses trechos ficaram fora da análise.",
+          "O arquivo foi processado, mas algumas guias ou itens estão em formato não suportado e não puderam ser extraídos. Esses trechos ficaram fora da análise. Itens extraídos que não puderam ser precificados aparecem como Não analisado no resultado.",
         resolution:
           "Revise os trechos listados abaixo no arquivo original. Após corrigi-los, faça uma nova análise para obter o resultado completo.",
       };
@@ -99,10 +100,18 @@ function guidanceFor(analysis: BillingAnalysis): Guidance {
 interface ProcessingDetailsModalProps {
   analysis: BillingAnalysis | null;
   onOpenChange: (open: boolean) => void;
+  /** Reprocessa a análise; exibido apenas para falhas no processamento. */
+  onRetry?: (analysis: BillingAnalysis) => void;
+  retryDisabled?: boolean;
 }
 
 /** Explica o que aconteceu no processamento do arquivo e como resolver. */
-export function ProcessingDetailsModal({ analysis, onOpenChange }: ProcessingDetailsModalProps) {
+export function ProcessingDetailsModal({
+  analysis,
+  onOpenChange,
+  onRetry,
+  retryDisabled,
+}: ProcessingDetailsModalProps) {
   const [technicalOpen, setTechnicalOpen] = useState(false);
   if (!analysis) return null;
 
@@ -123,9 +132,17 @@ export function ProcessingDetailsModal({ analysis, onOpenChange }: ProcessingDet
       descriptionHidden
       icon={<CircleAlert className="size-5" aria-hidden="true" />}
       footer={
-        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-          Fechar
-        </Button>
+        <>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            Fechar
+          </Button>
+          {onRetry && analysis.processingStatus === "PROCESSING_ERROR" && (
+            <Button type="button" disabled={retryDisabled} onClick={() => onRetry(analysis)}>
+              <RotateCw className="size-4" aria-hidden="true" />
+              Tentar novamente
+            </Button>
+          )}
+        </>
       }
     >
       <div className="space-y-5 text-sm">
@@ -152,8 +169,8 @@ export function ProcessingDetailsModal({ analysis, onOpenChange }: ProcessingDet
               {skipped.map((part) => (
                 <li key={part.position} className="text-muted-foreground">
                   Item {part.position} do arquivo{" "}
-                  <span className="font-mono text-xs">&lt;{part.tag}&gt;</span> — sem código e sem
-                  valores
+                  <span className="font-mono text-xs">&lt;{part.tag}&gt;</span> — formato não
+                  suportado
                 </li>
               ))}
             </ul>

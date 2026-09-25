@@ -3,7 +3,7 @@ import { listContractRules } from "@/features/contracts/data/contract-rules-serv
 
 import { analyzeBilling, type AnalysisItemResult, type AnalysisTotals } from "./analysis-engine";
 import { loadPricingBases } from "./pricing-lookup";
-import { readTissItemsDetailed } from "./tiss-xml";
+import { readTissItemsDetailed, type SkippedTissItem, type TissItem } from "./tiss-xml";
 import {
   readAnalysisPartiesFromXmlDocument,
   UNIDENTIFIED_LABEL,
@@ -242,12 +242,23 @@ export async function runBillingAnalysis(input: RunBillingAnalysisInput): Promis
     status: "processing",
     processingStatus: "PROCESSING",
   });
+  await processAnalysis(analysisId, input.contractId, items, skipped);
+  return analysisId;
+}
 
+/**
+ * Aplica regras e bases aos itens já extraídos e persiste o resultado.
+ * Itens sem preço ou regra ficam "Não analisado" sem afetar o status técnico;
+ * apenas trechos não suportados na extração tornam o processamento parcial.
+ */
+async function processAnalysis(
+  analysisId: string,
+  contractId: string,
+  items: TissItem[],
+  skipped: SkippedTissItem[],
+): Promise<void> {
   try {
-    const [rules, bases] = await Promise.all([
-      listContractRules(input.contractId),
-      loadPricingBases(),
-    ]);
+    const [rules, bases] = await Promise.all([listContractRules(contractId), loadPricingBases()]);
     const result = analyzeBilling(items, rules, bases);
     await saveItems(analysisId, result.items);
     await completeAnalysis(
@@ -256,12 +267,90 @@ export async function runBillingAnalysis(input: RunBillingAnalysisInput): Promis
       skipped.length > 0 ? "PARTIALLY_EXTRACTED" : "EXTRACTED",
       skipped.length > 0 ? { skippedParts: skipped } : {},
     );
-    return analysisId;
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : "Não foi possível concluir a análise.";
     await failAnalysis(analysisId, message);
     throw cause;
   }
+}
+
+async function setProcessingStatus(analysisId: string, status: ProcessingStatus): Promise<void> {
+  const { error } = await supabase
+    .from("billing_analyses")
+    .update({
+      status: "processing",
+      processing_status: status,
+      processing_details: null,
+      error_message: null,
+      completed_at: null,
+    })
+    .eq("id", analysisId);
+  if (error) throw error;
+}
+
+/** Reprocessa uma análise com falha usando o XML já armazenado: volta para a fila e processa. */
+export async function reprocessBillingAnalysis(analysisId: string): Promise<string> {
+  const { data, error } = await supabase
+    .from("billing_analyses")
+    .select("xml_content, contract_id")
+    .eq("id", analysisId)
+    .single();
+  if (error) throw error;
+  if (!data?.xml_content || !data.contract_id) {
+    throw new Error("O arquivo original desta análise não está disponível para reprocessamento.");
+  }
+
+  const { error: deleteError } = await supabase
+    .from("billing_analysis_items")
+    .delete()
+    .eq("analysis_id", analysisId);
+  if (deleteError) throw deleteError;
+  await setProcessingStatus(analysisId, "PENDING");
+
+  const parsed = new DOMParser().parseFromString(data.xml_content, "application/xml");
+  const { items, skipped } = readTissItemsDetailed(parsed);
+  if (items.length === 0) {
+    await failAnalysis(analysisId, "Nenhum item faturado foi encontrado no arquivo.");
+    throw new Error("Nenhum item faturado foi encontrado no arquivo.");
+  }
+  await setProcessingStatus(analysisId, "PROCESSING");
+  await processAnalysis(analysisId, data.contract_id, items, skipped);
+  return analysisId;
+}
+
+/**
+ * Ferramenta provisória de testes: cria uma análise com falha interna simulada
+ * (tentativas esgotadas) a partir de um XML válido já enviado, sem depender de arquivo inválido.
+ */
+export async function simulateProcessingError(): Promise<void> {
+  const { data, error } = await supabase
+    .from("billing_analyses")
+    .select("contract_id, contract_company, file_name, provider, health_plan, xml_content")
+    .not("xml_content", "is", null)
+    .not("contract_id", "is", null)
+    .order("analyzed_at", { ascending: false })
+    .limit(1);
+  if (error) throw error;
+  const source = data?.[0];
+  if (!source?.xml_content || !source.contract_id) {
+    throw new Error("Faça ao menos uma análise antes de simular a falha.");
+  }
+  // Marcador torna o hash único para que o reprocessamento não seja tratado como duplicado.
+  const xmlContent = `${source.xml_content}\n<!-- simulacao-falha ${crypto.randomUUID()} -->`;
+  const message = "Falha interna simulada: tentativas de processamento esgotadas (3 de 3).";
+  await createAnalysisRow({
+    contractId: source.contract_id,
+    contractCompany: source.contract_company ?? "",
+    fileName: source.file_name,
+    provider: source.provider ?? UNIDENTIFIED_LABEL,
+    healthPlan: source.health_plan ?? UNIDENTIFIED_LABEL,
+    xmlContent,
+    fileHash: await sha256(xmlContent),
+    status: "failed",
+    processingStatus: "PROCESSING_ERROR",
+    processingDetails: { technicalMessage: message, simulated: true },
+    errorMessage: message,
+  });
 }
 
 /** XML original persistido de uma análise; null quando a análise é anterior ao armazenamento. */

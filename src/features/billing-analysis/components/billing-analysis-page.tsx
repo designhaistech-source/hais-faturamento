@@ -71,6 +71,7 @@ import {
   deleteAllBillingAnalyses,
   listBillingAnalyses,
   runBillingAnalysis,
+  simulateProcessingError,
 } from "../data/billing-analyses-service";
 
 type ResultFilter = "all" | "divergent" | "unanalyzed" | "clean";
@@ -135,6 +136,17 @@ export function BillingAnalysisPage() {
     },
     onError: () => {
       toast.error("Não foi possível limpar as análises realizadas.");
+    },
+  });
+
+  const simulateErrorMutation = useMutation({
+    mutationFn: simulateProcessingError,
+    onSuccess: async () => {
+      setPage(1);
+      await queryClient.invalidateQueries({ queryKey: billingAnalysesQueryKey });
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Não foi possível simular a falha.");
     },
   });
 
@@ -462,6 +474,19 @@ export function BillingAnalysisPage() {
                     type="button"
                     variant="ghost"
                     size="sm"
+                    className="text-xs text-muted-foreground"
+                    disabled={simulateErrorMutation.isPending}
+                    onClick={() => simulateErrorMutation.mutate()}
+                  >
+                    <CircleX className="size-3.5" aria-hidden="true" />
+                    Simular falha no processamento · Temporário
+                  </Button>
+                )}
+                {!simulateEmpty && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
                     className="text-xs text-muted-foreground hover:text-destructive"
                     disabled={clearMutation.isPending}
                     onClick={() => setClearOpen(true)}
@@ -485,6 +510,10 @@ export function BillingAnalysisPage() {
       />
       <ProcessingDetailsModal
         analysis={detailsAnalysis}
+        onRetry={(analysis) => {
+          setDetailsAnalysis(null);
+          backgroundAnalysis.retry(analysis.id, analysis.fileName);
+        }}
         onOpenChange={(open) => {
           if (!open) setDetailsAnalysis(null);
         }}
