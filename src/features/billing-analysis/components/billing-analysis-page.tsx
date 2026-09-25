@@ -635,21 +635,21 @@ function AnalysisActions({
     <div className="inline-flex items-center gap-1">
       {hasProcessingIssue(analysis.processingStatus) &&
         analysis.processingStatus !== "PARTIALLY_EXTRACTED" && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label={`Ver detalhes do processamento ${analysis.fileName}`}
-              onClick={() => onShowDetails(analysis)}
-            >
-              <CircleAlert className="size-4" aria-hidden="true" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Ver detalhes do processamento</TooltipContent>
-        </Tooltip>
-      )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label={`Ver detalhes do processamento ${analysis.fileName}`}
+                onClick={() => onShowDetails(analysis)}
+              >
+                <CircleAlert className="size-4" aria-hidden="true" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Ver detalhes do processamento</TooltipContent>
+          </Tooltip>
+        )}
       {hasAnalysisResult(analysis) && (
         <Tooltip>
           <TooltipTrigger asChild>
