@@ -138,23 +138,45 @@ function ImportDetailsBody({ version }: { version: PricingVersion }) {
     case "NOT_SUPPORTED":
       // Neutro, como o badge: não é erro, apenas arquivo fora do suportado.
       return (
-        <Alert variant="neutral">
-          <Ban className="size-4" aria-hidden="true" />
-          <AlertTitle>{BLOCKING_TITLE.NOT_SUPPORTED}</AlertTitle>
-          <AlertDescription className="text-muted-foreground">
-            {version.importProblem ?? "Motivo não informado."}
-          </AlertDescription>
-        </Alert>
+        <ImportCallout tone="neutral" title={BLOCKING_TITLE.NOT_SUPPORTED}>
+          {version.importProblem ?? "Motivo não informado."}
+        </ImportCallout>
       );
     default:
       return (
-        <Alert variant="destructive">
-          <CircleX className="size-4" aria-hidden="true" />
-          <AlertTitle>{BLOCKING_TITLE[version.importStatus]}</AlertTitle>
-          <AlertDescription>{version.importProblem ?? "Motivo não informado."}</AlertDescription>
-        </Alert>
+        <ImportCallout tone="danger" title={BLOCKING_TITLE[version.importStatus]}>
+          {version.importProblem ?? "Motivo não informado."}
+        </ImportCallout>
       );
   }
+}
+
+type CalloutTone = "warning" | "neutral" | "danger";
+
+const CALLOUT_ICON: Record<CalloutTone, LucideIcon> = {
+  warning: TriangleAlert,
+  neutral: Ban,
+  danger: CircleX,
+};
+
+/** Callout único dos resultados da importação: fundo tonal, borda sutil, ícone, título e descrição. */
+function ImportCallout({
+  tone,
+  title,
+  children,
+}: {
+  tone: CalloutTone;
+  title?: string;
+  children: React.ReactNode;
+}) {
+  const Icon = CALLOUT_ICON[tone];
+  return (
+    <Alert variant={tone}>
+      <Icon className="size-4" aria-hidden="true" />
+      <AlertTitle className="font-semibold">{title}</AlertTitle>
+      <AlertDescription className="text-muted-foreground">{children}</AlertDescription>
+    </Alert>
+  );
 }
 
 function usePage(total: number) {
@@ -284,13 +306,10 @@ function ErrorRows({ version }: { version: PricingVersion }) {
 
   return (
     <div className="space-y-4">
-      <Alert variant="warning">
-        <TriangleAlert className="size-4" aria-hidden="true" />
-        <AlertDescription>
-          {errors} de {total} {lineWord} com erro. Por isso esta versão não substitui a versão atual
-          de {pricingBaseTypeLabel(version.baseType)}.
-        </AlertDescription>
-      </Alert>
+      <ImportCallout tone="warning" title="Base processada com erros">
+        {errors} de {total} {lineWord} com erro. Por isso esta versão não substitui a versão atual
+        de {pricingBaseTypeLabel(version.baseType)}.
+      </ImportCallout>
       <DataTable>
         <div className="overflow-x-auto">
           <DataTableRoot>
