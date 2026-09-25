@@ -1,6 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CURRENT_USER } from "@/lib/current-user";
-import { parsePricingImport, toImportStatus, type ImportErrorRow, type ImportStatus } from "./pricing-import";
+import {
+  parsePricingImport,
+  toImportStatus,
+  type ImportErrorRow,
+  type ImportStatus,
+} from "./pricing-import";
 import {
   inferPricingBaseType,
   toPricingBaseType,
