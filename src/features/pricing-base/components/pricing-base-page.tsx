@@ -48,7 +48,13 @@ import {
   DataTableRow,
 } from "@/components/data-table";
 
+import { IMPORT_STATUSES, IMPORT_STATUS_LABEL, type ImportStatus } from "../data/pricing-import";
 import { ImportDetailsModal, ImportStatusBadge } from "./import-status";
+
+const STATUS_FILTER_OPTIONS = [
+  { value: "all", label: "Todos os status" },
+  ...IMPORT_STATUSES.map((status) => ({ value: status, label: IMPORT_STATUS_LABEL[status] })),
+];
 import { NewPricingVersionModal } from "./new-pricing-version-modal";
 import {
   currentVersionIdsByType,
@@ -140,12 +146,14 @@ export function PricingBasePage() {
 
   const [search, setSearch] = useState("");
   const [baseTypeFilter, setBaseTypeFilter] = useState<"all" | PricingBaseType>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | ImportStatus>("all");
   const [createdFrom, setCreatedFrom] = useState("");
   const [createdTo, setCreatedTo] = useState("");
 
   const activeCount = [
     search.trim() !== "",
     baseTypeFilter !== "all",
+    statusFilter !== "all",
     createdFrom !== "",
     createdTo !== "",
   ].filter(Boolean).length;
@@ -159,6 +167,7 @@ export function PricingBasePage() {
         return false;
       }
       if (baseTypeFilter !== "all" && version.baseType !== baseTypeFilter) return false;
+      if (statusFilter !== "all" && version.importStatus !== statusFilter) return false;
       if (createdFrom || createdTo) {
         const created = new Date(version.createdAt);
         if (Number.isNaN(created.getTime())) return false;
@@ -168,7 +177,7 @@ export function PricingBasePage() {
       }
       return true;
     });
-  }, [versions, search, baseTypeFilter, createdFrom, createdTo]);
+  }, [versions, search, baseTypeFilter, statusFilter, createdFrom, createdTo]);
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -183,6 +192,7 @@ export function PricingBasePage() {
   function handleClearFilters() {
     setSearch("");
     setBaseTypeFilter("all");
+    setStatusFilter("all");
     setCreatedFrom("");
     setCreatedTo("");
     setPage(1);
@@ -327,7 +337,7 @@ export function PricingBasePage() {
                     clearDisabled={!hasFilters}
                     // Colunas flexíveis no lg para a barra caber em uma única linha —
                     // mesma altura visual da barra de filtros de Contratos.
-                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_12rem] lg:gap-4 xl:grid-cols-[minmax(0,1fr)_12rem_22rem_auto]"
+                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_12rem_12rem] lg:gap-4 xl:grid-cols-[minmax(0,1fr)_11rem_12rem_22rem_auto]"
                   >
                     <SearchField
                       id="pricing-versions-search"
@@ -353,6 +363,17 @@ export function PricingBasePage() {
                       options={baseTypeOptions}
                       onValueChange={(value) => {
                         setBaseTypeFilter(value as "all" | PricingBaseType);
+                        setPage(1);
+                      }}
+                    />
+                    <SelectField
+                      id="pricing-versions-status"
+                      label="Status"
+                      className="sm:col-span-2 lg:col-span-1"
+                      value={statusFilter}
+                      options={STATUS_FILTER_OPTIONS}
+                      onValueChange={(value) => {
+                        setStatusFilter(value as "all" | ImportStatus);
                         setPage(1);
                       }}
                     />
