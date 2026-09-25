@@ -260,44 +260,6 @@ export type Database = {
         }
         Relationships: []
       }
-      pricing_version_files: {
-        Row: {
-          created_at: string
-          file_name: string
-          file_path: string
-          file_type: string | null
-          id: string
-          position: number
-          version_id: string
-        }
-        Insert: {
-          created_at?: string
-          file_name: string
-          file_path: string
-          file_type?: string | null
-          id?: string
-          position: number
-          version_id: string
-        }
-        Update: {
-          created_at?: string
-          file_name?: string
-          file_path?: string
-          file_type?: string | null
-          id?: string
-          position?: number
-          version_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "pricing_version_files_version_id_fkey"
-            columns: ["version_id"]
-            isOneToOne: false
-            referencedRelation: "pricing_versions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       pricing_versions: {
         Row: {
           base_type: string

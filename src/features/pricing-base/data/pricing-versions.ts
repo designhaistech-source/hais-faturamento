@@ -54,10 +54,7 @@ export interface PricingVersion {
   /** Reference month as "YYYY-MM"; empty for versions registered before this field existed. */
   versionMonth: string;
   baseType: PricingBaseType;
-  /** Primeiro arquivo da versão (mantido para exibição e compatibilidade). */
   file: PricingVersionFile;
-  /** Todos os arquivos que compõem a versão, na ordem de envio. */
-  files: PricingVersionFile[];
   importStatus: ImportStatus;
   /** Motivo retornado pelo processamento quando a importação não foi feita. */
   importProblem: string | null;
@@ -70,8 +67,7 @@ export interface PricingVersion {
 
 /** Data collected in the form before the version is persisted. */
 export interface NewPricingVersionInput {
-  /** Um ou mais arquivos que compõem a mesma versão (vários apenas para Brasíndice). */
-  files: File[];
+  file: File;
   /** Reference month, as "YYYY-MM". */
   /** Optional while the modal has no base type selector. */
   baseType?: PricingBaseType;
