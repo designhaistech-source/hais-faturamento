@@ -1,3 +1,5 @@
+import type { ImportErrorRow, ImportStatus } from "./pricing-import";
+
 /** Pricing base versions persisted in the backend (table `pricing_versions` + storage bucket). */
 
 /** Types of pricing base kept in parallel, each with its own version history. */
@@ -53,6 +55,12 @@ export interface PricingVersion {
   versionMonth: string;
   baseType: PricingBaseType;
   file: PricingVersionFile;
+  importStatus: ImportStatus;
+  /** Motivo retornado pelo processamento quando a importação não foi feita. */
+  importProblem: string | null;
+  processedCount: number | null;
+  errorCount: number | null;
+  errorRows: ImportErrorRow[];
 }
 
 /** Data collected in the form before the version is persisted. */
@@ -83,12 +91,13 @@ export function formatVersionDateTime(iso: string): string {
 }
 
 /**
- * Ids of the newest version of each base type ("Atual"), given versions ordered
- * from newest to oldest.
+ * Ids of the newest successfully imported version of each base type ("Atual"),
+ * given versions ordered from newest to oldest. Imports with errors never replace it.
  */
 export function currentVersionIdsByType(versions: PricingVersion[]): Set<string> {
   const current = new Map<PricingBaseType, string>();
   for (const version of versions) {
+    if (version.importStatus !== "COMPLETED") continue;
     if (!current.has(version.baseType)) current.set(version.baseType, version.id);
   }
   return new Set(current.values());

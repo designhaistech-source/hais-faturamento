@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CURRENT_USER } from "@/lib/current-user";
+import { parsePricingImport, toImportStatus, type ImportErrorRow, type ImportStatus } from "./pricing-import";
 import {
   inferPricingBaseType,
   toPricingBaseType,
@@ -66,7 +67,9 @@ export function downloadPricingVersionBlob(path: string): Promise<Blob> {
 export async function listPricingVersions(): Promise<PricingVersion[]> {
   const { data, error } = await supabase
     .from("pricing_versions")
-    .select("id, created_at, created_by, base_type, version_month, file_name, file_path, file_type")
+    .select(
+      "id, created_at, created_by, base_type, version_month, file_name, file_path, file_type, status, status_problem, processed_count, unprocessed_count, unprocessed_reasons",
+    )
     .order("created_at", { ascending: false });
   if (error) throw error;
 
@@ -81,10 +84,73 @@ export async function listPricingVersions(): Promise<PricingVersion[]> {
       path: row.file_path,
       type: row.file_type ?? "",
     },
+    importStatus: toImportStatus(row.status),
+    importProblem: row.status_problem,
+    processedCount: row.processed_count,
+    errorCount: row.unprocessed_count,
+    errorRows: toErrorRows(row.unprocessed_reasons),
   }));
 }
 
-export async function createPricingVersion(input: NewPricingVersionInput): Promise<void> {
+function toErrorRows(value: unknown): ImportErrorRow[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item: unknown) => {
+    if (typeof item !== "object" || item === null) return [];
+    const row = item as Record<string, unknown>;
+    if (typeof row.line !== "number" || typeof row.reason !== "string") return [];
+    return [{ line: row.line, reason: row.reason, content: String(row.content ?? "") }];
+  });
+}
+
+async function sha256(file: File): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+/** Versão (1 = primeira cadastrada daquele tipo) que já contém o mesmo arquivo. */
+async function findDuplicateVersionNumber(baseType: string, hash: string): Promise<number | null> {
+  const { data, error } = await supabase
+    .from("pricing_versions")
+    .select("id, file_hash, status")
+    .eq("base_type", baseType)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  const index = (data ?? []).findIndex(
+    (row) => row.file_hash === hash && toImportStatus(row.status) !== "FAILED",
+  );
+  return index === -1 ? null : index + 1;
+}
+
+/** Cadastra o arquivo e registra o resultado da importação; devolve o status obtido. */
+export async function createPricingVersion(input: NewPricingVersionInput): Promise<ImportStatus> {
+  const baseType = input.baseType ?? inferPricingBaseType(input.file.name);
+  const hash = await sha256(input.file);
+
+  let status: ImportStatus;
+  let problem: string | null = null;
+  let processedCount: number | null = null;
+  let errorCount: number | null = null;
+  let errorRows: ImportErrorRow[] = [];
+  try {
+    const duplicateOf = await findDuplicateVersionNumber(baseType, hash);
+    if (duplicateOf !== null) {
+      status = "FAILED";
+      problem = `Este arquivo já foi importado (versão ${duplicateOf}).`;
+    } else {
+      const result = parsePricingImport(await input.file.text());
+      status = result.status;
+      problem = result.problem;
+      if (result.problem === null) {
+        processedCount = result.records.length;
+        errorCount = result.errors.length;
+        errorRows = result.errors;
+      }
+    }
+  } catch (cause) {
+    status = "FAILED";
+    problem = cause instanceof Error ? cause.message : "Erro inesperado durante a importação.";
+  }
+
   const path = `${crypto.randomUUID()}-${sanitizeFileName(input.file.name)}`;
 
   const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, input.file, {
@@ -98,10 +164,17 @@ export async function createPricingVersion(input: NewPricingVersionInput): Promi
     file_name: input.file.name,
     file_path: path,
     file_type: input.file.type,
-    base_type: input.baseType ?? inferPricingBaseType(input.file.name),
+    base_type: baseType,
     created_by: CURRENT_USER.name,
+    file_hash: hash,
+    status,
+    status_problem: problem,
+    processed_count: processedCount,
+    unprocessed_count: errorCount,
+    unprocessed_reasons: errorRows.map((row) => ({ ...row })),
   });
   if (error) throw error;
+  return status;
 }
 
 /** Ferramenta provisória de testes: apaga todas as versões e seus arquivos. */
