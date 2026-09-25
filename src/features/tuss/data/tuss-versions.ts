@@ -20,51 +20,12 @@ export interface TussVersion {
   file: TussVersionFile;
   /** Every part that composes this registration, in upload order. */
   files: TussVersionFile[];
-  processing: TussProcessingResult;
-}
-
-export type TussProcessingStatus =
-  | "PENDING"
-  | "PROCESSING"
-  | "EXTRACTED"
-  | "PARTIALLY_EXTRACTED"
-  | "INVALID_FILE"
-  | "PROCESSING_ERROR";
-
-export interface TussProcessingResult {
-  status: TussProcessingStatus;
-  problem: string | null;
-  guidance: string | null;
-  processedCount: number | null;
-  unprocessedCount: number | null;
-  retryable: boolean;
-}
-
-/** Statuses whose details are worth opening (errors and partial results). */
-export function hasProcessingDetails(status: TussProcessingStatus): boolean {
-  return (
-    status === "PARTIALLY_EXTRACTED" || status === "INVALID_FILE" || status === "PROCESSING_ERROR"
-  );
-}
-
-export function parseTussStatus(value: string): TussProcessingStatus {
-  const known: TussProcessingStatus[] = [
-    "PENDING",
-    "PROCESSING",
-    "EXTRACTED",
-    "PARTIALLY_EXTRACTED",
-    "INVALID_FILE",
-    "PROCESSING_ERROR",
-  ];
-  return known.find((status) => status === value) ?? "PROCESSING_ERROR";
 }
 
 export interface NewTussVersionInput {
   tableName: string;
   /** One or more parts composing a single registration. */
   files: File[];
-  /** SHA-256 of each file, same order as `files`; used to reject duplicates. */
-  hashes: string[];
 }
 
 /** Formats "YYYY-MM" (or a date starting with it) as "MM/AAAA". */

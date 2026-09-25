@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BookMarked, CircleAlert, Download, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
+import { BookMarked, Download, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -37,11 +37,9 @@ import {
 } from "@/components/data-table";
 
 import { NewTussVersionModal } from "./new-tuss-version-modal";
-import { TussProcessingDetailsModal, TussStatusBadge } from "./tuss-processing-status";
 import {
   currentTussTableIds,
   formatTussDateTime,
-  hasProcessingDetails,
   tussTableLabel,
   type NewTussVersionInput,
   type TussVersion,
@@ -51,18 +49,10 @@ import {
   createTussVersionFileUrl,
   deleteAllTussVersions,
   listTussVersions,
-  reprocessTussVersion,
   tussVersionsQueryKey,
 } from "../data/tuss-versions-service";
 
-const COLUMNS = [
-  "Arquivo",
-  "Tabela TUSS",
-  "Status",
-  "Cadastrado por",
-  "Data do cadastro",
-  "Ações",
-] as const;
+const COLUMNS = ["Arquivo", "Tabela TUSS", "Cadastrado por", "Data do cadastro", "Ações"] as const;
 
 async function downloadVersionFile(version: TussVersion) {
   try {
@@ -85,13 +75,11 @@ export function TussPage() {
   const [clearOpen, setClearOpen] = useState(false);
   /** Ferramenta provisória de testes: simula a página sem versões, sem alterar dados. */
   const [simulateEmpty, setSimulateEmpty] = useState(false);
-  const [detailsId, setDetailsId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const versionsQuery = useQuery({ queryKey: tussVersionsQueryKey, queryFn: listTussVersions });
   const storedVersions = versionsQuery.data ?? [];
   const versions = simulateEmpty ? [] : storedVersions;
-  const detailsVersion = storedVersions.find((version) => version.id === detailsId) ?? null;
   const currentIds = useMemo(() => currentTussTableIds(versions), [versions]);
 
   const [search, setSearch] = useState("");
@@ -155,43 +143,9 @@ export function TussPage() {
       },
       retryable: true,
       run: async () => {
-        const result = await createTussVersion(input, async () => {
-          await queryClient.invalidateQueries({ queryKey: tussVersionsQueryKey });
-          setPage(1);
-        });
+        await createTussVersion(input);
         await queryClient.invalidateQueries({ queryKey: tussVersionsQueryKey });
-        if (result.status !== "EXTRACTED") return processingIssueOutcome(result.status);
-        return {
-          title: "Tabela processada",
-          description: "Os dados da tabela TUSS estão disponíveis para uso.",
-        };
-      },
-    });
-  }
-
-  function startReprocessing(version: TussVersion) {
-    setDetailsId(null);
-    backgroundTask.start({
-      kind: "tuss-table",
-      fileName: version.files.map((file) => file.name).join(", "),
-      processing: {
-        title: "Processando tabela TUSS",
-        description: "Processando os dados da tabela...",
-      },
-      failure: {
-        title: "Não foi possível processar a tabela",
-        description: "Não foi possível processar o arquivo.",
-      },
-      retryable: true,
-      run: async () => {
-        const pending = reprocessTussVersion(version.id, version.files);
-        void queryClient.invalidateQueries({ queryKey: tussVersionsQueryKey });
-        try {
-          const result = await pending;
-          if (result.status !== "EXTRACTED") return processingIssueOutcome(result.status);
-        } finally {
-          await queryClient.invalidateQueries({ queryKey: tussVersionsQueryKey });
-        }
+        setPage(1);
         return {
           title: "Tabela processada",
           description: "Os dados da tabela TUSS estão disponíveis para uso.",
@@ -245,7 +199,7 @@ export function TussPage() {
             <section className="space-y-4">
               {versionsQuery.isPending ? (
                 <SurfaceCard padding="none">
-                  <TableSkeleton rows={4} columns={6} />
+                  <TableSkeleton rows={4} columns={5} />
                 </SurfaceCard>
               ) : versionsQuery.isError ? (
                 <SurfaceCard padding="md">
@@ -364,18 +318,12 @@ export function TussPage() {
                                     </div>
                                   </DataTableCell>
                                   <DataTableCell>{tussTableLabel(version.tableName)}</DataTableCell>
-                                  <DataTableCell>
-                                    <TussStatusBadge status={version.processing.status} />
-                                  </DataTableCell>
                                   <DataTableCell>{version.createdBy}</DataTableCell>
                                   <DataTableCell>
                                     {formatTussDateTime(version.createdAt)}
                                   </DataTableCell>
                                   <DataTableCell className="text-right">
-                                    <VersionActions
-                                      version={version}
-                                      onShowDetails={() => setDetailsId(version.id)}
-                                    />
+                                    <VersionActions version={version} />
                                   </DataTableCell>
                                 </DataTableRow>
                               ))}
@@ -398,10 +346,6 @@ export function TussPage() {
                               <DataTableCardFields
                                 className="gap-x-4 gap-y-1"
                                 fields={[
-                                  {
-                                    label: "Status",
-                                    value: <TussStatusBadge status={version.processing.status} />,
-                                  },
                                   { label: "Cadastrado por", value: version.createdBy },
                                   {
                                     label: "Data do cadastro",
@@ -410,10 +354,7 @@ export function TussPage() {
                                 ]}
                               />
                               <DataTableCardActions className="-mt-0.5 justify-end">
-                                <VersionActions
-                                  version={version}
-                                  onShowDetails={() => setDetailsId(version.id)}
-                                />
+                                <VersionActions version={version} />
                               </DataTableCardActions>
                             </DataTableCard>
                           ))}
@@ -484,13 +425,6 @@ export function TussPage() {
         onCreate={startTableProcessing}
       />
 
-      <TussProcessingDetailsModal
-        version={detailsVersion}
-        onOpenChange={(open) => !open && setDetailsId(null)}
-        onReprocess={startReprocessing}
-        reprocessing={backgroundTask.isProcessing("tuss-table")}
-      />
-
       <ConfirmDialog
         open={clearOpen}
         onOpenChange={setClearOpen}
@@ -545,43 +479,9 @@ function VersionFileName({ files }: { files: TussVersion["files"] }) {
   );
 }
 
-function processingIssueOutcome(status: TussVersion["processing"]["status"]) {
-  return status === "PARTIALLY_EXTRACTED"
-    ? {
-        title: "Tabela processada parcialmente",
-        description: "Alguns registros não foram processados. Veja os detalhes na listagem.",
-      }
-    : {
-        title: "Não foi possível processar a tabela",
-        description: "Veja os detalhes do processamento na listagem.",
-      };
-}
-
-function VersionActions({
-  version,
-  onShowDetails,
-}: {
-  version: TussVersion;
-  onShowDetails: () => void;
-}) {
+function VersionActions({ version }: { version: TussVersion }) {
   return (
     <div className="inline-flex items-center gap-1">
-      {hasProcessingDetails(version.processing.status) && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label={`Ver detalhes do processamento de ${tussTableLabel(version.tableName)}`}
-              onClick={onShowDetails}
-            >
-              <CircleAlert className="size-4" aria-hidden="true" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Ver detalhes do processamento</TooltipContent>
-        </Tooltip>
-      )}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
