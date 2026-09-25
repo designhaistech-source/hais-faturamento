@@ -54,7 +54,10 @@ export interface PricingVersion {
   /** Reference month as "YYYY-MM"; empty for versions registered before this field existed. */
   versionMonth: string;
   baseType: PricingBaseType;
+  /** Primeiro arquivo da versão. */
   file: PricingVersionFile;
+  /** Todos os arquivos da versão, na ordem de envio (SIMPRO pode ter vários). */
+  files: PricingVersionFile[];
   importStatus: ImportStatus;
   /** Motivo retornado pelo processamento quando a importação não foi feita. */
   importProblem: string | null;
@@ -67,10 +70,14 @@ export interface PricingVersion {
 
 /** Data collected in the form before the version is persisted. */
 export interface NewPricingVersionInput {
-  file: File;
-  /** Reference month, as "YYYY-MM". */
-  /** Optional while the modal has no base type selector. */
+  /** One file for Brasíndice/CBHPM; one or more for SIMPRO, all forming a single version. */
+  files: File[];
   baseType?: PricingBaseType;
+}
+
+/** Base types whose version may be split across several files. */
+export function allowsMultipleFiles(type: PricingBaseType | ""): boolean {
+  return type === "simpro";
 }
 
 /** Formats "YYYY-MM" as "MM/AAAA"; "—" when absent. */

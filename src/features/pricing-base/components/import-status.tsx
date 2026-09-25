@@ -6,6 +6,7 @@ import {
   CircleX,
   FileWarning,
   Info,
+  Paperclip,
   TriangleAlert,
   type LucideIcon,
 } from "lucide-react";
@@ -29,7 +30,7 @@ import { Button } from "@/components/ui/button";
 import {
   IMPORT_STATUS_LABEL,
   importFieldLabel,
-  parsePricingImport,
+  parsePricingImportSet,
   type ImportStatus,
 } from "../data/pricing-import";
 import { pricingBaseTypeLabel, type PricingVersion } from "../data/pricing-versions";
@@ -69,7 +70,13 @@ export function ImportDetailsModal({ version, onOpenChange }: ImportDetailsModal
       open={version !== null}
       onOpenChange={onOpenChange}
       title="Detalhes da importação"
-      description={version?.file.name}
+      description={
+        version
+          ? version.files.length > 1
+            ? `${version.file.name} +${version.files.length - 1} ${version.files.length === 2 ? "arquivo" : "arquivos"}`
+            : version.file.name
+          : undefined
+      }
       size="lg"
       footer={
         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
@@ -83,6 +90,32 @@ export function ImportDetailsModal({ version, onOpenChange }: ImportDetailsModal
 }
 
 function ImportDetailsContent({ version }: { version: PricingVersion }) {
+  if (version.files.length <= 1) return <ImportDetailsBody version={version} />;
+  return (
+    <div className="space-y-4">
+      <section aria-labelledby="pricing-import-files" className="space-y-2">
+        <h3 id="pricing-import-files" className="text-sm font-medium text-foreground">
+          {version.files.length} arquivos nesta importação
+        </h3>
+        <ul className="divide-y divide-border rounded-xl border border-border">
+          {version.files.map((file) => (
+            <li key={file.path} className="flex min-w-0 items-center gap-3 px-3 py-2">
+              <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <span className="min-w-0 flex-1 break-all text-sm text-foreground">{file.name}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <ImportDetailsBody version={version} />
+    </div>
+  );
+}
+
+function lineLabel(line: number, file: string | undefined): string {
+  return file ? `${file} · linha ${line}` : String(line);
+}
+
+function ImportDetailsBody({ version }: { version: PricingVersion }) {
   if (!version.detailsAvailable) {
     return (
       <Alert>
@@ -131,8 +164,13 @@ function ImportedRecords({ version }: { version: PricingVersion }) {
   const query = useQuery({
     queryKey: ["pricing-version-records", version.id],
     queryFn: async () => {
-      const blob = await downloadPricingVersionBlob(version.file.path);
-      return parsePricingImport(await blob.text());
+      const parts = await Promise.all(
+        version.files.map(async (file) => ({
+          name: file.name,
+          content: await (await downloadPricingVersionBlob(file.path)).text(),
+        })),
+      );
+      return parsePricingImportSet(parts);
     },
     staleTime: Infinity,
   });
@@ -178,8 +216,10 @@ function ImportedRecords({ version }: { version: PricingVersion }) {
             </DataTableHeader>
             <DataTableBody>
               {records.slice(start, start + pageSize).map((record) => (
-                <DataTableRow key={record.line}>
-                  <DataTableCell className="font-mono text-xs">{record.line}</DataTableCell>
+                <DataTableRow key={`${record.file ?? ""}-${record.line}`}>
+                  <DataTableCell className="whitespace-nowrap font-mono text-xs">
+                    {lineLabel(record.line, record.file)}
+                  </DataTableCell>
                   {fields.map((field) => (
                     <DataTableCell
                       key={field}
@@ -241,8 +281,10 @@ function ErrorRows({ version }: { version: PricingVersion }) {
             </DataTableHeader>
             <DataTableBody>
               {rows.slice(start, start + pageSize).map((row) => (
-                <DataTableRow key={row.line}>
-                  <DataTableCell className="font-mono text-xs align-top">{row.line}</DataTableCell>
+                <DataTableRow key={`${row.file ?? ""}-${row.line}`}>
+                  <DataTableCell className="whitespace-nowrap font-mono text-xs align-top">
+                    {lineLabel(row.line, row.file)}
+                  </DataTableCell>
                   <DataTableCell className="align-top">{row.reason}</DataTableCell>
                   <DataTableCell className="max-w-72 break-all align-top font-mono text-xs text-muted-foreground">
                     {row.content}

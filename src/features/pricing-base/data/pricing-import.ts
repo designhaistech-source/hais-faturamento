@@ -20,11 +20,15 @@ export type ImportField = "description" | "code" | "tiss" | "tuss" | "ean" | "pr
 
 export interface ImportedRecord {
   line: number;
+  /** Arquivo de origem quando a versão é composta por vários arquivos. */
+  file?: string;
   values: Partial<Record<ImportField, string>>;
 }
 
 export interface ImportErrorRow {
   line: number;
+  /** Arquivo de origem quando a versão é composta por vários arquivos. */
+  file?: string;
   reason: string;
   content: string;
 }
@@ -247,4 +251,37 @@ export function isKnownImportStatus(value: string | null | undefined): value is 
 /** Registros anteriores aos status de importação ("EXTRACTED") contam como concluídos. */
 export function toImportStatus(value: string | null | undefined): ImportStatus {
   return isKnownImportStatus(value) ? value : "COMPLETED";
+}
+
+/**
+ * Processa um conjunto de arquivos como uma única versão: qualquer arquivo que impeça a
+ * importação define o status do conjunto; caso contrário, registros e erros são somados.
+ */
+export function parsePricingImportSet(
+  parts: ReadonlyArray<{ name: string; content: string }>,
+): PricingImportResult {
+  if (parts.length === 1) return parsePricingImport(parts[0].content);
+  const tag = (name: string) => ({ file: name });
+  const fields = new Set<ImportField>();
+  const records: ImportedRecord[] = [];
+  const errors: ImportErrorRow[] = [];
+  let totalLines = 0;
+  for (const part of parts) {
+    const result = parsePricingImport(part.content);
+    if (result.problem !== null) {
+      return failure(result.status, `${part.name}: ${result.problem}`);
+    }
+    result.fields.forEach((field) => fields.add(field));
+    records.push(...result.records.map((record) => ({ ...record, ...tag(part.name) })));
+    errors.push(...result.errors.map((row) => ({ ...row, ...tag(part.name) })));
+    totalLines += result.totalLines;
+  }
+  return {
+    status: errors.length > 0 ? "COMPLETED_WITH_ERRORS" : "COMPLETED",
+    problem: null,
+    fields: DISPLAY_ORDER.filter((field) => fields.has(field)),
+    records,
+    errors,
+    totalLines,
+  };
 }

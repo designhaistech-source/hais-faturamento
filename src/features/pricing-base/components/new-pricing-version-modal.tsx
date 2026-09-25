@@ -4,10 +4,10 @@ import { Database, Info, Paperclip, Trash2, Upload } from "lucide-react";
 import { AppModal } from "@/components/app-modal";
 import { Field, SelectField, type SelectOption } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {
+  allowsMultipleFiles,
   PRICING_BASE_TYPES,
   pricingBaseTypeLabel,
   type NewPricingVersionInput,
@@ -29,7 +29,7 @@ interface NewPricingVersionModalProps {
   existingBaseTypes?: readonly PricingBaseType[];
 }
 
-/** Cadastro de uma nova versão da base de precificação (tipo da base + arquivo CSV ou TXT). */
+/** Cadastro de uma nova versão (tipo da base + arquivo CSV/TXT; SIMPRO aceita vários arquivos). */
 export function NewPricingVersionModal({
   open,
   onOpenChange,
@@ -39,44 +39,69 @@ export function NewPricingVersionModal({
   const inputRef = useRef<HTMLInputElement>(null);
   const [baseType, setBaseType] = useState<PricingBaseType | "">("");
   const [baseTypeTouched, setBaseTypeTouched] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [fileTouched, setFileTouched] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [invalidFileMessage, setInvalidFileMessage] = useState<string | null>(null);
 
-  const canSubmit = Boolean(file) && baseType !== "";
+  const multiple = allowsMultipleFiles(baseType);
+  const file = files[0] ?? null;
+  const canSubmit = files.length > 0 && baseType !== "";
   const fileError =
     invalidFileMessage ??
-    (fileTouched && !file ? "Selecione o arquivo CSV ou TXT da base." : undefined);
+    (fileTouched && files.length === 0
+      ? multiple
+        ? "Selecione ao menos um arquivo CSV ou TXT da base."
+        : "Selecione o arquivo CSV ou TXT da base."
+      : undefined);
   const baseTypeError =
     baseTypeTouched && baseType === "" ? "Selecione o tipo da base." : undefined;
   const replacesCurrent = baseType !== "" && existingBaseTypes.includes(baseType);
+
+  function validate(selected: File): string | null {
+    if (!/\.(csv|txt)$/i.test(selected.name)) {
+      return "Formato não aceito. Envie um arquivo CSV ou TXT.";
+    }
+    if (selected.size > MAX_FILE_SIZE_BYTES) return "Arquivo maior que 10 MB.";
+    return null;
+  }
 
   function handleSelectedFile(selected: File | null) {
     setFileTouched(true);
     if (!selected) {
       setInvalidFileMessage(null);
-      setFile(null);
+      setFiles([]);
       return;
     }
-    if (!/\.(csv|txt)$/i.test(selected.name)) {
-      setInvalidFileMessage("Formato não aceito. Envie um arquivo CSV ou TXT.");
-      setFile(null);
-      return;
-    }
-    if (selected.size > MAX_FILE_SIZE_BYTES) {
-      setInvalidFileMessage("Arquivo maior que 10 MB.");
-      setFile(null);
-      return;
-    }
+    const problem = validate(selected);
+    setInvalidFileMessage(problem);
+    setFiles(problem ? [] : [selected]);
+  }
+
+  /** SIMPRO: adiciona à lista sem substituir os arquivos já selecionados. */
+  function addFiles(selected: FileList | null) {
+    setFileTouched(true);
+    const incoming = Array.from(selected ?? []);
+    if (incoming.length === 0) return;
+    const problems = incoming.map(validate);
+    const accepted = incoming.filter((_, index) => problems[index] === null);
+    setInvalidFileMessage(problems.find((problem) => problem !== null) ?? null);
+    setFiles((previous) => {
+      const known = new Set(previous.map(fileKey));
+      return [...previous, ...accepted.filter((item) => !known.has(fileKey(item)))];
+    });
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  function removeFile(index: number) {
     setInvalidFileMessage(null);
-    setFile(selected);
+    setFiles((previous) => previous.filter((_, position) => position !== index));
   }
 
   function reset() {
     setBaseType("");
     setBaseTypeTouched(false);
-    setFile(null);
+    setFiles([]);
     setFileTouched(false);
     setInvalidFileMessage(null);
     if (inputRef.current) inputRef.current.value = "";
@@ -90,8 +115,8 @@ export function NewPricingVersionModal({
   function submit() {
     setFileTouched(true);
     setBaseTypeTouched(true);
-    if (!file || baseType === "") return;
-    onCreate({ file, baseType });
+    if (files.length === 0 || baseType === "") return;
+    onCreate({ files, baseType });
     reset();
     onOpenChange(false);
   }
@@ -133,116 +158,217 @@ export function NewPricingVersionModal({
           error={baseTypeError}
           onValueChange={(value) => {
             setBaseTypeTouched(true);
-            setBaseType(value as PricingBaseType);
+            const next = value as PricingBaseType;
+            // Tipos de arquivo único mantêm só o primeiro arquivo já escolhido.
+            if (!allowsMultipleFiles(next)) setFiles((previous) => previous.slice(0, 1));
+            setBaseType(next);
           }}
         />
 
-        <Field
-          id="pricing-version-file"
-          label="Arquivo CSV ou TXT"
-          required
-          error={fileError}
-          hint="CSV ou TXT • Máx. 10 MB"
-          injectChildProps={false}
-        >
-          <div
-            className="min-w-0"
-            onDragEnter={(event) => {
-              event.preventDefault();
-              setDragActive(true);
-            }}
-            onDragOver={(event) => {
-              event.preventDefault();
-              setDragActive(true);
-            }}
-            onDragLeave={(event) => {
-              if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
-              setDragActive(false);
-            }}
-            onDrop={(event) => {
-              event.preventDefault();
-              setDragActive(false);
-              const dropped = event.dataTransfer.files?.[0];
-              if (!dropped) return;
-              handleSelectedFile(dropped);
-              if (inputRef.current) inputRef.current.value = "";
-            }}
+        {multiple ? (
+          <Field
+            id="pricing-version-file"
+            label="Arquivos"
+            required
+            error={fileError}
+            hint="Um ou mais arquivos CSV ou TXT • Máx. 10 MB por arquivo"
+            injectChildProps={false}
           >
-            <input
-              ref={inputRef}
-              id="pricing-version-file"
-              type="file"
-              accept=".csv,.txt,text/csv,text/plain"
-              className="sr-only"
-              onChange={(event) => handleSelectedFile(event.target.files?.[0] ?? null)}
-            />
-
-            {file ? (
-              <div
-                className={cn(
-                  "flex min-w-0 flex-wrap items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-3 transition-colors",
-                  dragActive && "border-primary bg-primary-muted",
-                )}
-              >
-                <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                <TooltipProvider delayDuration={150}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span
-                        tabIndex={0}
-                        className="min-w-0 flex-1 truncate rounded-sm text-sm text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                      >
-                        {file.name}
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-80 break-all">{file.name}</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <div className="flex shrink-0 items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => inputRef.current?.click()}
-                  >
-                    Substituir
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => {
-                      handleSelectedFile(null);
-                      if (inputRef.current) inputRef.current.value = "";
-                    }}
-                  >
-                    <Trash2 className="size-4" aria-hidden="true" />
-                    Remover
-                  </Button>
-                </div>
-              </div>
-            ) : (
+            <div className="min-w-0 space-y-2">
               <div
                 className={cn(
                   "flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-6 text-center transition-colors",
                   dragActive && "border-primary bg-primary-muted",
                 )}
+                onDragEnter={(event) => {
+                  event.preventDefault();
+                  setDragActive(true);
+                }}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  setDragActive(true);
+                }}
+                onDragLeave={(event) => {
+                  if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+                  setDragActive(false);
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  setDragActive(false);
+                  addFiles(event.dataTransfer.files);
+                }}
               >
+                <input
+                  ref={inputRef}
+                  id="pricing-version-file"
+                  type="file"
+                  multiple
+                  accept=".csv,.txt,text/csv,text/plain"
+                  className="sr-only"
+                  onChange={(event) => addFiles(event.target.files)}
+                />
                 <Upload className="size-5 text-muted-foreground" aria-hidden="true" />
-                <p className="text-sm text-muted-foreground">Arraste e solte o arquivo aqui</p>
+                <p className="text-sm text-muted-foreground">Arraste e solte os arquivos aqui</p>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => inputRef.current?.click()}
                 >
-                  Selecionar arquivo
+                  {files.length > 0 ? "Adicionar arquivos" : "Selecionar arquivos"}
                 </Button>
               </div>
-            )}
-          </div>
-        </Field>
+
+              {files.length > 0 && (
+                <ul
+                  aria-label="Arquivos adicionados"
+                  className="divide-y divide-border rounded-xl border border-border"
+                >
+                  {files.map((item, index) => (
+                    <li key={fileKey(item)} className="flex min-w-0 items-center gap-3 px-3 py-2">
+                      <Paperclip
+                        className="size-4 shrink-0 text-muted-foreground"
+                        aria-hidden="true"
+                      />
+                      <TooltipProvider delayDuration={150}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span
+                              tabIndex={0}
+                              className="min-w-0 flex-1 truncate rounded-sm text-sm text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                            >
+                              {item.name}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-80 break-all">
+                            {item.name}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="shrink-0 text-destructive hover:text-destructive"
+                        aria-label={`Remover ${item.name}`}
+                        onClick={() => removeFile(index)}
+                      >
+                        <Trash2 className="size-4" aria-hidden="true" />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </Field>
+        ) : (
+          <Field
+            id="pricing-version-file"
+            label="Arquivo CSV ou TXT"
+            required
+            error={fileError}
+            hint="CSV ou TXT • Máx. 10 MB"
+            injectChildProps={false}
+          >
+            <div
+              className="min-w-0"
+              onDragEnter={(event) => {
+                event.preventDefault();
+                setDragActive(true);
+              }}
+              onDragOver={(event) => {
+                event.preventDefault();
+                setDragActive(true);
+              }}
+              onDragLeave={(event) => {
+                if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+                setDragActive(false);
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                setDragActive(false);
+                const dropped = event.dataTransfer.files?.[0];
+                if (!dropped) return;
+                handleSelectedFile(dropped);
+                if (inputRef.current) inputRef.current.value = "";
+              }}
+            >
+              <input
+                ref={inputRef}
+                id="pricing-version-file"
+                type="file"
+                accept=".csv,.txt,text/csv,text/plain"
+                className="sr-only"
+                onChange={(event) => handleSelectedFile(event.target.files?.[0] ?? null)}
+              />
+
+              {file ? (
+                <div
+                  className={cn(
+                    "flex min-w-0 flex-wrap items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-3 transition-colors",
+                    dragActive && "border-primary bg-primary-muted",
+                  )}
+                >
+                  <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <TooltipProvider delayDuration={150}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span
+                          tabIndex={0}
+                          className="min-w-0 flex-1 truncate rounded-sm text-sm text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                        >
+                          {file.name}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-80 break-all">{file.name}</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => inputRef.current?.click()}
+                    >
+                      Substituir
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => {
+                        handleSelectedFile(null);
+                        if (inputRef.current) inputRef.current.value = "";
+                      }}
+                    >
+                      <Trash2 className="size-4" aria-hidden="true" />
+                      Remover
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className={cn(
+                    "flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-6 text-center transition-colors",
+                    dragActive && "border-primary bg-primary-muted",
+                  )}
+                >
+                  <Upload className="size-5 text-muted-foreground" aria-hidden="true" />
+                  <p className="text-sm text-muted-foreground">Arraste e solte o arquivo aqui</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => inputRef.current?.click()}
+                  >
+                    Selecionar arquivo
+                  </Button>
+                </div>
+              )}
+            </div>
+          </Field>
+        )}
 
         {replacesCurrent && (
           <div className="flex items-start gap-3 rounded-xl border border-info/30 bg-info-muted px-4 py-3">
@@ -260,4 +386,8 @@ export function NewPricingVersionModal({
       </form>
     </AppModal>
   );
+}
+
+function fileKey(file: File): string {
+  return `${file.name}-${file.size}-${file.lastModified}`;
 }
