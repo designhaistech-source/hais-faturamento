@@ -307,6 +307,7 @@ export type Database = {
           file_name: string
           file_path: string
           file_type: string | null
+          files: Json | null
           id: string
           processed_count: number | null
           retryable: boolean
@@ -325,6 +326,7 @@ export type Database = {
           file_name: string
           file_path: string
           file_type?: string | null
+          files?: Json | null
           id?: string
           processed_count?: number | null
           retryable?: boolean
@@ -343,6 +345,7 @@ export type Database = {
           file_name?: string
           file_path?: string
           file_type?: string | null
+          files?: Json | null
           id?: string
           processed_count?: number | null
           retryable?: boolean

@@ -1,0 +1,1 @@
+ALTER TABLE public.pricing_versions ADD COLUMN IF NOT EXISTS files jsonb;
