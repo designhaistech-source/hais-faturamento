@@ -235,8 +235,11 @@ export const IMPORT_STATUS_LABEL: Record<ImportStatus, string> = {
   FAILED: "Falha na importação",
 };
 
+export function isKnownImportStatus(value: string | null | undefined): value is ImportStatus {
+  return (IMPORT_STATUSES as readonly string[]).includes(value ?? "");
+}
+
 /** Registros anteriores aos status de importação ("EXTRACTED") contam como concluídos. */
 export function toImportStatus(value: string | null | undefined): ImportStatus {
-  if ((IMPORT_STATUSES as readonly string[]).includes(value ?? "")) return value as ImportStatus;
-  return "COMPLETED";
+  return isKnownImportStatus(value) ? value : "COMPLETED";
 }

@@ -82,6 +82,17 @@ export function ImportDetailsModal({ version, onOpenChange }: ImportDetailsModal
 }
 
 function ImportDetailsContent({ version }: { version: PricingVersion }) {
+  if (!version.detailsAvailable) {
+    return (
+      <Alert>
+        <Info className="size-4" aria-hidden="true" />
+        <AlertTitle>Detalhes da importação indisponíveis</AlertTitle>
+        <AlertDescription>
+          Esta versão foi cadastrada antes da disponibilização do detalhamento das importações.
+        </AlertDescription>
+      </Alert>
+    );
+  }
   switch (version.importStatus) {
     case "COMPLETED":
       return <ImportedRecords version={version} />;
