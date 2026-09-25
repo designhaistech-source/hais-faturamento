@@ -50,7 +50,11 @@ export async function listBillingAnalyses(): Promise<BillingAnalysis[]> {
       divergenceCount: row.divergence_count,
       unanalyzedCount: row.unanalyzed_count,
       errorMessage: row.error_message ?? null,
-      processingStatus: toProcessingStatus(row.processing_status, status),
+      processingStatus:
+        toProcessingStatus(row.processing_status, status) === "EXTRACTED" &&
+        row.unanalyzed_count > 0
+          ? "PARTIALLY_EXTRACTED"
+          : toProcessingStatus(row.processing_status, status),
       processingDetails: toProcessingDetails(row.processing_details),
     };
   });
@@ -261,10 +265,12 @@ async function processAnalysis(
     const [rules, bases] = await Promise.all([listContractRules(contractId), loadPricingBases()]);
     const result = analyzeBilling(items, rules, bases);
     await saveItems(analysisId, result.items);
+    // Regra do backend: qualquer guia/item não processado torna o processamento parcial.
+    const partial = skipped.length > 0 || result.totals.unanalyzedCount > 0;
     await completeAnalysis(
       analysisId,
       result.totals,
-      skipped.length > 0 ? "PARTIALLY_EXTRACTED" : "EXTRACTED",
+      partial ? "PARTIALLY_EXTRACTED" : "EXTRACTED",
       skipped.length > 0 ? { skippedParts: skipped } : {},
     );
   } catch (cause) {
