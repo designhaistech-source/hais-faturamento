@@ -53,6 +53,50 @@ export interface PricingVersion {
   versionMonth: string;
   baseType: PricingBaseType;
   file: PricingVersionFile;
+  status: PricingVersionStatus;
+  /** Plain-language explanation of what happened, when relevant. */
+  statusProblem: string | null;
+  /** What the user can do about it, when there is an action. */
+  statusGuidance: string | null;
+  processedCount: number | null;
+  unprocessedCount: number | null;
+  /** Reasons for the records that could not be processed, with counts. */
+  unprocessedReasons: PricingUnprocessedReason[];
+  retryable: boolean;
+}
+
+export interface PricingUnprocessedReason {
+  reason: string;
+  count: number;
+}
+
+export const PRICING_VERSION_STATUSES = [
+  "PENDING",
+  "PROCESSING",
+  "EXTRACTED",
+  "PARTIALLY_EXTRACTED",
+  "INVALID_FILE",
+  "PROCESSING_ERROR",
+  "DUPLICATE_FILE",
+] as const;
+
+export type PricingVersionStatus = (typeof PRICING_VERSION_STATUSES)[number];
+
+export function toPricingVersionStatus(value: string | null | undefined): PricingVersionStatus {
+  return (PRICING_VERSION_STATUSES as readonly string[]).includes(value ?? "")
+    ? (value as PricingVersionStatus)
+    : "PENDING";
+}
+
+/** Statuses that deserve the "Ver detalhes do processamento" action. */
+export function hasProcessingDetails(version: PricingVersion): boolean {
+  return (
+    version.status === "PARTIALLY_EXTRACTED" ||
+    version.status === "INVALID_FILE" ||
+    version.status === "PROCESSING_ERROR" ||
+    version.status === "DUPLICATE_FILE" ||
+    Boolean(version.statusProblem)
+  );
 }
 
 /** Data collected in the form before the version is persisted. */
@@ -83,12 +127,14 @@ export function formatVersionDateTime(iso: string): string {
 }
 
 /**
- * Ids of the newest version of each base type ("Atual"), given versions ordered
+ * Ids of the newest successfully processed version of each base type ("Atual"), given versions ordered
  * from newest to oldest.
  */
 export function currentVersionIdsByType(versions: PricingVersion[]): Set<string> {
   const current = new Map<PricingBaseType, string>();
   for (const version of versions) {
+    // Only successfully processed versions can become "Atual".
+    if (version.status !== "EXTRACTED") continue;
     if (!current.has(version.baseType)) current.set(version.baseType, version.id);
   }
   return new Set(current.values());
