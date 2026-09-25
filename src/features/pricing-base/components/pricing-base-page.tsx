@@ -1,6 +1,17 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Database, Download, Eye, EyeOff, FileSearch, Plus, Trash2 } from "lucide-react";
+import { zipSync } from "fflate";
+import {
+  ChevronRight,
+  Database,
+  Download,
+  Eye,
+  EyeOff,
+  FileSearch,
+  Paperclip,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -19,6 +30,7 @@ import { FilterCard } from "@/components/filter-card";
 import { SearchField, SelectField } from "@/components/form-field";
 import { Input } from "@/components/ui/input";
 import { toLocalIsoDate } from "@/lib/date";
+import { cn } from "@/lib/utils";
 import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/table-pagination";
 import {
   DataTable,
@@ -46,11 +58,13 @@ import {
   type NewPricingVersionInput,
   type PricingBaseType,
   type PricingVersion,
+  type PricingVersionFile,
 } from "../data/pricing-versions";
 import {
   createPricingVersion,
   createPricingVersionFileUrl,
   deleteAllPricingVersions,
+  downloadPricingVersionBlob,
   listPricingVersions,
   pricingVersionsQueryKey,
 } from "../data/pricing-versions-service";
@@ -64,20 +78,42 @@ const COLUMNS = [
   "Ações",
 ] as const;
 
-/** Baixa todos os arquivos que compõem a versão. */
-async function downloadVersionFile(version: PricingVersion) {
+function triggerDownload(href: string, name: string) {
+  const link = document.createElement("a");
+  link.href = href;
+  link.download = name;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
+/** Baixa um único arquivo da versão. */
+async function downloadSingleFile(file: PricingVersionFile) {
   try {
-    for (const file of version.files) {
-      const url = await createPricingVersionFileUrl(file.path, file.name);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = file.name;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    }
+    triggerDownload(await createPricingVersionFileUrl(file.path, file.name), file.name);
   } catch {
-    toast.error("Não foi possível baixar o arquivo desta versão.");
+    toast.error("Não foi possível baixar o arquivo.");
+  }
+}
+
+/** Download da versão completa: o próprio arquivo, ou um .zip quando há vários. */
+async function downloadVersionFile(version: PricingVersion) {
+  if (version.files.length <= 1) return downloadSingleFile(version.file);
+  try {
+    const entries: Record<string, Uint8Array> = {};
+    for (const file of version.files) {
+      const blob = await downloadPricingVersionBlob(file.path);
+      let name = file.name;
+      for (let copy = 2; name in entries; copy += 1) name = `${copy}-${file.name}`;
+      entries[name] = new Uint8Array(await blob.arrayBuffer());
+    }
+    const zipped = zipSync(entries);
+    const url = URL.createObjectURL(new Blob([zipped.slice().buffer], { type: "application/zip" }));
+    const day = version.createdAt.slice(0, 10);
+    triggerDownload(url, `${version.baseType}-${day}.zip`);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch {
+    toast.error("Não foi possível baixar os arquivos desta versão.");
   }
 }
 
@@ -162,6 +198,18 @@ export function PricingBasePage() {
     ],
     [],
   );
+
+  // Expanding is presentation only: it never touches filters, pagination or status.
+  const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(new Set());
+  const hasMultiFileRow = paginatedVersions.some((version) => version.files.length > 1);
+  function toggleExpanded(id: string) {
+    setExpandedIds((previous) => {
+      const next = new Set(previous);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   const backgroundTask = useBackgroundTask();
 
@@ -375,35 +423,99 @@ export function PricingBasePage() {
                               </tr>
                             </DataTableHeader>
                             <DataTableBody>
-                              {paginatedVersions.map((version) => (
-                                <DataTableRow key={version.id}>
-                                  <DataTableCell className="max-w-96">
-                                    <div className="flex min-w-0 items-center gap-2">
-                                      <VersionFileName version={version} />
-                                      {currentVersionIds.has(version.id) && <CurrentBadge />}
-                                    </div>
-                                  </DataTableCell>
-                                  <DataTableCell>
-                                    <Badge variant="info-soft" size="sm" className="shrink-0">
-                                      {pricingBaseTypeLabel(version.baseType)}
-                                    </Badge>
-                                  </DataTableCell>
-                                  <DataTableCell>{version.createdBy}</DataTableCell>
-                                  <DataTableCell>
-                                    {formatVersionDateTime(version.createdAt)}
-                                  </DataTableCell>
+                              {paginatedVersions.map((version) => {
+                                const multi = version.files.length > 1;
+                                const expanded = multi && expandedIds.has(version.id);
+                                return (
+                                  <Fragment key={version.id}>
+                                    <DataTableRow>
+                                      <DataTableCell className="max-w-96">
+                                        <div className="flex min-w-0 items-center gap-2">
+                                          {multi ? (
+                                            <Button
+                                              type="button"
+                                              variant="ghost"
+                                              size="icon"
+                                              className="-ml-2 size-8 shrink-0"
+                                              aria-expanded={expanded}
+                                              aria-controls={`pricing-version-files-${version.id}`}
+                                              aria-label={
+                                                expanded
+                                                  ? `Recolher arquivos de ${version.file.name}`
+                                                  : `Expandir arquivos de ${version.file.name}`
+                                              }
+                                              onClick={() => toggleExpanded(version.id)}
+                                            >
+                                              <ChevronRight
+                                                className={cn(
+                                                  "size-4 transition-transform motion-reduce:transition-none",
+                                                  expanded && "rotate-90",
+                                                )}
+                                                aria-hidden="true"
+                                              />
+                                            </Button>
+                                          ) : (
+                                            hasMultiFileRow && (
+                                              <span
+                                                className="-ml-2 size-8 shrink-0"
+                                                aria-hidden="true"
+                                              />
+                                            )
+                                          )}
+                                          <VersionFileName version={version} />
+                                          {currentVersionIds.has(version.id) && <CurrentBadge />}
+                                        </div>
+                                      </DataTableCell>
+                                      <DataTableCell>
+                                        <Badge variant="info-soft" size="sm" className="shrink-0">
+                                          {pricingBaseTypeLabel(version.baseType)}
+                                        </Badge>
+                                      </DataTableCell>
+                                      <DataTableCell>{version.createdBy}</DataTableCell>
+                                      <DataTableCell>
+                                        {formatVersionDateTime(version.createdAt)}
+                                      </DataTableCell>
 
-                                  <DataTableCell>
-                                    <ImportStatusBadge status={version.importStatus} />
-                                  </DataTableCell>
-                                  <DataTableCell className="text-right">
-                                    <VersionActions
-                                      version={version}
-                                      onShowDetails={setDetailsVersion}
-                                    />
-                                  </DataTableCell>
-                                </DataTableRow>
-                              ))}
+                                      <DataTableCell>
+                                        <ImportStatusBadge status={version.importStatus} />
+                                      </DataTableCell>
+                                      <DataTableCell className="text-right">
+                                        <VersionActions
+                                          version={version}
+                                          onShowDetails={setDetailsVersion}
+                                        />
+                                      </DataTableCell>
+                                    </DataTableRow>
+                                    {expanded &&
+                                      version.files.map((file, index) => (
+                                        <DataTableRow
+                                          key={file.path}
+                                          id={
+                                            index === 0
+                                              ? `pricing-version-files-${version.id}`
+                                              : undefined
+                                          }
+                                          className="bg-muted/40"
+                                        >
+                                          <DataTableCell colSpan={5} className="py-2">
+                                            <div className="flex min-w-0 items-center gap-2 pl-8 before:h-4 before:w-3 before:shrink-0 before:border-b before:border-l before:border-border before:content-['']">
+                                              <Paperclip
+                                                className="size-4 shrink-0 text-muted-foreground"
+                                                aria-hidden="true"
+                                              />
+                                              <span className="min-w-0 break-all text-sm">
+                                                {file.name}
+                                              </span>
+                                            </div>
+                                          </DataTableCell>
+                                          <DataTableCell className="py-2 text-right">
+                                            <FileDownloadButton file={file} />
+                                          </DataTableCell>
+                                        </DataTableRow>
+                                      ))}
+                                  </Fragment>
+                                );
+                              })}
                             </DataTableBody>
                           </DataTableRoot>
                         </DataTableDesktop>
@@ -436,6 +548,31 @@ export function PricingBasePage() {
                                   },
                                 ]}
                               />
+
+                              {version.files.length > 1 && (
+                                <details className="group rounded-lg border border-border">
+                                  <summary className="flex cursor-pointer list-none items-center gap-1.5 px-3 py-2 text-xs font-medium text-muted-foreground">
+                                    <ChevronRight
+                                      className="size-4 transition-transform group-open:rotate-90 motion-reduce:transition-none"
+                                      aria-hidden="true"
+                                    />
+                                    {version.files.length} arquivos nesta versão
+                                  </summary>
+                                  <ul className="divide-y divide-border border-t border-border">
+                                    {version.files.map((file) => (
+                                      <li
+                                        key={file.path}
+                                        className="flex min-w-0 items-center gap-2 py-1 pl-4 pr-1"
+                                      >
+                                        <span className="min-w-0 flex-1 break-all text-sm">
+                                          {file.name}
+                                        </span>
+                                        <FileDownloadButton file={file} />
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </details>
+                              )}
 
                               <DataTableCardActions className="-mt-0.5 justify-end">
                                 <VersionActions
@@ -615,14 +752,39 @@ function VersionActions({
             type="button"
             variant="ghost"
             size="icon"
-            aria-label={`Baixar ${version.file.name}`}
+            aria-label={
+              version.files.length > 1
+                ? `Baixar todos os arquivos de ${version.file.name} (.zip)`
+                : `Baixar ${version.file.name}`
+            }
             onClick={() => void downloadVersionFile(version)}
           >
             <Download className="size-4" aria-hidden="true" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Baixar</TooltipContent>
+        <TooltipContent>
+          {version.files.length > 1 ? "Baixar todos os arquivos (.zip)" : "Baixar"}
+        </TooltipContent>
       </Tooltip>
     </div>
+  );
+}
+
+function FileDownloadButton({ file }: { file: PricingVersionFile }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={`Baixar arquivo ${file.name}`}
+          onClick={() => void downloadSingleFile(file)}
+        >
+          <Download className="size-4" aria-hidden="true" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Baixar arquivo</TooltipContent>
+    </Tooltip>
   );
 }
