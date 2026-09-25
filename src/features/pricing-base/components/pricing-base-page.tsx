@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Database, Download, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
+import { Database, Download, Eye, EyeOff, FileSearch, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -36,6 +36,7 @@ import {
   DataTableRow,
 } from "@/components/data-table";
 
+import { ImportDetailsModal, ImportStatusBadge } from "./import-status";
 import { NewPricingVersionModal } from "./new-pricing-version-modal";
 import {
   currentVersionIdsByType,
@@ -54,7 +55,14 @@ import {
   pricingVersionsQueryKey,
 } from "../data/pricing-versions-service";
 
-const COLUMNS = ["Arquivo", "Tipo da base", "Cadastrado por", "Data do cadastro", "Ações"] as const;
+const COLUMNS = [
+  "Arquivo",
+  "Tipo da base",
+  "Cadastrado por",
+  "Data do cadastro",
+  "Status",
+  "Ações",
+] as const;
 
 async function downloadVersionFile(version: PricingVersion) {
   try {
@@ -72,6 +80,7 @@ async function downloadVersionFile(version: PricingVersion) {
 
 export function PricingBasePage() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [detailsVersion, setDetailsVersion] = useState<PricingVersion | null>(null);
   const queryClient = useQueryClient();
 
   const versionsQuery = useQuery({
@@ -166,9 +175,15 @@ export function PricingBasePage() {
       },
       retryable: true,
       run: async () => {
-        await createPricingVersion(input);
+        const status = await createPricingVersion(input);
         await queryClient.invalidateQueries({ queryKey: pricingVersionsQueryKey });
         setPage(1);
+        if (status !== "COMPLETED") {
+          return {
+            title: "Importação não concluída",
+            description: "Consulte os detalhes da importação na lista de versões.",
+          };
+        }
         return {
           title: "Base de precificação cadastrada",
           description: "A nova versão está disponível para uso.",
@@ -215,7 +230,7 @@ export function PricingBasePage() {
             <section className="space-y-4">
               {versionsQuery.isPending ? (
                 <SurfaceCard padding="none">
-                  <TableSkeleton rows={4} columns={5} />
+                  <TableSkeleton rows={4} columns={6} />
                 </SurfaceCard>
               ) : versionsQuery.isError ? (
                 <SurfaceCard padding="md">
@@ -361,8 +376,14 @@ export function PricingBasePage() {
                                     {formatVersionDateTime(version.createdAt)}
                                   </DataTableCell>
 
+                                  <DataTableCell>
+                                    <ImportStatusBadge status={version.importStatus} />
+                                  </DataTableCell>
                                   <DataTableCell className="text-right">
-                                    <VersionActions version={version} />
+                                    <VersionActions
+                                      version={version}
+                                      onShowDetails={setDetailsVersion}
+                                    />
                                   </DataTableCell>
                                 </DataTableRow>
                               ))}
@@ -392,11 +413,18 @@ export function PricingBasePage() {
                                     label: "Data do cadastro",
                                     value: formatVersionDateTime(version.createdAt),
                                   },
+                                  {
+                                    label: "Status",
+                                    value: <ImportStatusBadge status={version.importStatus} />,
+                                  },
                                 ]}
                               />
 
                               <DataTableCardActions className="-mt-0.5 justify-end">
-                                <VersionActions version={version} />
+                                <VersionActions
+                                  version={version}
+                                  onShowDetails={setDetailsVersion}
+                                />
                               </DataTableCardActions>
                             </DataTableCard>
                           ))}
@@ -468,6 +496,13 @@ export function PricingBasePage() {
         onCreate={startBaseProcessing}
       />
 
+      <ImportDetailsModal
+        version={detailsVersion}
+        onOpenChange={(open) => {
+          if (!open) setDetailsVersion(null);
+        }}
+      />
+
       <ConfirmDialog
         open={clearOpen}
         onOpenChange={setClearOpen}
@@ -505,10 +540,30 @@ function VersionFileName({ name }: { name: string }) {
   );
 }
 
-/** Ações da linha: apenas baixar o arquivo original da versão. */
-function VersionActions({ version }: { version: PricingVersion }) {
+/** Ações da linha: detalhes da importação e download do arquivo original. */
+function VersionActions({
+  version,
+  onShowDetails,
+}: {
+  version: PricingVersion;
+  onShowDetails: (version: PricingVersion) => void;
+}) {
   return (
     <div className="inline-flex items-center gap-1">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={`Ver detalhes da importação de ${version.file.name}`}
+            onClick={() => onShowDetails(version)}
+          >
+            <FileSearch className="size-4" aria-hidden="true" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Ver detalhes da importação</TooltipContent>
+      </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

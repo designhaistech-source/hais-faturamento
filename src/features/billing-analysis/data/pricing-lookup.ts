@@ -94,8 +94,10 @@ export function parsePricingCsv(content: string): Map<string, number> {
  */
 export async function loadPricingBases(): Promise<Map<PricingBaseType, PricingBaseLookup>> {
   const versions = await listPricingVersions();
+  // Só importações concluídas com sucesso podem ser a versão atual da base.
   const latestByType = new Map<PricingBaseType, PricingVersion>();
   for (const version of versions) {
+    if (version.importStatus !== "COMPLETED") continue;
     if (!latestByType.has(version.baseType)) latestByType.set(version.baseType, version);
   }
 
