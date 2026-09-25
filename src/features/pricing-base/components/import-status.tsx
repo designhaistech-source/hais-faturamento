@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 import {
   IMPORT_STATUS_LABEL,
   importFieldLabel,
-  parsePricingImport,
+  parsePricingImportFiles,
   type ImportStatus,
 } from "../data/pricing-import";
 import { pricingBaseTypeLabel, type PricingVersion } from "../data/pricing-versions";
@@ -69,7 +69,13 @@ export function ImportDetailsModal({ version, onOpenChange }: ImportDetailsModal
       open={version !== null}
       onOpenChange={onOpenChange}
       title="Detalhes da importação"
-      description={version?.file.name}
+      description={
+        version
+          ? version.files.length > 1
+            ? `${version.files.map((part) => part.name).join(", ")}`
+            : version.file.name
+          : undefined
+      }
       size="lg"
       footer={
         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
@@ -131,8 +137,13 @@ function ImportedRecords({ version }: { version: PricingVersion }) {
   const query = useQuery({
     queryKey: ["pricing-version-records", version.id],
     queryFn: async () => {
-      const blob = await downloadPricingVersionBlob(version.file.path);
-      return parsePricingImport(await blob.text());
+      const sources = await Promise.all(
+        version.files.map(async (part) => ({
+          name: part.name,
+          content: await (await downloadPricingVersionBlob(part.path)).text(),
+        })),
+      );
+      return parsePricingImportFiles(sources);
     },
     staleTime: Infinity,
   });
@@ -152,6 +163,7 @@ function ImportedRecords({ version }: { version: PricingVersion }) {
 
   // EAN é usado só na validação; a listagem segue as colunas definidas para a base.
   const fields = (query.data?.fields ?? []).filter((field) => field !== "ean");
+  const multiFile = version.files.length > 1;
 
   return (
     <div className="space-y-3">
@@ -165,6 +177,7 @@ function ImportedRecords({ version }: { version: PricingVersion }) {
           <DataTableRoot>
             <DataTableHeader>
               <tr>
+                {multiFile && <DataTableHead>Arquivo</DataTableHead>}
                 <DataTableHead>Linha</DataTableHead>
                 {fields.map((field) => (
                   <DataTableHead
@@ -178,7 +191,8 @@ function ImportedRecords({ version }: { version: PricingVersion }) {
             </DataTableHeader>
             <DataTableBody>
               {records.slice(start, start + pageSize).map((record) => (
-                <DataTableRow key={record.line}>
+                <DataTableRow key={`${record.file ?? ""}-${record.line}`}>
+                  {multiFile && <FileCell name={record.file} />}
                   <DataTableCell className="font-mono text-xs">{record.line}</DataTableCell>
                   {fields.map((field) => (
                     <DataTableCell
@@ -219,6 +233,7 @@ function ErrorRows({ version }: { version: PricingVersion }) {
   const total = errors + (version.processedCount ?? 0);
   const { page, setPage, start, pageSize, onPageSizeChange } = usePage(rows.length);
   const lineWord = total === 1 ? "linha" : "linhas";
+  const multiFile = version.files.length > 1;
 
   return (
     <div className="space-y-4">
@@ -234,6 +249,7 @@ function ErrorRows({ version }: { version: PricingVersion }) {
           <DataTableRoot>
             <DataTableHeader>
               <tr>
+                {multiFile && <DataTableHead>Arquivo</DataTableHead>}
                 <DataTableHead>Linha</DataTableHead>
                 <DataTableHead>Motivo</DataTableHead>
                 <DataTableHead>Conteúdo da linha</DataTableHead>
@@ -241,7 +257,8 @@ function ErrorRows({ version }: { version: PricingVersion }) {
             </DataTableHeader>
             <DataTableBody>
               {rows.slice(start, start + pageSize).map((row) => (
-                <DataTableRow key={row.line}>
+                <DataTableRow key={`${row.file ?? ""}-${row.line}`}>
+                  {multiFile && <FileCell name={row.file} />}
                   <DataTableCell className="font-mono text-xs align-top">{row.line}</DataTableCell>
                   <DataTableCell className="align-top">{row.reason}</DataTableCell>
                   <DataTableCell className="max-w-72 break-all align-top font-mono text-xs text-muted-foreground">
@@ -265,5 +282,15 @@ function ErrorRows({ version }: { version: PricingVersion }) {
         )}
       </DataTable>
     </div>
+  );
+}
+
+function FileCell({ name }: { name?: string }) {
+  return (
+    <DataTableCell className="max-w-48 align-top">
+      <span className="block truncate text-xs" title={name}>
+        {name ?? "—"}
+      </span>
+    </DataTableCell>
   );
 }
