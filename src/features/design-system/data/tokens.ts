@@ -54,6 +54,7 @@ export const colorGroups: TokenGroup[] = [
     tokens: [
       { name: "success", swatch: "bg-success", usage: "Concluído, aprovado" },
       { name: "warning", swatch: "bg-warning", usage: "Pendência, atenção" },
+      { name: "caution", swatch: "bg-caution", usage: "Impedimento, condição excepcional" },
       { name: "destructive", swatch: "bg-destructive", usage: "Erro, glosa, exclusão" },
       { name: "info", swatch: "bg-info", usage: "Informação neutra" },
       { name: "purple", swatch: "bg-purple", usage: "Categoria especial (receita controlada)" },
