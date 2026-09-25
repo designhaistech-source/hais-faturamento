@@ -330,7 +330,7 @@ export type Database = {
           id?: string
           processed_count?: number | null
           retryable?: boolean
-          status?: string
+          status: string
           status_guidance?: string | null
           status_problem?: string | null
           unprocessed_count?: number | null

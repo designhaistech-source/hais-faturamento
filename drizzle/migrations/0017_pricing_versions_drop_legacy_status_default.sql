@@ -1,0 +1,1 @@
+ALTER TABLE public.pricing_versions ALTER COLUMN status DROP DEFAULT;

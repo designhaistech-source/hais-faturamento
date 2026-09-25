@@ -45,7 +45,10 @@ const STATUS_VISUAL: Record<ImportStatus, { tone: StatusTone; icon: LucideIcon }
 };
 
 /** Resultado da importação (informativo, não clicável). */
-export function ImportStatusBadge({ status }: { status: ImportStatus }) {
+export function ImportStatusBadge({ status }: { status: ImportStatus | null }) {
+  if (status === null) {
+    return <span className="text-muted-foreground">—</span>;
+  }
   const visual = STATUS_VISUAL[status];
   return <StatusBadge tone={visual.tone} icon={visual.icon} label={IMPORT_STATUS_LABEL[status]} />;
 }
@@ -116,7 +119,7 @@ function lineLabel(line: number, file: string | undefined): string {
 }
 
 function ImportDetailsBody({ version }: { version: PricingVersion }) {
-  if (!version.detailsAvailable) {
+  if (!version.detailsAvailable || version.importStatus === null) {
     return (
       <Alert>
         <Info className="size-4" aria-hidden="true" />
