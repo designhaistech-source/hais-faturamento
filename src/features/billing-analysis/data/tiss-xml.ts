@@ -102,7 +102,7 @@ function categoryOf(element: Element): string {
   return "";
 }
 
-/** Trecho do XML reconhecido como item, mas sem dados suficientes para leitura. */
+/** Guia ou item em formato não suportado pela extração (sem código e sem valores legíveis). */
 export interface SkippedTissItem {
   /** Posição do trecho entre os itens do arquivo (1 = primeiro). */
   position: number;
