@@ -135,6 +135,17 @@ function ImportDetailsBody({ version }: { version: PricingVersion }) {
       return <ImportedRecords version={version} />;
     case "COMPLETED_WITH_ERRORS":
       return <ErrorRows version={version} />;
+    case "NOT_SUPPORTED":
+      // Neutro, como o badge: não é erro, apenas arquivo fora do suportado.
+      return (
+        <Alert variant="neutral">
+          <Ban className="size-4" aria-hidden="true" />
+          <AlertTitle>{BLOCKING_TITLE.NOT_SUPPORTED}</AlertTitle>
+          <AlertDescription className="text-muted-foreground">
+            {version.importProblem ?? "Motivo não informado."}
+          </AlertDescription>
+        </Alert>
+      );
     default:
       return (
         <Alert variant="destructive">
