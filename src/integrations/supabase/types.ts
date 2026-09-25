@@ -24,10 +24,13 @@ export type Database = {
           divergence_count: number
           error_message: string | null
           expected_total: number
+          file_hash: string | null
           file_name: string
           health_plan: string
           id: string
           item_count: number
+          processing_details: Json | null
+          processing_status: string | null
           provider: string
           status: string
           unanalyzed_count: number
@@ -42,10 +45,13 @@ export type Database = {
           divergence_count?: number
           error_message?: string | null
           expected_total?: number
+          file_hash?: string | null
           file_name: string
           health_plan?: string
           id?: string
           item_count?: number
+          processing_details?: Json | null
+          processing_status?: string | null
           provider?: string
           status?: string
           unanalyzed_count?: number
@@ -60,10 +66,13 @@ export type Database = {
           divergence_count?: number
           error_message?: string | null
           expected_total?: number
+          file_hash?: string | null
           file_name?: string
           health_plan?: string
           id?: string
           item_count?: number
+          processing_details?: Json | null
+          processing_status?: string | null
           provider?: string
           status?: string
           unanalyzed_count?: number
