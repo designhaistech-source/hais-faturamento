@@ -236,7 +236,7 @@ export function TussPage() {
                     activeCount={activeCount}
                     onClear={handleClearFilters}
                     clearDisabled={!hasFilters}
-                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_16rem_22rem_auto] lg:gap-4"
+                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_14rem_22rem_auto] lg:gap-4"
                   >
                     <SearchField
                       id="tuss-versions-search"
