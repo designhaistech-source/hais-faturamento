@@ -94,6 +94,9 @@ async function downloadContractFile(contract: Contract) {
   }
 }
 
+// Ação oculta temporariamente; modal e lógica de dados extraídos seguem ativos.
+const SHOW_EXTRACTED_DATA_ACTION = false;
+
 export function ContractsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
