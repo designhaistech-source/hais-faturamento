@@ -7,6 +7,7 @@ import {
   Download,
   Eye,
   EyeOff,
+  FlaskConical,
   FileSearch,
   Paperclip,
   Plus,
@@ -136,6 +137,7 @@ export function PricingBasePage() {
   const [clearOpen, setClearOpen] = useState(false);
   /** Ferramenta provisória de testes: simula a página sem versões, sem alterar dados. */
   const [simulateEmpty, setSimulateEmpty] = useState(false);
+  const [simulateFailure, setSimulateFailure] = useState(false);
   const versions = simulateEmpty ? [] : storedVersions;
   const currentVersionIds = useMemo(() => currentVersionIdsByType(versions), [versions]);
   /** Tipos que já possuem versão cadastrada (independe da simulação de estado vazio). */
