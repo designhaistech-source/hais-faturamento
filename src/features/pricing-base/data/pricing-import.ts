@@ -146,6 +146,11 @@ function failure(status: ImportStatus, problem: string): PricingImportResult {
   return { status, problem, fields: [], records: [], errors: [], totalLines: 0 };
 }
 
+/**
+ * Simulação do protótipo: as regras que definem cada status (NOT_SUPPORTED, INVALID_FORMAT,
+ * FAILED etc.) pertencem ao backend. Quando ele devolver status e motivos, este parser deixa
+ * de decidir e a interface apenas exibe o que for retornado.
+ */
 /** Lê e valida o conteúdo do arquivo. Números de linha contam a partir do cabeçalho (linha 1). */
 export function parsePricingImport(content: string): PricingImportResult {
   if (content.includes("\u0000")) {

@@ -5,6 +5,7 @@ import {
   CircleCheck,
   CircleX,
   FileWarning,
+  Info,
   TriangleAlert,
   type LucideIcon,
 } from "lucide-react";
@@ -224,8 +225,8 @@ function ErrorRows({ version }: { version: PricingVersion }) {
       <Alert variant="warning">
         <TriangleAlert className="size-4" aria-hidden="true" />
         <AlertDescription>
-          {errors} de {total} {lineWord} com erro. Por isso esta versão não substitui a versão
-          atual de {pricingBaseTypeLabel(version.baseType)}.
+          {errors} de {total} {lineWord} com erro. Por isso esta versão não substitui a versão atual
+          de {pricingBaseTypeLabel(version.baseType)}.
         </AlertDescription>
       </Alert>
       <DataTable>
