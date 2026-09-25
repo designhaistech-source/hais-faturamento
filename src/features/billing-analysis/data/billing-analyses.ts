@@ -2,6 +2,54 @@
 
 export type BillingAnalysisStatus = "processing" | "completed" | "failed";
 
+/** Processamento técnico do arquivo, independente do resultado da análise. */
+export type ProcessingStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "EXTRACTED"
+  | "PARTIALLY_EXTRACTED"
+  | "INVALID_FILE"
+  | "PROCESSING_ERROR"
+  | "DUPLICATE_FILE";
+
+export const PROCESSING_STATUS_LABEL: Record<ProcessingStatus, string> = {
+  PENDING: "Na fila",
+  PROCESSING: "Processando",
+  EXTRACTED: "Concluído",
+  PARTIALLY_EXTRACTED: "Concluído parcialmente",
+  INVALID_FILE: "Arquivo inválido",
+  PROCESSING_ERROR: "Falha no processamento",
+  DUPLICATE_FILE: "Arquivo duplicado",
+};
+
+/** Informações complementares do processamento, exibidas no modal de detalhes. */
+export interface ProcessingDetails {
+  /** Trechos do arquivo que não puderam ser lidos (processamento parcial). */
+  skippedParts?: { position: number; tag: string }[];
+  /** Mensagem técnica original, exibida de forma secundária. */
+  technicalMessage?: string;
+  /** Análise anterior com o mesmo arquivo (duplicidade). */
+  duplicateOf?: { id: string; analyzedAt: string };
+}
+
+export function hasProcessingIssue(status: ProcessingStatus): boolean {
+  return (
+    status === "PARTIALLY_EXTRACTED" ||
+    status === "INVALID_FILE" ||
+    status === "PROCESSING_ERROR" ||
+    status === "DUPLICATE_FILE"
+  );
+}
+
+/** Há resultado de análise válido para consulta. */
+export function hasAnalysisResult(analysis: BillingAnalysis): boolean {
+  return (
+    analysis.status === "completed" &&
+    (analysis.processingStatus === "EXTRACTED" ||
+      analysis.processingStatus === "PARTIALLY_EXTRACTED")
+  );
+}
+
 export interface BillingAnalysis {
   id: string;
   /** Contrato usado na análise. */
@@ -24,6 +72,8 @@ export interface BillingAnalysis {
   unanalyzedCount: number;
   /** Motivo quando o processamento falhou. */
   errorMessage: string | null;
+  processingStatus: ProcessingStatus;
+  processingDetails: ProcessingDetails;
 }
 
 /** Texto exibido quando o XML não informa o dado. */
