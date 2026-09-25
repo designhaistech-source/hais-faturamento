@@ -7,6 +7,7 @@ import { useBackgroundTask } from "@/components/background-task";
 import {
   billingAnalysesQueryKey,
   getAnalysisOutcomeCounts,
+  reprocessBillingAnalysis,
   runBillingAnalysis,
   type AnalysisOutcomeCounts,
   type RunBillingAnalysisInput,
@@ -15,6 +16,8 @@ import {
 interface BackgroundAnalysisValue {
   isProcessing: boolean;
   start: (input: RunBillingAnalysisInput) => void;
+  /** Reprocessa uma análise com falha a partir do XML armazenado. */
+  retry: (analysisId: string, fileName: string) => void;
 }
 
 /** Executa a análise de faturamento no aviso global de segundo plano. */
@@ -23,11 +26,11 @@ export function useBackgroundAnalysis(): BackgroundAnalysisValue {
   const navigate = useNavigate();
   const tasks = useBackgroundTask();
 
-  const start = useCallback(
-    (input: RunBillingAnalysisInput) => {
+  const launch = useCallback(
+    (fileName: string, execute: () => Promise<string>) => {
       tasks.start({
         kind: "billing-analysis",
-        fileName: input.file.name,
+        fileName,
         processing: { title: "Analisando faturamento", description: "Processando análise..." },
         failure: {
           title: "Não foi possível concluir a análise",
@@ -36,7 +39,7 @@ export function useBackgroundAnalysis(): BackgroundAnalysisValue {
         run: async () => {
           void queryClient.invalidateQueries({ queryKey: billingAnalysesQueryKey });
           try {
-            const analysisId = await runBillingAnalysis(input);
+            const analysisId = await execute();
             // Contagens apenas informativas; sem elas o aviso ainda indica a conclusão.
             const counts = await getAnalysisOutcomeCounts(analysisId).catch(() => null);
             return {
@@ -60,9 +63,19 @@ export function useBackgroundAnalysis(): BackgroundAnalysisValue {
     [tasks, queryClient, navigate],
   );
 
+  const start = useCallback(
+    (input: RunBillingAnalysisInput) => launch(input.file.name, () => runBillingAnalysis(input)),
+    [launch],
+  );
+  const retry = useCallback(
+    (analysisId: string, fileName: string) =>
+      launch(fileName, () => reprocessBillingAnalysis(analysisId)),
+    [launch],
+  );
+
   return useMemo(
-    () => ({ isProcessing: tasks.isProcessing("billing-analysis"), start }),
-    [tasks, start],
+    () => ({ isProcessing: tasks.isProcessing("billing-analysis"), start, retry }),
+    [tasks, start, retry],
   );
 }
 
