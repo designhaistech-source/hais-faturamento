@@ -1,4 +1,4 @@
-import type { ImportErrorRow, ImportStatus } from "./pricing-import";
+import type { ImportErrorRow, ImportStatus, SimulatedImportStatus } from "./pricing-import";
 
 /** Pricing base versions persisted in the backend (table `pricing_versions` + storage bucket). */
 
@@ -73,6 +73,8 @@ export interface NewPricingVersionInput {
   /** One file for Brasíndice/CBHPM; one or more for SIMPRO, all forming a single version. */
   files: File[];
   baseType?: PricingBaseType;
+  /** Temporário (testes de UX): força um status de importação sem olhar o conteúdo. */
+  simulateStatus?: SimulatedImportStatus;
 }
 
 /** Base types whose version may be split across several files. */

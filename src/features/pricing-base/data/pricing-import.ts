@@ -1,7 +1,8 @@
 /**
- * Importação de um arquivo de base de precificação (CSV/TXT delimitado):
- * identifica as colunas pelo cabeçalho, valida linha a linha e classifica o
- * resultado nos status de importação.
+ * Leitura simulada de um arquivo de base de precificação para o protótipo. As regras de
+ * estrutura e validação de Brasíndice, SIMPRO e CBHPM pertencem ao backend; aqui o arquivo
+ * é sempre aceito e as linhas são apenas listadas (colunas reconhecidas pelo cabeçalho,
+ * quando houver). Os demais status vêm só dos controles temporários de simulação.
  */
 
 import type { PricingBaseType } from "./pricing-versions";
@@ -20,6 +21,8 @@ export type ImportField = "description" | "code" | "tiss" | "tuss" | "ean" | "pr
 
 export interface ImportedRecord {
   line: number;
+  /** Conteúdo original da linha. */
+  content: string;
   /** Arquivo de origem quando a versão é composta por vários arquivos. */
   file?: string;
   values: Partial<Record<ImportField, string>>;
@@ -107,114 +110,36 @@ function mapColumns(headers: string[]): Partial<Record<ImportField, number>> {
   return columns;
 }
 
-const PRICE_PATTERN = /^-?(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d+)?$|^-?\d+(?:\.\d+)?$/;
-
-function validateRow(
-  values: Partial<Record<ImportField, string>>,
-  seenKeys: Map<string, number>,
-  keyField: "tiss" | "code",
-  line: number,
-): string | null {
-  const price = values.price ?? "";
-  if (price === "") return "O preço está vazio.";
-  if (!PRICE_PATTERN.test(price.replace(/^R\$\s*/, ""))) {
-    return `Valor inválido "${price}" no campo preço.`;
-  }
-
-  const key = values[keyField] ?? "";
-  if (keyField === "tiss") {
-    if (key === "") return "O código TISS está vazio.";
-    if (!/^\d+$/.test(key)) return `Valor inválido "${key}" no campo TISS.`;
-    if (key.length !== 10) return `O código TISS "${key}" precisa ter 10 dígitos.`;
-  } else if (key === "") {
-    return "O código está vazio.";
-  }
-
-  const tuss = values.tuss ?? "";
-  if (tuss !== "" && !/^\d{8}$/.test(tuss)) return `Valor inválido "${tuss}" no campo TUSS.`;
-
-  const ean = values.ean ?? "";
-  if (ean !== "" && !/^\d{8,14}$/.test(ean)) return `Valor inválido "${ean}" no campo EAN.`;
-
-  const previous = seenKeys.get(key);
-  if (previous !== undefined) {
-    return keyField === "tiss"
-      ? `O código TISS ${key} já apareceu na linha ${previous}.`
-      : `O código ${key} já apareceu na linha ${previous}.`;
-  }
-  seenKeys.set(key, line);
-  return null;
-}
-
 function failure(status: ImportStatus, problem: string): PricingImportResult {
   return { status, problem, fields: [], records: [], errors: [], totalLines: 0 };
 }
 
-/**
- * Simulação do protótipo: as regras que definem cada status (NOT_SUPPORTED, INVALID_FORMAT,
- * FAILED etc.) pertencem ao backend. Quando ele devolver status e motivos, este parser deixa
- * de decidir e a interface apenas exibe o que for retornado.
- */
-/** Lê e valida o conteúdo do arquivo. Números de linha contam a partir do cabeçalho (linha 1). */
+/** Lista as linhas do arquivo; nunca rejeita conteúdo. Linha 1 é o cabeçalho. */
 export function parsePricingImport(content: string): PricingImportResult {
-  if (content.includes("\u0000")) {
-    return failure("INVALID_FORMAT", "O conteúdo do arquivo não é texto delimitado (CSV/TXT).");
-  }
   const rawLines = content.replace(/^\uFEFF/, "").split(/\r?\n/);
   const headerIndex = rawLines.findIndex((line) => line.trim() !== "");
-  if (headerIndex === -1) return failure("INVALID_FORMAT", "O arquivo está vazio.");
-
-  const delimiter = detectDelimiter(rawLines[headerIndex]);
-  if (!delimiter) {
-    return failure(
-      "INVALID_FORMAT",
-      "Não foi possível identificar o separador de colunas na primeira linha do arquivo.",
-    );
-  }
-
-  const columns = mapColumns(splitLine(rawLines[headerIndex], delimiter));
-  const keyField: "tiss" | "code" | null =
-    columns.tiss !== undefined ? "tiss" : columns.code !== undefined ? "code" : null;
-  const missing = [
-    keyField === null ? "código (TISS ou código do item)" : null,
-    columns.price === undefined ? "preço" : null,
-  ].filter((value): value is string => value !== null);
-  if (keyField === null || missing.length > 0) {
-    return failure(
-      "NOT_SUPPORTED",
-      `Layout não suportado: coluna${missing.length > 1 ? "s" : ""} obrigatória${missing.length > 1 ? "s" : ""} não encontrada${missing.length > 1 ? "s" : ""} no cabeçalho: ${missing.join(", ")}.`,
-    );
-  }
-
+  const delimiter = headerIndex === -1 ? null : detectDelimiter(rawLines[headerIndex]);
+  const columns = delimiter ? mapColumns(splitLine(rawLines[headerIndex], delimiter)) : {};
   const fields = DISPLAY_ORDER.filter((field) => columns[field] !== undefined);
   const records: ImportedRecord[] = [];
-  const errors: ImportErrorRow[] = [];
-  const seenKeys = new Map<string, number>();
-  let totalLines = 0;
 
   rawLines.forEach((raw, index) => {
     if (index <= headerIndex || raw.trim() === "") return;
-    totalLines += 1;
-    const line = index + 1;
-    const cells = splitLine(raw, delimiter);
     const values: Partial<Record<ImportField, string>> = {};
-    for (const field of fields) values[field] = cells[columns[field] ?? -1] ?? "";
-    const reason = validateRow(values, seenKeys, keyField, line);
-    if (reason) errors.push({ line, reason, content: raw.trim() });
-    else records.push({ line, values });
+    if (delimiter) {
+      const cells = splitLine(raw, delimiter);
+      for (const field of fields) values[field] = cells[columns[field] ?? -1] ?? "";
+    }
+    records.push({ line: index + 1, content: raw.trim(), values });
   });
 
-  if (totalLines === 0) {
-    return failure("INVALID_FORMAT", "O arquivo não contém linhas de dados após o cabeçalho.");
-  }
-
   return {
-    status: errors.length > 0 ? "COMPLETED_WITH_ERRORS" : "COMPLETED",
+    status: "COMPLETED",
     problem: null,
     fields,
     records,
-    errors,
-    totalLines,
+    errors: [],
+    totalLines: records.length,
   };
 }
 
@@ -283,5 +208,48 @@ export function parsePricingImportSet(
     records,
     errors,
     totalLines,
+  };
+}
+
+/** Status que só podem ser obtidos pelos controles temporários de simulação. */
+export const SIMULATED_IMPORT_STATUSES = [
+  "COMPLETED_WITH_ERRORS",
+  "NOT_SUPPORTED",
+  "INVALID_FORMAT",
+  "FAILED",
+] as const satisfies readonly ImportStatus[];
+
+export type SimulatedImportStatus = (typeof SIMULATED_IMPORT_STATUSES)[number];
+
+const SIMULATED_PROBLEM: Record<Exclude<SimulatedImportStatus, "COMPLETED_WITH_ERRORS">, string> = {
+  NOT_SUPPORTED:
+    "Simulação temporária: o backend informaria aqui por que o arquivo não é suportado.",
+  INVALID_FORMAT: "Simulação temporária: o backend informaria aqui por que o formato é inválido.",
+  FAILED: "Simulação temporária: o backend informaria aqui a falha inesperada da importação.",
+};
+
+/**
+ * Temporário (somente desenvolvimento/testes): aplica um status simulado sobre o resultado
+ * normal, sem inferir nada do conteúdo. Com erros, marca linhas reais como rejeitadas.
+ */
+export function simulateImportResult(
+  result: PricingImportResult,
+  status: SimulatedImportStatus,
+): PricingImportResult {
+  if (status !== "COMPLETED_WITH_ERRORS") return failure(status, SIMULATED_PROBLEM[status]);
+  const rejected = result.records.filter(
+    (_, index) => index % 2 === 1 || result.records.length === 1,
+  );
+  const rejectedSet = new Set(rejected);
+  return {
+    ...result,
+    status,
+    records: result.records.filter((record) => !rejectedSet.has(record)),
+    errors: rejected.map((record) => ({
+      line: record.line,
+      content: record.content,
+      reason: "Simulação temporária: o backend informaria aqui o motivo do erro desta linha.",
+      ...(record.file ? { file: record.file } : {}),
+    })),
   };
 }

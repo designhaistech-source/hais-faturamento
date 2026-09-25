@@ -7,6 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {
+  IMPORT_STATUS_LABEL,
+  SIMULATED_IMPORT_STATUSES,
+  type SimulatedImportStatus,
+} from "../data/pricing-import";
+import {
   allowsMultipleFiles,
   PRICING_BASE_TYPES,
   pricingBaseTypeLabel,
@@ -15,6 +20,15 @@ import {
 } from "../data/pricing-versions";
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+
+/** Temporário: controle de testes de UX dos status; não é regra de negócio. */
+const SIMULATION_OPTIONS: SelectOption[] = [
+  { value: "none", label: "Processamento normal (Concluído)" },
+  ...SIMULATED_IMPORT_STATUSES.map((status) => ({
+    value: status,
+    label: IMPORT_STATUS_LABEL[status],
+  })),
+];
 
 const BASE_TYPE_OPTIONS: SelectOption[] = PRICING_BASE_TYPES.map((type) => ({
   value: type,
@@ -40,6 +54,7 @@ export function NewPricingVersionModal({
   const [baseType, setBaseType] = useState<PricingBaseType | "">("");
   const [baseTypeTouched, setBaseTypeTouched] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
+  const [simulation, setSimulation] = useState<"none" | SimulatedImportStatus>("none");
   const [fileTouched, setFileTouched] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [invalidFileMessage, setInvalidFileMessage] = useState<string | null>(null);
@@ -102,6 +117,7 @@ export function NewPricingVersionModal({
     setBaseType("");
     setBaseTypeTouched(false);
     setFiles([]);
+    setSimulation("none");
     setFileTouched(false);
     setInvalidFileMessage(null);
     if (inputRef.current) inputRef.current.value = "";
@@ -116,7 +132,11 @@ export function NewPricingVersionModal({
     setFileTouched(true);
     setBaseTypeTouched(true);
     if (files.length === 0 || baseType === "") return;
-    onCreate({ files, baseType });
+    onCreate({
+      files,
+      baseType,
+      ...(simulation !== "none" ? { simulateStatus: simulation } : {}),
+    });
     reset();
     onOpenChange(false);
   }
@@ -369,6 +389,17 @@ export function NewPricingVersionModal({
             </div>
           </Field>
         )}
+
+        <div className="rounded-xl border border-dashed border-border p-3">
+          <SelectField
+            id="pricing-version-simulation"
+            label="Simular status da importação · Temporário"
+            hint="Somente para testes da interface. Não faz parte da regra de negócio."
+            options={SIMULATION_OPTIONS}
+            value={simulation}
+            onValueChange={(value) => setSimulation(value as "none" | SimulatedImportStatus)}
+          />
+        </div>
 
         {replacesCurrent && (
           <div className="flex items-start gap-3 rounded-xl border border-info/30 bg-info-muted px-4 py-3">
