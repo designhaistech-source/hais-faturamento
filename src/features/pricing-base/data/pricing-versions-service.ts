@@ -84,23 +84,23 @@ export async function listPricingVersions(): Promise<PricingVersion[]> {
     const first = { name: row.file_name, path: row.file_path, type: row.file_type ?? "" };
     const files = toFiles(row.files);
     return {
-    id: row.id,
-    createdAt: row.created_at,
-    createdBy: row.created_by,
-    versionMonth: row.version_month?.slice(0, 7) ?? "",
-    baseType: toPricingBaseType(row.base_type),
-    file: first,
-    files: files.length > 0 ? files : [first],
-    importStatus: toImportStatus(row.status),
-    importProblem: row.status_problem,
-    processedCount: row.processed_count,
-    // Legacy rows have no import status and no processed count; absence is not "0 records".
-    detailsAvailable:
-      isKnownImportStatus(row.status) && row.processed_count !== null
-        ? true
-        : isKnownImportStatus(row.status) && row.status !== "COMPLETED",
-    errorCount: row.unprocessed_count,
-    errorRows: toErrorRows(row.unprocessed_reasons),
+      id: row.id,
+      createdAt: row.created_at,
+      createdBy: row.created_by,
+      versionMonth: row.version_month?.slice(0, 7) ?? "",
+      baseType: toPricingBaseType(row.base_type),
+      file: first,
+      files: files.length > 0 ? files : [first],
+      importStatus: toImportStatus(row.status),
+      importProblem: row.status_problem,
+      processedCount: row.processed_count,
+      // Legacy rows have no import status and no processed count; absence is not "0 records".
+      detailsAvailable:
+        isKnownImportStatus(row.status) && row.processed_count !== null
+          ? true
+          : isKnownImportStatus(row.status) && row.status !== "COMPLETED",
+      errorCount: row.unprocessed_count,
+      errorRows: toErrorRows(row.unprocessed_reasons),
     };
   });
 }
