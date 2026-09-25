@@ -334,9 +334,9 @@ export function isKnownImportStatus(value: string | null | undefined): value is 
   return (IMPORT_STATUSES as readonly string[]).includes(value ?? "");
 }
 
-/** Registros anteriores aos status de importação ("EXTRACTED") contam como concluídos. */
-export function toImportStatus(value: string | null | undefined): ImportStatus {
-  return isKnownImportStatus(value) ? value : "COMPLETED";
+/** Status fora dos cinco válidos (ex.: legado "EXTRACTED") ficam nulos: dado legado, nunca Concluído. */
+export function toImportStatus(value: string | null | undefined): ImportStatus | null {
+  return isKnownImportStatus(value) ? value : null;
 }
 
 /**

@@ -58,7 +58,8 @@ export interface PricingVersion {
   file: PricingVersionFile;
   /** Todos os arquivos da versão, na ordem de envio (SIMPRO pode ter vários). */
   files: PricingVersionFile[];
-  importStatus: ImportStatus;
+  /** Null for legacy/inconsistent rows whose persisted status is not one of the five valid ones. */
+  importStatus: ImportStatus | null;
   /** Motivo retornado pelo processamento quando a importação não foi feita. */
   importProblem: string | null;
   processedCount: number | null;
