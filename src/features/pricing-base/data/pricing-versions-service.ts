@@ -138,7 +138,11 @@ async function sha256(file: File): Promise<string> {
 }
 
 /** Cadastra os arquivos como uma única versão e registra o resultado; devolve o status obtido. */
-export async function createPricingVersion(input: NewPricingVersionInput): Promise<ImportStatus> {
+export async function createPricingVersion(
+  input: NewPricingVersionInput,
+  /** Ferramenta provisória de testes: força FAILED sem olhar o arquivo. Não é regra de negócio. */
+  testing?: { simulateFailure?: boolean },
+): Promise<ImportStatus> {
   const [firstFile] = input.files;
   if (!firstFile) throw new Error("Nenhum arquivo selecionado.");
   const baseType = input.baseType ?? inferPricingBaseType(firstFile.name);
@@ -151,6 +155,11 @@ export async function createPricingVersion(input: NewPricingVersionInput): Promi
   let errorRows: ImportErrorRow[] = [];
   // O conjunto é processado junto; FAILED indica apenas falhas inesperadas.
   try {
+    if (testing?.simulateFailure) {
+      throw new Error(
+        "Falha simulada para testes (temporário): ocorreu um erro inesperado durante o processamento da importação.",
+      );
+    }
     const parts = await Promise.all(
       input.files.map(async (file) => ({ name: file.name, content: await file.text() })),
     );
