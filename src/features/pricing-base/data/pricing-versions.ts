@@ -59,6 +59,8 @@ export interface PricingVersion {
   /** Motivo retornado pelo processamento quando a importação não foi feita. */
   importProblem: string | null;
   processedCount: number | null;
+  /** False for versions registered before import details were stored. */
+  detailsAvailable: boolean;
   errorCount: number | null;
   errorRows: ImportErrorRow[];
 }

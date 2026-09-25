@@ -18,6 +18,8 @@ interface TaskMessage {
 
 export interface BackgroundTaskOutcome extends TaskMessage {
   action?: { label: string; onSelect: () => void };
+  /** Semântica do resultado; padrão "success". */
+  tone?: "success" | "warning" | "danger";
 }
 
 /** Descrição de uma tarefa longa: textos de cada estado e o trabalho a executar. */
@@ -147,7 +149,14 @@ function BackgroundTaskIndicator({
         }
       : state.status === "completed"
         ? {
-            icon: <CircleCheck className="size-5 text-success" aria-hidden="true" />,
+            icon:
+              state.outcome.tone === "warning" ? (
+                <TriangleAlert className="size-5 text-warning" aria-hidden="true" />
+              ) : state.outcome.tone === "danger" ? (
+                <TriangleAlert className="size-5 text-destructive" aria-hidden="true" />
+              ) : (
+                <CircleCheck className="size-5 text-success" aria-hidden="true" />
+              ),
             title: state.outcome.title,
             description: state.outcome.description,
             hint: null,

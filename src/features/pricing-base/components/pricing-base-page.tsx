@@ -178,8 +178,17 @@ export function PricingBasePage() {
         const status = await createPricingVersion(input);
         await queryClient.invalidateQueries({ queryKey: pricingVersionsQueryKey });
         setPage(1);
+        if (status === "COMPLETED_WITH_ERRORS") {
+          return {
+            tone: "warning",
+            title: "Base processada com erros",
+            description:
+              "O arquivo foi processado, mas a nova versão não se tornou a versão atual. Consulte os detalhes da importação.",
+          };
+        }
         if (status !== "COMPLETED") {
           return {
+            tone: "danger",
             title: "Importação não concluída",
             description: "Consulte os detalhes da importação na lista de versões.",
           };
@@ -552,17 +561,29 @@ function VersionActions({
     <div className="inline-flex items-center gap-1">
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={`Ver detalhes da importação de ${version.file.name}`}
-            onClick={() => onShowDetails(version)}
-          >
-            <FileSearch className="size-4" aria-hidden="true" />
-          </Button>
+          {/* Span keeps the tooltip reachable when the button is disabled. */}
+          <span tabIndex={version.detailsAvailable ? -1 : 0} className="inline-flex">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              disabled={!version.detailsAvailable}
+              aria-label={
+                version.detailsAvailable
+                  ? `Ver detalhes da importação de ${version.file.name}`
+                  : `Detalhes da importação indisponíveis para ${version.file.name}`
+              }
+              onClick={() => onShowDetails(version)}
+            >
+              <FileSearch className="size-4" aria-hidden="true" />
+            </Button>
+          </span>
         </TooltipTrigger>
-        <TooltipContent>Ver detalhes da importação</TooltipContent>
+        <TooltipContent>
+          {version.detailsAvailable
+            ? "Ver detalhes da importação"
+            : "Detalhes da importação indisponíveis"}
+        </TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>

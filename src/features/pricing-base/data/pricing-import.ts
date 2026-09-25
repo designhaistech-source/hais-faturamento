@@ -146,6 +146,11 @@ function failure(status: ImportStatus, problem: string): PricingImportResult {
   return { status, problem, fields: [], records: [], errors: [], totalLines: 0 };
 }
 
+/**
+ * Simulação do protótipo: as regras que definem cada status (NOT_SUPPORTED, INVALID_FORMAT,
+ * FAILED etc.) pertencem ao backend. Quando ele devolver status e motivos, este parser deixa
+ * de decidir e a interface apenas exibe o que for retornado.
+ */
 /** Lê e valida o conteúdo do arquivo. Números de linha contam a partir do cabeçalho (linha 1). */
 export function parsePricingImport(content: string): PricingImportResult {
   if (content.includes("\u0000")) {
@@ -235,8 +240,11 @@ export const IMPORT_STATUS_LABEL: Record<ImportStatus, string> = {
   FAILED: "Falha na importação",
 };
 
+export function isKnownImportStatus(value: string | null | undefined): value is ImportStatus {
+  return (IMPORT_STATUSES as readonly string[]).includes(value ?? "");
+}
+
 /** Registros anteriores aos status de importação ("EXTRACTED") contam como concluídos. */
 export function toImportStatus(value: string | null | undefined): ImportStatus {
-  if ((IMPORT_STATUSES as readonly string[]).includes(value ?? "")) return value as ImportStatus;
-  return "COMPLETED";
+  return isKnownImportStatus(value) ? value : "COMPLETED";
 }

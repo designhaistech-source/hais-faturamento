@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CURRENT_USER } from "@/lib/current-user";
 import {
   parsePricingImport,
+  isKnownImportStatus,
   toImportStatus,
   type ImportErrorRow,
   type ImportStatus,
@@ -92,6 +93,11 @@ export async function listPricingVersions(): Promise<PricingVersion[]> {
     importStatus: toImportStatus(row.status),
     importProblem: row.status_problem,
     processedCount: row.processed_count,
+    // Legacy rows have no import status and no processed count; absence is not "0 records".
+    detailsAvailable:
+      isKnownImportStatus(row.status) && row.processed_count !== null
+        ? true
+        : isKnownImportStatus(row.status) && row.status !== "COMPLETED",
     errorCount: row.unprocessed_count,
     errorRows: toErrorRows(row.unprocessed_reasons),
   }));
