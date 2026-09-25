@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { CURRENT_USER } from "@/lib/current-user";
 import {
   inferPricingBaseType,
@@ -118,12 +119,15 @@ interface StatusUpdate {
   status_guidance?: string | null;
   processed_count?: number | null;
   unprocessed_count?: number | null;
-  unprocessed_reasons?: PricingUnprocessedReason[] | null;
+  unprocessed_reasons?: Array<{ reason: string; count: number }> | null;
   retryable?: boolean;
 }
 
 async function updateStatus(id: string, update: StatusUpdate): Promise<void> {
-  const { error } = await supabase.from("pricing_versions").update(update).eq("id", id);
+  const { error } = await supabase
+    .from("pricing_versions")
+    .update({ ...update, unprocessed_reasons: update.unprocessed_reasons as Json | undefined })
+    .eq("id", id);
   if (error) throw error;
 }
 
