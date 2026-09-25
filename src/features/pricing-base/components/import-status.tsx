@@ -170,7 +170,7 @@ function ImportedRecords({ version }: { version: PricingVersion }) {
           content: await (await downloadPricingVersionBlob(file.path)).text(),
         })),
       );
-      return parsePricingImportSet(parts);
+      return parsePricingImportSet(parts, version.baseType);
     },
     staleTime: Infinity,
   });

@@ -154,7 +154,7 @@ export async function createPricingVersion(input: NewPricingVersionInput): Promi
     const parts = await Promise.all(
       input.files.map(async (file) => ({ name: file.name, content: await file.text() })),
     );
-    const result = parsePricingImportSet(parts);
+    const result = parsePricingImportSet(parts, baseType);
     status = result.status;
     problem = result.problem;
     if (result.problem === null) {

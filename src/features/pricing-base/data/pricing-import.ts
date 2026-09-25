@@ -87,9 +87,42 @@ function splitLine(line: string, delimiter: string): string[] {
   return line.split(delimiter).map((cell) => cell.trim().replace(/^"|"$/g, ""));
 }
 
+/**
+ * Layout do protótipo por tipo de base: qual coluna identifica o item e aliases extras.
+ * Brasíndice identifica pelo TISS (ou código); SIMPRO pelo CD_SIMPRO; CBHPM pelo código.
+ */
+const LAYOUTS: Record<
+  PricingBaseType,
+  { keyFields: ReadonlyArray<"tiss" | "code">; extraCodeAliases: string[]; keyLabel: string }
+> = {
+  brasindice: {
+    keyFields: ["tiss", "code"],
+    extraCodeAliases: [],
+    keyLabel: "código (TISS ou código do item)",
+  },
+  simpro: {
+    keyFields: ["code"],
+    extraCodeAliases: ["cdsimpro", "codsimpro", "codigosimpro"],
+    keyLabel: "código SIMPRO (CD_SIMPRO)",
+  },
+  cbhpm: {
+    keyFields: ["code"],
+    extraCodeAliases: ["codigocbhpm", "codcbhpm", "cdcbhpm"],
+    keyLabel: "código do procedimento",
+  },
+};
+
 /** Mapeia cada campo conhecido para a primeira coluna do cabeçalho que o representa. */
-function mapColumns(headers: string[]): Partial<Record<ImportField, number>> {
-  const normalized = headers.map(normalizeHeader);
+function mapColumns(
+  headers: string[],
+  baseType: PricingBaseType,
+): Partial<Record<ImportField, number>> {
+  const layout = LAYOUTS[baseType];
+  // "TIPO_PRECO" descreve o tipo do preço, não o valor.
+  const normalized = headers.map((header) => {
+    const value = normalizeHeader(header);
+    return value.startsWith("tipo") ? "" : value;
+  });
   const used = new Set<number>();
   const columns: Partial<Record<ImportField, number>> = {};
   // Campos específicos antes do genérico "código", que também casaria com "codigotiss".
@@ -97,9 +130,12 @@ function mapColumns(headers: string[]): Partial<Record<ImportField, number>> {
     const index = normalized.findIndex(
       (header, position) =>
         !used.has(position) &&
-        FIELD_ALIASES[field].some((alias) =>
-          field === "code" ? header === alias : header === alias || header.includes(alias),
-        ),
+        header !== "" &&
+        (field === "code"
+          ? [...FIELD_ALIASES.code, ...layout.extraCodeAliases].includes(header)
+          : field === "tiss" && !layout.keyFields.includes("tiss")
+            ? false
+            : FIELD_ALIASES[field].some((alias) => header === alias || header.includes(alias))),
     );
     if (index !== -1) {
       columns[field] = index;
@@ -158,7 +194,10 @@ function failure(status: ImportStatus, problem: string): PricingImportResult {
  * de decidir e a interface apenas exibe o que for retornado.
  */
 /** Lê e valida o conteúdo do arquivo. Números de linha contam a partir do cabeçalho (linha 1). */
-export function parsePricingImport(content: string): PricingImportResult {
+export function parsePricingImport(
+  content: string,
+  baseType: PricingBaseType = "brasindice",
+): PricingImportResult {
   if (content.includes("\u0000")) {
     return failure("INVALID_FORMAT", "O conteúdo do arquivo não é texto delimitado (CSV/TXT).");
   }
@@ -174,11 +213,11 @@ export function parsePricingImport(content: string): PricingImportResult {
     );
   }
 
-  const columns = mapColumns(splitLine(rawLines[headerIndex], delimiter));
-  const keyField: "tiss" | "code" | null =
-    columns.tiss !== undefined ? "tiss" : columns.code !== undefined ? "code" : null;
+  const layout = LAYOUTS[baseType];
+  const columns = mapColumns(splitLine(rawLines[headerIndex], delimiter), baseType);
+  const keyField = layout.keyFields.find((field) => columns[field] !== undefined) ?? null;
   const missing = [
-    keyField === null ? "código (TISS ou código do item)" : null,
+    keyField === null ? layout.keyLabel : null,
     columns.price === undefined ? "preço" : null,
   ].filter((value): value is string => value !== null);
   if (keyField === null || missing.length > 0) {
@@ -261,15 +300,16 @@ export function toImportStatus(value: string | null | undefined): ImportStatus {
  */
 export function parsePricingImportSet(
   parts: ReadonlyArray<{ name: string; content: string }>,
+  baseType: PricingBaseType = "brasindice",
 ): PricingImportResult {
-  if (parts.length === 1) return parsePricingImport(parts[0].content);
+  if (parts.length === 1) return parsePricingImport(parts[0].content, baseType);
   const tag = (name: string) => ({ file: name });
   const fields = new Set<ImportField>();
   const records: ImportedRecord[] = [];
   const errors: ImportErrorRow[] = [];
   let totalLines = 0;
   for (const part of parts) {
-    const result = parsePricingImport(part.content);
+    const result = parsePricingImport(part.content, baseType);
     if (result.problem !== null) {
       return failure(result.status, `${part.name}: ${result.problem}`);
     }
