@@ -61,7 +61,10 @@ export class PricingProcessingError extends Error {}
  * Registers the file (status PENDING → PROCESSING), validates and reads its
  * records and persists the final status. Only EXTRACTED versions become "Atual".
  */
-export async function createPricingVersion(input: NewPricingVersionInput): Promise<void> {
+export async function createPricingVersion(
+  input: NewPricingVersionInput,
+  onRegistered?: () => void,
+): Promise<void> {
   const baseType = input.baseType ?? inferPricingBaseType(input.file.name);
   const path = `${crypto.randomUUID()}-${sanitizeFileName(input.file.name)}`;
   const hash = await sha256(input.file);
@@ -88,6 +91,7 @@ export async function createPricingVersion(input: NewPricingVersionInput): Promi
     .single();
   if (error || !inserted) throw error ?? new Error("Não foi possível registrar a versão.");
 
+  onRegistered?.();
   await processPricingVersion(inserted.id, input.file, baseType, hash);
 }
 
