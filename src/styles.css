@@ -55,6 +55,10 @@
   --color-info-muted: var(--info-muted);
   --color-info-strong: var(--info-strong);
   --color-destructive-strong: var(--destructive-strong);
+  --color-caution: var(--caution);
+  --color-caution-muted: var(--caution-muted);
+  --color-caution-strong: var(--caution-strong);
+  --color-destructive-muted: var(--destructive-muted);
 
   --color-purple: var(--purple);
   --color-purple-foreground: var(--purple-foreground);
@@ -188,6 +192,11 @@
   --info-strong: oklch(0.48 0.16 250);
 
   --destructive-strong: oklch(0.5 0.18 25);
+  /* Laranja = impedimento/condição excepcional (distinto do âmbar de atenção). */
+  --caution: oklch(0.7 0.17 50);
+  --caution-muted: oklch(0.95 0.045 55);
+  --caution-strong: oklch(0.5 0.15 45);
+  --destructive-muted: oklch(0.95 0.035 25);
 
   /* Categorical palette */
   --cat-1: oklch(0.7 0.17 155);
@@ -281,6 +290,10 @@
   --info-strong: oklch(0.8 0.13 250);
 
   --destructive-strong: oklch(0.78 0.15 25);
+  --caution: oklch(0.72 0.16 50);
+  --caution-muted: oklch(0.32 0.08 50);
+  --caution-strong: oklch(0.84 0.12 55);
+  --destructive-muted: oklch(0.3 0.08 25);
 
   --cat-1: oklch(0.72 0.16 155);
   --cat-1-fg: oklch(0.86 0.13 155);

@@ -32,7 +32,7 @@ const STATUS_VISUAL: Record<ProcessingStatus, { tone: StatusTone; icon: LucideIc
   PARTIALLY_EXTRACTED: { tone: "warning", icon: TriangleAlert },
   INVALID_FILE: { tone: "danger", icon: FileX },
   PROCESSING_ERROR: { tone: "danger", icon: CircleX },
-  DUPLICATE_FILE: { tone: "warning", icon: Copy },
+  DUPLICATE_FILE: { tone: "caution", icon: Copy },
 };
 
 /** Status técnico do processamento do arquivo (informativo, não clicável). */
