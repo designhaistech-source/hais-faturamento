@@ -24,10 +24,13 @@ export type Database = {
           divergence_count: number
           error_message: string | null
           expected_total: number
+          file_hash: string | null
           file_name: string
           health_plan: string
           id: string
           item_count: number
+          processing_details: Json | null
+          processing_status: string | null
           provider: string
           status: string
           unanalyzed_count: number
@@ -42,10 +45,13 @@ export type Database = {
           divergence_count?: number
           error_message?: string | null
           expected_total?: number
+          file_hash?: string | null
           file_name: string
           health_plan?: string
           id?: string
           item_count?: number
+          processing_details?: Json | null
+          processing_status?: string | null
           provider?: string
           status?: string
           unanalyzed_count?: number
@@ -60,10 +66,13 @@ export type Database = {
           divergence_count?: number
           error_message?: string | null
           expected_total?: number
+          file_hash?: string | null
           file_name?: string
           health_plan?: string
           id?: string
           item_count?: number
+          processing_details?: Json | null
+          processing_status?: string | null
           provider?: string
           status?: string
           unanalyzed_count?: number
@@ -256,30 +265,54 @@ export type Database = {
           base_type: string
           created_at: string
           created_by: string
+          file_hash: string | null
           file_name: string
           file_path: string
           file_type: string | null
           id: string
+          processed_count: number | null
+          retryable: boolean
+          status: string
+          status_guidance: string | null
+          status_problem: string | null
+          unprocessed_count: number | null
+          unprocessed_reasons: Json | null
           version_month: string | null
         }
         Insert: {
           base_type?: string
           created_at?: string
           created_by: string
+          file_hash?: string | null
           file_name: string
           file_path: string
           file_type?: string | null
           id?: string
+          processed_count?: number | null
+          retryable?: boolean
+          status?: string
+          status_guidance?: string | null
+          status_problem?: string | null
+          unprocessed_count?: number | null
+          unprocessed_reasons?: Json | null
           version_month?: string | null
         }
         Update: {
           base_type?: string
           created_at?: string
           created_by?: string
+          file_hash?: string | null
           file_name?: string
           file_path?: string
           file_type?: string | null
           id?: string
+          processed_count?: number | null
+          retryable?: boolean
+          status?: string
+          status_guidance?: string | null
+          status_problem?: string | null
+          unprocessed_count?: number | null
+          unprocessed_reasons?: Json | null
           version_month?: string | null
         }
         Relationships: []
@@ -287,6 +320,7 @@ export type Database = {
       tuss_version_files: {
         Row: {
           created_at: string
+          file_hash: string | null
           file_name: string
           file_path: string
           file_type: string | null
@@ -296,6 +330,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          file_hash?: string | null
           file_name: string
           file_path: string
           file_type?: string | null
@@ -305,6 +340,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          file_hash?: string | null
           file_name?: string
           file_path?: string
           file_type?: string | null
@@ -330,7 +366,13 @@ export type Database = {
           file_path: string
           file_type: string | null
           id: string
+          processed_count: number | null
+          retryable: boolean
+          status: string
+          status_guidance: string | null
+          status_problem: string | null
           table_name: string
+          unprocessed_count: number | null
           version_month: string
         }
         Insert: {
@@ -340,7 +382,13 @@ export type Database = {
           file_path: string
           file_type?: string | null
           id?: string
+          processed_count?: number | null
+          retryable?: boolean
+          status?: string
+          status_guidance?: string | null
+          status_problem?: string | null
           table_name?: string
+          unprocessed_count?: number | null
           version_month?: string
         }
         Update: {
@@ -350,7 +398,13 @@ export type Database = {
           file_path?: string
           file_type?: string | null
           id?: string
+          processed_count?: number | null
+          retryable?: boolean
+          status?: string
+          status_guidance?: string | null
+          status_problem?: string | null
           table_name?: string
+          unprocessed_count?: number | null
           version_month?: string
         }
         Relationships: []

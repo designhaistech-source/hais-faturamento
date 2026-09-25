@@ -102,8 +102,24 @@ function categoryOf(element: Element): string {
   return "";
 }
 
+/** Trecho do XML reconhecido como item, mas sem dados suficientes para leitura. */
+export interface SkippedTissItem {
+  /** Posição do trecho entre os itens do arquivo (1 = primeiro). */
+  position: number;
+  /** Nome do elemento XML do trecho. */
+  tag: string;
+}
+
 /** Itens faturados do XML TISS, na ordem em que aparecem no arquivo. */
 export function readTissItems(xml: Document): TissItem[] {
+  return readTissItemsDetailed(xml).items;
+}
+
+/** Itens lidos e trechos ignorados por falta de código e valores. */
+export function readTissItemsDetailed(xml: Document): {
+  items: TissItem[];
+  skipped: SkippedTissItem[];
+} {
   const elements = Array.from(xml.getElementsByTagName("*")).filter((element) =>
     ITEM_TAGS.has(element.localName),
   );
@@ -114,11 +130,15 @@ export function readTissItems(xml: Document): TissItem[] {
   );
 
   const items: TissItem[] = [];
+  const skipped: SkippedTissItem[] = [];
   leaves.forEach((element, index) => {
     const code = childValue(element, CODE_TAGS) ?? "";
     const unitValue = parseNumber(childValue(element, UNIT_VALUE_TAGS));
     const totalValue = parseNumber(childValue(element, TOTAL_VALUE_TAGS));
-    if (code === "" && unitValue === null && totalValue === null) return;
+    if (code === "" && unitValue === null && totalValue === null) {
+      skipped.push({ position: index + 1, tag: element.localName });
+      return;
+    }
 
     const quantity = parseNumber(childValue(element, QUANTITY_TAGS)) ?? 1;
     items.push({
@@ -133,7 +153,7 @@ export function readTissItems(xml: Document): TissItem[] {
     });
   });
 
-  return items;
+  return { items, skipped };
 }
 
 /** XML TISS analisado; lança erro quando o arquivo não é um XML válido. */

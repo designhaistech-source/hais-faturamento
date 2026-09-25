@@ -1,6 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 
-import type { BillingAnalysis, BillingAnalysisStatus } from "./billing-analyses";
+import {
+  toProcessingDetails,
+  toProcessingStatus,
+  type BillingAnalysis,
+  type BillingAnalysisStatus,
+} from "./billing-analyses";
 
 export type AnalysisItemStatus = "ok" | "divergent" | "unanalyzed";
 
@@ -72,6 +77,8 @@ export async function getAnalysisDetails(
       divergenceCount: row.divergence_count,
       unanalyzedCount: row.unanalyzed_count,
       errorMessage: row.error_message ?? null,
+      processingStatus: toProcessingStatus(row.processing_status, toStatus(row.status)),
+      processingDetails: toProcessingDetails(row.processing_details),
     },
     items: (itemsResult.data ?? []).map((item) => ({
       id: item.id,
