@@ -87,42 +87,9 @@ function splitLine(line: string, delimiter: string): string[] {
   return line.split(delimiter).map((cell) => cell.trim().replace(/^"|"$/g, ""));
 }
 
-/**
- * Layout do protótipo por tipo de base: qual coluna identifica o item e aliases extras.
- * Brasíndice identifica pelo TISS (ou código); SIMPRO pelo CD_SIMPRO; CBHPM pelo código.
- */
-const LAYOUTS: Record<
-  PricingBaseType,
-  { keyFields: ReadonlyArray<"tiss" | "code">; extraCodeAliases: string[]; keyLabel: string }
-> = {
-  brasindice: {
-    keyFields: ["tiss", "code"],
-    extraCodeAliases: [],
-    keyLabel: "código (TISS ou código do item)",
-  },
-  simpro: {
-    keyFields: ["code"],
-    extraCodeAliases: ["cdsimpro", "codsimpro", "codigosimpro"],
-    keyLabel: "código SIMPRO (CD_SIMPRO)",
-  },
-  cbhpm: {
-    keyFields: ["code"],
-    extraCodeAliases: ["codigocbhpm", "codcbhpm", "cdcbhpm"],
-    keyLabel: "código do procedimento",
-  },
-};
-
 /** Mapeia cada campo conhecido para a primeira coluna do cabeçalho que o representa. */
-function mapColumns(
-  headers: string[],
-  baseType: PricingBaseType,
-): Partial<Record<ImportField, number>> {
-  const layout = LAYOUTS[baseType];
-  // "TIPO_PRECO" descreve o tipo do preço, não o valor.
-  const normalized = headers.map((header) => {
-    const value = normalizeHeader(header);
-    return value.startsWith("tipo") ? "" : value;
-  });
+function mapColumns(headers: string[]): Partial<Record<ImportField, number>> {
+  const normalized = headers.map(normalizeHeader);
   const used = new Set<number>();
   const columns: Partial<Record<ImportField, number>> = {};
   // Campos específicos antes do genérico "código", que também casaria com "codigotiss".
@@ -130,12 +97,9 @@ function mapColumns(
     const index = normalized.findIndex(
       (header, position) =>
         !used.has(position) &&
-        header !== "" &&
-        (field === "code"
-          ? [...FIELD_ALIASES.code, ...layout.extraCodeAliases].includes(header)
-          : field === "tiss" && !layout.keyFields.includes("tiss")
-            ? false
-            : FIELD_ALIASES[field].some((alias) => header === alias || header.includes(alias))),
+        FIELD_ALIASES[field].some((alias) =>
+          field === "code" ? header === alias : header === alias || header.includes(alias),
+        ),
     );
     if (index !== -1) {
       columns[field] = index;
@@ -198,6 +162,87 @@ export function parsePricingImport(
   content: string,
   baseType: PricingBaseType = "brasindice",
 ): PricingImportResult {
+  if (baseType === "simpro") return parseSimproImport(content);
+  if (baseType === "cbhpm") return parseUndefinedLayout(content);
+  return parseBrasindiceImport(content);
+}
+
+/** Layout SIMPRO definido para o protótipo, na ordem do arquivo. */
+const SIMPRO_LAYOUT: ReadonlyArray<{ header: string; field: ImportField | null }> = [
+  { header: "CD_SIMPRO", field: "code" },
+  { header: "CODIGO_TUSS", field: "tuss" },
+  { header: "DESCRICAO", field: "description" },
+  { header: "TIPO_PRECO", field: null },
+  { header: "VALOR", field: "price" },
+];
+
+/**
+ * SIMPRO: reconhece somente o layout definido. Nenhuma validação por linha foi definida
+ * para esta base, então cada linha de dados é importada como está.
+ */
+function parseSimproImport(content: string): PricingImportResult {
+  const lines = content.replace(/^\uFEFF/, "").split(/\r?\n/);
+  const headerIndex = lines.findIndex((line) => line.trim() !== "");
+  if (headerIndex === -1) return failure("INVALID_FORMAT", "O arquivo está vazio.");
+  const delimiter = detectDelimiter(lines[headerIndex]);
+  if (!delimiter) {
+    return failure(
+      "INVALID_FORMAT",
+      "Não foi possível identificar o separador de colunas na primeira linha do arquivo.",
+    );
+  }
+  const headers = splitLine(lines[headerIndex], delimiter).map((header) => header.toUpperCase());
+  const missing = SIMPRO_LAYOUT.filter(({ header }) => !headers.includes(header)).map(
+    ({ header }) => header,
+  );
+  if (missing.length > 0) {
+    return failure(
+      "NOT_SUPPORTED",
+      `Layout SIMPRO não reconhecido. Colunas esperadas: ${SIMPRO_LAYOUT.map(({ header }) => header).join(" | ")}. Não encontrada${missing.length > 1 ? "s" : ""}: ${missing.join(", ")}.`,
+    );
+  }
+  const columns = SIMPRO_LAYOUT.filter(
+    (column): column is { header: string; field: ImportField } => column.field !== null,
+  ).map(({ header, field }) => ({ field, index: headers.indexOf(header) }));
+  const records: ImportedRecord[] = [];
+  lines.forEach((raw, index) => {
+    if (index <= headerIndex || raw.trim() === "") return;
+    const cells = splitLine(raw, delimiter);
+    const values: Partial<Record<ImportField, string>> = {};
+    for (const { field, index: column } of columns) values[field] = cells[column] ?? "";
+    records.push({ line: index + 1, values });
+  });
+  return {
+    status: "COMPLETED",
+    problem: null,
+    fields: DISPLAY_ORDER.filter((field) => columns.some((column) => column.field === field)),
+    records,
+    errors: [],
+    totalLines: records.length,
+  };
+}
+
+/** Bases sem layout definido no protótipo (CBHPM): nenhuma regra é presumida. */
+function parseUndefinedLayout(content: string): PricingImportResult {
+  const records: ImportedRecord[] = [];
+  content
+    .replace(/^\uFEFF/, "")
+    .split(/\r?\n/)
+    .forEach((raw, index) => {
+      if (raw.trim() !== "") records.push({ line: index + 1, content: raw.trim(), values: {} });
+    });
+  return {
+    status: "COMPLETED",
+    problem: null,
+    fields: [],
+    records,
+    errors: [],
+    totalLines: records.length,
+  };
+}
+
+/** Brasíndice: layout e validações simuladas do protótipo. */
+function parseBrasindiceImport(content: string): PricingImportResult {
   if (content.includes("\u0000")) {
     return failure("INVALID_FORMAT", "O conteúdo do arquivo não é texto delimitado (CSV/TXT).");
   }
@@ -213,11 +258,11 @@ export function parsePricingImport(
     );
   }
 
-  const layout = LAYOUTS[baseType];
-  const columns = mapColumns(splitLine(rawLines[headerIndex], delimiter), baseType);
-  const keyField = layout.keyFields.find((field) => columns[field] !== undefined) ?? null;
+  const columns = mapColumns(splitLine(rawLines[headerIndex], delimiter));
+  const keyField: "tiss" | "code" | null =
+    columns.tiss !== undefined ? "tiss" : columns.code !== undefined ? "code" : null;
   const missing = [
-    keyField === null ? layout.keyLabel : null,
+    keyField === null ? "código (TISS ou código do item)" : null,
     columns.price === undefined ? "preço" : null,
   ].filter((value): value is string => value !== null);
   if (keyField === null || missing.length > 0) {
