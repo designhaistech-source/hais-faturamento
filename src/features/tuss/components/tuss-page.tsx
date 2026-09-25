@@ -16,7 +16,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ErrorState, TableSkeleton } from "@/components/data-state";
 import { SurfaceCard } from "@/components/surface-card";
 import { FilterCard } from "@/components/filter-card";
-import { SearchField } from "@/components/form-field";
+import { SearchField, SelectField } from "@/components/form-field";
 import { Input } from "@/components/ui/input";
 import { toLocalIsoDate } from "@/lib/date";
 import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/table-pagination";
@@ -40,10 +40,16 @@ import { NewTussVersionModal } from "./new-tuss-version-modal";
 import {
   currentTussTableIds,
   formatTussDateTime,
+  TUSS_TABLE_NUMBERS,
   tussTableLabel,
   type NewTussVersionInput,
   type TussVersion,
 } from "../data/tuss-versions";
+
+const TABLE_FILTER_OPTIONS = [
+  { value: "all", label: "Todas as tabelas" },
+  ...TUSS_TABLE_NUMBERS.map((number) => ({ value: String(number), label: tussTableLabel(number) })),
+];
 import {
   createTussVersion,
   createTussVersionFileUrl,
@@ -83,12 +89,16 @@ export function TussPage() {
   const currentIds = useMemo(() => currentTussTableIds(versions), [versions]);
 
   const [search, setSearch] = useState("");
+  const [tableFilter, setTableFilter] = useState("all");
   const [createdFrom, setCreatedFrom] = useState("");
   const [createdTo, setCreatedTo] = useState("");
 
-  const activeCount = [search.trim() !== "", createdFrom !== "", createdTo !== ""].filter(
-    Boolean,
-  ).length;
+  const activeCount = [
+    search.trim() !== "",
+    tableFilter !== "all",
+    createdFrom !== "",
+    createdTo !== "",
+  ].filter(Boolean).length;
   const hasFilters = activeCount > 0;
 
   const filteredVersions = useMemo(() => {
@@ -96,6 +106,7 @@ export function TussPage() {
     return versions.filter((version) => {
       if (term && !version.files.some((file) => file.name.toLowerCase().includes(term)))
         return false;
+      if (tableFilter !== "all" && String(version.tableName) !== tableFilter) return false;
       if (createdFrom || createdTo) {
         const created = new Date(version.createdAt);
         if (Number.isNaN(created.getTime())) return false;
@@ -105,7 +116,7 @@ export function TussPage() {
       }
       return true;
     });
-  }, [versions, search, createdFrom, createdTo]);
+  }, [versions, search, tableFilter, createdFrom, createdTo]);
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -118,6 +129,7 @@ export function TussPage() {
 
   function handleClearFilters() {
     setSearch("");
+    setTableFilter("all");
     setCreatedFrom("");
     setCreatedTo("");
     setPage(1);
@@ -224,7 +236,7 @@ export function TussPage() {
                     activeCount={activeCount}
                     onClear={handleClearFilters}
                     clearDisabled={!hasFilters}
-                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_22rem_auto] lg:gap-4"
+                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_16rem_22rem_auto] lg:gap-4"
                   >
                     <SearchField
                       id="tuss-versions-search"
@@ -239,6 +251,17 @@ export function TussPage() {
                       }}
                       onClear={() => {
                         setSearch("");
+                        setPage(1);
+                      }}
+                    />
+                    <SelectField
+                      id="tuss-versions-table"
+                      label="Tabela TUSS"
+                      className="sm:col-span-2 lg:col-span-1"
+                      value={tableFilter}
+                      options={TABLE_FILTER_OPTIONS}
+                      onValueChange={(value) => {
+                        setTableFilter(value);
                         setPage(1);
                       }}
                     />
