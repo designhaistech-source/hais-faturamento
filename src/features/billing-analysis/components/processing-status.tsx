@@ -174,7 +174,12 @@ export function ProcessingDetailsModal({ analysis, onOpenChange }: ProcessingDet
         {technical && (
           <Collapsible open={technicalOpen} onOpenChange={setTechnicalOpen}>
             <CollapsibleTrigger asChild>
-              <Button type="button" variant="ghost" size="sm" className="-ml-2 text-muted-foreground">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="-ml-2 text-muted-foreground"
+              >
                 <ChevronDown
                   className={
                     technicalOpen

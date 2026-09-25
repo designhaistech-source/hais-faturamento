@@ -55,12 +55,15 @@ import {
   type NewBillingAnalysisInput,
 } from "./new-billing-analysis-modal";
 import { useBackgroundAnalysis } from "./background-analysis";
+import { ProcessingDetailsModal, ProcessingStatusBadge } from "./processing-status";
 import { getAnalysisXml } from "../data/billing-analyses-service";
 import { downloadXml } from "../data/xml-preview";
 import {
   analysisResultBadgeVariant,
   analysisResultLabel,
   formatAnalysisDateTime,
+  hasAnalysisResult,
+  hasProcessingIssue,
   type BillingAnalysis,
 } from "../data/billing-analyses";
 import {
@@ -80,14 +83,12 @@ const RESULT_FILTER_OPTIONS = [
 ];
 
 function matchesResultFilter(analysis: BillingAnalysis, filter: ResultFilter): boolean {
+  if (filter === "all") return true;
+  if (!hasAnalysisResult(analysis)) return false;
   if (filter === "divergent") return analysis.divergenceCount > 0;
   if (filter === "unanalyzed") return analysis.unanalyzedCount > 0;
   if (filter === "clean") {
-    return (
-      analysis.status === "completed" &&
-      analysis.divergenceCount === 0 &&
-      analysis.unanalyzedCount === 0
-    );
+    return analysis.divergenceCount === 0 && analysis.unanalyzedCount === 0;
   }
   return true;
 }
@@ -98,6 +99,7 @@ const COLUMNS = [
   "Prestador",
   "Operadora",
   "Data da análise",
+  "Status",
   "Resultado",
   "Ações",
 ] as const;
@@ -108,6 +110,7 @@ const COLUMNS = [
  */
 export function BillingAnalysisPage() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [detailsAnalysis, setDetailsAnalysis] = useState<BillingAnalysis | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
@@ -227,7 +230,7 @@ export function BillingAnalysisPage() {
             <section className="space-y-4">
               {analysesQuery.isPending ? (
                 <SurfaceCard padding="none">
-                  <TableSkeleton rows={4} columns={6} />
+                  <TableSkeleton rows={4} columns={8} />
                 </SurfaceCard>
               ) : analysesQuery.isError ? (
                 <SurfaceCard padding="md">
@@ -365,10 +368,16 @@ export function BillingAnalysisPage() {
                                     {formatAnalysisDateTime(analysis.analyzedAt)}
                                   </DataTableCell>
                                   <DataTableCell>
+                                    <ProcessingStatusBadge status={analysis.processingStatus} />
+                                  </DataTableCell>
+                                  <DataTableCell>
                                     <AnalysisResultBadge analysis={analysis} />
                                   </DataTableCell>
                                   <DataTableCell className="text-right">
-                                    <AnalysisActions analysis={analysis} />
+                                    <AnalysisActions
+                                      analysis={analysis}
+                                      onShowDetails={setDetailsAnalysis}
+                                    />
                                   </DataTableCell>
                                 </DataTableRow>
                               ))}
@@ -380,7 +389,12 @@ export function BillingAnalysisPage() {
                           {paginatedAnalyses.map((analysis) => (
                             <DataTableCard key={analysis.id} flat className="space-y-1.5 py-2.5">
                               <DataTableCardHeader
-                                title={<AnalysisResultBadge analysis={analysis} />}
+                                title={
+                                  <span className="flex flex-wrap gap-1.5">
+                                    <ProcessingStatusBadge status={analysis.processingStatus} />
+                                    <AnalysisResultBadge analysis={analysis} />
+                                  </span>
+                                }
                                 subtitle={analysis.fileName}
                               />
                               <DataTableCardFields
@@ -396,7 +410,10 @@ export function BillingAnalysisPage() {
                                 ]}
                               />
                               <DataTableCardActions className="-mt-0.5 justify-end">
-                                <AnalysisActions analysis={analysis} />
+                                <AnalysisActions
+                                  analysis={analysis}
+                                  onShowDetails={setDetailsAnalysis}
+                                />
                               </DataTableCardActions>
                             </DataTableCard>
                           ))}
@@ -466,6 +483,12 @@ export function BillingAnalysisPage() {
         onOpenChange={setModalOpen}
         onSubmit={handleSubmit}
       />
+      <ProcessingDetailsModal
+        analysis={detailsAnalysis}
+        onOpenChange={(open) => {
+          if (!open) setDetailsAnalysis(null);
+        }}
+      />
       <ConfirmDialog
         open={clearOpen}
         onOpenChange={setClearOpen}
@@ -497,6 +520,13 @@ function AnalysisFileName({ name }: { name: string }) {
 
 /** Resultado da análise, com o detalhe dos itens não analisados em tooltip. */
 function AnalysisResultBadge({ analysis }: { analysis: BillingAnalysis }) {
+  if (!hasAnalysisResult(analysis)) {
+    return (
+      <span className="text-muted-foreground" aria-label="Sem resultado">
+        —
+      </span>
+    );
+  }
   const tone: StatusTone =
     analysis.status === "processing"
       ? "info"
@@ -547,7 +577,13 @@ function AnalysisResultBadge({ analysis }: { analysis: BillingAnalysis }) {
 }
 
 /** Ações da linha: ver o resultado (quando concluída) e baixar o XML original. */
-function AnalysisActions({ analysis }: { analysis: BillingAnalysis }) {
+function AnalysisActions({
+  analysis,
+  onShowDetails,
+}: {
+  analysis: BillingAnalysis;
+  onShowDetails: (analysis: BillingAnalysis) => void;
+}) {
   const [downloading, setDownloading] = useState(false);
 
   const handleDownload = async () => {
@@ -568,7 +604,23 @@ function AnalysisActions({ analysis }: { analysis: BillingAnalysis }) {
 
   return (
     <div className="inline-flex items-center gap-1">
-      {analysis.status === "completed" && (
+      {hasProcessingIssue(analysis.processingStatus) && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={`Ver detalhes do processamento ${analysis.fileName}`}
+              onClick={() => onShowDetails(analysis)}
+            >
+              <CircleAlert className="size-4" aria-hidden="true" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Ver detalhes do processamento</TooltipContent>
+        </Tooltip>
+      )}
+      {hasAnalysisResult(analysis) && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button asChild variant="ghost" size="icon">
