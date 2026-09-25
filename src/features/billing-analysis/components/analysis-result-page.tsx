@@ -139,7 +139,8 @@ function AnalysisResultContent({ analysis }: { analysis: BillingAnalysis }) {
                 <SummaryPart
                   icon={<AlertTriangle className="h-3.5 w-3.5 text-warning" aria-hidden="true" />}
                 >
-                  {summary.unanalyzed} não {summary.unanalyzed === 1 ? "analisado" : "analisados"}
+                  {summary.unanalyzed}{" "}
+                  {summary.unanalyzed === 1 ? "item não analisado" : "itens não analisados"}
                 </SummaryPart>
               )}
             </p>
