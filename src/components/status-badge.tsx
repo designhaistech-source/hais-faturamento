@@ -6,16 +6,14 @@ import { cn } from "@/lib/utils";
 /**
  * Semântica única de status em todo o sistema:
  * success = conclusão positiva · danger = problema/divergência ·
- * warning = atenção/incompleto ·
- * caution = impedimento/condição excepcional (não é falha) · neutral = estado neutro · info = em andamento.
+ * warning = atenção/incompleto · neutral = estado neutro · info = em andamento.
  */
-export type StatusTone = "success" | "danger" | "warning" | "caution" | "neutral" | "info";
+export type StatusTone = "success" | "danger" | "warning" | "neutral" | "info";
 
 const TONE_VARIANT = {
   success: "success-soft",
   danger: "destructive-soft",
   warning: "warning-soft",
-  caution: "caution-soft",
   neutral: "neutral-soft",
   info: "info-soft",
 } as const;
