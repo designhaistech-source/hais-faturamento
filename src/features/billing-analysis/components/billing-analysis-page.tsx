@@ -633,7 +633,8 @@ function AnalysisActions({
 
   return (
     <div className="inline-flex items-center gap-1">
-      {hasProcessingIssue(analysis.processingStatus) && (
+      {hasProcessingIssue(analysis.processingStatus) &&
+        analysis.processingStatus !== "PARTIALLY_EXTRACTED" && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
