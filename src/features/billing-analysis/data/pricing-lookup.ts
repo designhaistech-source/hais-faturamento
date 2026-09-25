@@ -108,7 +108,7 @@ export async function loadPricingBases(): Promise<Map<PricingBaseType, PricingBa
     for (const file of version.files) {
       const blob = await downloadPricingVersionBlob(file.path);
       for (const [code, value] of parsePricingFile(file.name, await blob.text())) {
-        if (!values.has(code)) values.set(code, value);
+        values.set(code, value);
       }
     }
     bases.set(baseType, { version, values });

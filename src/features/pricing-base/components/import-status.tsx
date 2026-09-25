@@ -190,6 +190,8 @@ function ImportedRecords({ version }: { version: PricingVersion }) {
 
   // EAN é usado só na validação; a listagem segue as colunas definidas para a base.
   const fields = (query.data?.fields ?? []).filter((field) => field !== "ean");
+  // Sem colunas reconhecidas no cabeçalho, a linha é exibida como veio no arquivo.
+  const showRaw = fields.length === 0;
 
   return (
     <div className="space-y-3">
@@ -204,6 +206,7 @@ function ImportedRecords({ version }: { version: PricingVersion }) {
             <DataTableHeader>
               <tr>
                 <DataTableHead>Linha</DataTableHead>
+                {showRaw && <DataTableHead>Conteúdo da linha</DataTableHead>}
                 {fields.map((field) => (
                   <DataTableHead
                     key={field}
@@ -220,6 +223,11 @@ function ImportedRecords({ version }: { version: PricingVersion }) {
                   <DataTableCell className="whitespace-nowrap font-mono text-xs">
                     {lineLabel(record.line, record.file)}
                   </DataTableCell>
+                  {showRaw && (
+                    <DataTableCell className="max-w-96 break-all font-mono text-xs">
+                      {record.content}
+                    </DataTableCell>
+                  )}
                   {fields.map((field) => (
                     <DataTableCell
                       key={field}

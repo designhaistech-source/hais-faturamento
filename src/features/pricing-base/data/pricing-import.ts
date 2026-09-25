@@ -186,7 +186,6 @@ export function parsePricingImportSet(
   parts: ReadonlyArray<{ name: string; content: string }>,
 ): PricingImportResult {
   if (parts.length === 1) return parsePricingImport(parts[0].content);
-  // failure() stays for simulated blocking statuses of a single part.
   const tag = (name: string) => ({ file: name });
   const fields = new Set<ImportField>();
   const records: ImportedRecord[] = [];
@@ -223,7 +222,8 @@ export const SIMULATED_IMPORT_STATUSES = [
 export type SimulatedImportStatus = (typeof SIMULATED_IMPORT_STATUSES)[number];
 
 const SIMULATED_PROBLEM: Record<Exclude<SimulatedImportStatus, "COMPLETED_WITH_ERRORS">, string> = {
-  NOT_SUPPORTED: "Simulação temporária: o backend informaria aqui por que o arquivo não é suportado.",
+  NOT_SUPPORTED:
+    "Simulação temporária: o backend informaria aqui por que o arquivo não é suportado.",
   INVALID_FORMAT: "Simulação temporária: o backend informaria aqui por que o formato é inválido.",
   FAILED: "Simulação temporária: o backend informaria aqui a falha inesperada da importação.",
 };
@@ -237,7 +237,9 @@ export function simulateImportResult(
   status: SimulatedImportStatus,
 ): PricingImportResult {
   if (status !== "COMPLETED_WITH_ERRORS") return failure(status, SIMULATED_PROBLEM[status]);
-  const rejected = result.records.filter((_, index) => index % 2 === 1 || result.records.length === 1);
+  const rejected = result.records.filter(
+    (_, index) => index % 2 === 1 || result.records.length === 1,
+  );
   const rejectedSet = new Set(rejected);
   return {
     ...result,
