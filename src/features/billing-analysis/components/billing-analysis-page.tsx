@@ -98,7 +98,10 @@ function matchesResultFilter(analysis: BillingAnalysis, filter: ResultFilter): b
 
 const STATUS_FILTER_OPTIONS = [
   { value: "all", label: "Todos os status" },
-  ...(Object.keys(PROCESSING_STATUS_LABEL) as ProcessingStatus[]).map((value) => ({
+  // Transient states (queued/processing) show in the table but aren't filterable.
+  ...(Object.keys(PROCESSING_STATUS_LABEL) as ProcessingStatus[])
+    .filter((value) => value !== "PENDING" && value !== "PROCESSING")
+    .map((value) => ({
     value,
     label: PROCESSING_STATUS_LABEL[value],
   })),
