@@ -100,9 +100,19 @@ function ImportDetailsContent({ version }: { version: PricingVersion }) {
 
 function usePage(total: number) {
   const [page, setPage] = useState(1);
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const [pageSize, setPageSize] = useState(PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const current = Math.min(page, totalPages);
-  return { page: current, setPage, start: (current - 1) * PAGE_SIZE };
+  return {
+    page: current,
+    setPage,
+    pageSize,
+    onPageSizeChange: (size: number) => {
+      setPageSize(size);
+      setPage(1);
+    },
+    start: (current - 1) * pageSize,
+  };
 }
 
 function ImportedRecords({ version }: { version: PricingVersion }) {
@@ -115,7 +125,7 @@ function ImportedRecords({ version }: { version: PricingVersion }) {
     staleTime: Infinity,
   });
   const records = query.data?.records ?? [];
-  const { page, setPage, start } = usePage(records.length);
+  const { page, setPage, start, pageSize, onPageSizeChange } = usePage(records.length);
 
   if (query.isPending) return <TableSkeleton rows={5} columns={5} />;
   if (query.isError) {
@@ -155,7 +165,7 @@ function ImportedRecords({ version }: { version: PricingVersion }) {
               </tr>
             </DataTableHeader>
             <DataTableBody>
-              {records.slice(start, start + PAGE_SIZE).map((record) => (
+              {records.slice(start, start + pageSize).map((record) => (
                 <DataTableRow key={record.line}>
                   <DataTableCell className="font-mono text-xs">{record.line}</DataTableCell>
                   {fields.map((field) => (
@@ -175,13 +185,14 @@ function ImportedRecords({ version }: { version: PricingVersion }) {
             </DataTableBody>
           </DataTableRoot>
         </div>
-        {records.length > PAGE_SIZE && (
+        {records.length > 10 && (
           <TablePagination
             id="pricing-import-records"
             totalItems={records.length}
             page={page}
-            pageSize={PAGE_SIZE}
+            pageSize={pageSize}
             onPageChange={setPage}
+            onPageSizeChange={onPageSizeChange}
             className="px-4 pb-4"
           />
         )}
@@ -194,7 +205,7 @@ function ErrorRows({ version }: { version: PricingVersion }) {
   const rows = version.errorRows;
   const errors = version.errorCount ?? rows.length;
   const total = errors + (version.processedCount ?? 0);
-  const { page, setPage, start } = usePage(rows.length);
+  const { page, setPage, start, pageSize, onPageSizeChange } = usePage(rows.length);
   const lineWord = total === 1 ? "linha" : "linhas";
 
   return (
@@ -217,7 +228,7 @@ function ErrorRows({ version }: { version: PricingVersion }) {
               </tr>
             </DataTableHeader>
             <DataTableBody>
-              {rows.slice(start, start + PAGE_SIZE).map((row) => (
+              {rows.slice(start, start + pageSize).map((row) => (
                 <DataTableRow key={row.line}>
                   <DataTableCell className="font-mono text-xs align-top">{row.line}</DataTableCell>
                   <DataTableCell className="align-top">{row.reason}</DataTableCell>
@@ -229,13 +240,14 @@ function ErrorRows({ version }: { version: PricingVersion }) {
             </DataTableBody>
           </DataTableRoot>
         </div>
-        {rows.length > PAGE_SIZE && (
+        {rows.length > 10 && (
           <TablePagination
             id="pricing-import-errors"
             totalItems={rows.length}
             page={page}
-            pageSize={PAGE_SIZE}
+            pageSize={pageSize}
             onPageChange={setPage}
+            onPageSizeChange={onPageSizeChange}
             className="px-4 pb-4"
           />
         )}
