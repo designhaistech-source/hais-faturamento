@@ -341,7 +341,7 @@ export function PricingBasePage() {
                     onClear={handleClearFilters}
                     clearDisabled={!hasFilters}
                     // Mesmas colunas de Análise de faturamento; linha única a partir de 1440px, onde cabem todos os filtros.
-                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_11rem_11rem] lg:gap-4 min-[1440px]:grid-cols-[minmax(10rem,1fr)_12rem_11rem_22rem_auto]"
+                    barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_11rem_11rem] lg:gap-4 xl:min-[1440px]:grid-cols-[minmax(10rem,1fr)_12rem_11rem_22rem_auto]"
                   >
                     <SearchField
                       id="pricing-versions-search"
