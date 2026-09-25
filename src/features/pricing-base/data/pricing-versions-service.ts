@@ -118,20 +118,6 @@ async function sha256(file: File): Promise<string> {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-/** Versão (1 = primeira cadastrada daquele tipo) que já contém o mesmo arquivo. */
-async function findDuplicateVersionNumber(baseType: string, hash: string): Promise<number | null> {
-  const { data, error } = await supabase
-    .from("pricing_versions")
-    .select("id, file_hash, status")
-    .eq("base_type", baseType)
-    .order("created_at", { ascending: true });
-  if (error) throw error;
-  const index = (data ?? []).findIndex(
-    (row) => row.file_hash === hash && toImportStatus(row.status) !== "FAILED",
-  );
-  return index === -1 ? null : index + 1;
-}
-
 /** Cadastra o arquivo e registra o resultado da importação; devolve o status obtido. */
 export async function createPricingVersion(input: NewPricingVersionInput): Promise<ImportStatus> {
   const baseType = input.baseType ?? inferPricingBaseType(input.file.name);
@@ -142,20 +128,15 @@ export async function createPricingVersion(input: NewPricingVersionInput): Promi
   let processedCount: number | null = null;
   let errorCount: number | null = null;
   let errorRows: ImportErrorRow[] = [];
+  // Arquivos repetidos são tratados como uma nova versão; FAILED indica apenas falhas inesperadas.
   try {
-    const duplicateOf = await findDuplicateVersionNumber(baseType, hash);
-    if (duplicateOf !== null) {
-      status = "FAILED";
-      problem = `Este arquivo já foi importado (versão ${duplicateOf}).`;
-    } else {
-      const result = parsePricingImport(await input.file.text());
-      status = result.status;
-      problem = result.problem;
-      if (result.problem === null) {
-        processedCount = result.records.length;
-        errorCount = result.errors.length;
-        errorRows = result.errors;
-      }
+    const result = parsePricingImport(await input.file.text());
+    status = result.status;
+    problem = result.problem;
+    if (result.problem === null) {
+      processedCount = result.records.length;
+      errorCount = result.errors.length;
+      errorRows = result.errors;
     }
   } catch (cause) {
     status = "FAILED";
