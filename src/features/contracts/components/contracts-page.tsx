@@ -94,7 +94,6 @@ async function downloadContractFile(contract: Contract) {
   }
 }
 
-
 export function ContractsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
