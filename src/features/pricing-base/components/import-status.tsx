@@ -114,6 +114,15 @@ function ImportDetailsContent({ version }: { version: PricingVersion }) {
   );
 }
 
+/** Versões antigas gravaram o status no início do motivo; o título do callout já o comunica. */
+function importReason(problem: string | null): string {
+  if (!problem) return "Motivo não informado.";
+  const reason = problem
+    .replace(/^((?:[^:]+: )?)Layout não suportado: c/, "$1C")
+    .replace(/^((?:[^:]+: )?)Layout SIMPRO não reconhecido\. /, "$1");
+  return reason;
+}
+
 function lineLabel(line: number, file: string | undefined): string {
   return file ? `${file} · linha ${line}` : String(line);
 }
@@ -139,13 +148,13 @@ function ImportDetailsBody({ version }: { version: PricingVersion }) {
       // Neutro, como o badge: não é erro, apenas arquivo fora do suportado.
       return (
         <ImportCallout tone="neutral" title={BLOCKING_TITLE.NOT_SUPPORTED}>
-          {version.importProblem ?? "Motivo não informado."}
+          {importReason(version.importProblem)}
         </ImportCallout>
       );
     default:
       return (
         <ImportCallout tone="danger" title={BLOCKING_TITLE[version.importStatus]}>
-          {version.importProblem ?? "Motivo não informado."}
+          {importReason(version.importProblem)}
         </ImportCallout>
       );
   }
