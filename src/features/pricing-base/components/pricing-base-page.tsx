@@ -711,7 +711,7 @@ export function PricingBasePage() {
 
 function CurrentBadge() {
   return (
-    <Badge variant="success-soft" size="sm" className="shrink-0">
+    <Badge variant="info-soft" size="sm" className="shrink-0">
       Atual
     </Badge>
   );
