@@ -342,7 +342,7 @@ function CompletedWithErrors({ version }: { version: PricingVersion }) {
       </section>
       <section aria-labelledby="pricing-import-err" className="space-y-2">
         <h3 id="pricing-import-err" className="text-sm font-semibold text-foreground">
-          Registros com erro ({errors.toLocaleString("pt-BR")})
+          Registros com erros ({errors.toLocaleString("pt-BR")})
         </h3>
         <ErrorRows version={version} />
       </section>
