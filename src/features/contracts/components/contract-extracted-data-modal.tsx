@@ -4,6 +4,7 @@ import { FileSearch, Quote } from "lucide-react";
 import { AppModal } from "@/components/app-modal";
 import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
+import { formatIsoToBr } from "@/lib/date";
 
 import type { Contract } from "../data/contracts";
 import {
@@ -46,6 +47,24 @@ export function ContractExtractedDataModal({
         </Button>
       }
     >
+      {contract && (
+        <dl className="mb-4 grid gap-3 rounded-xl border border-border bg-muted/40 p-4 sm:grid-cols-3">
+          <div className="min-w-0 space-y-0.5">
+            <dt className="text-xs text-muted-foreground">Prestador</dt>
+            <dd className="truncate text-sm font-semibold text-foreground">{contract.company}</dd>
+          </div>
+          <div className="space-y-0.5">
+            <dt className="text-xs text-muted-foreground">CNPJ</dt>
+            <dd className="font-mono text-sm text-foreground">{contract.cnpj || "—"}</dd>
+          </div>
+          <div className="space-y-0.5">
+            <dt className="text-xs text-muted-foreground">Validade</dt>
+            <dd className="font-mono text-sm text-foreground">
+              {contract.validUntil ? formatIsoToBr(contract.validUntil) : "—"}
+            </dd>
+          </div>
+        </dl>
+      )}
       {query.isPending ? (
         <LoadingState title="Carregando dados extraídos" />
       ) : query.isError ? (
