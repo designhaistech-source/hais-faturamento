@@ -321,7 +321,7 @@ function CompletedWithErrors({ version }: { version: PricingVersion }) {
   return (
     <div className="space-y-6">
       <ImportCallout tone="warning" title="Base processada com erros">
-        {total.toLocaleString("pt-BR")} {total === 1 ? "registro" : "registros"}: {importedText} e{" "}
+        {total === 1 ? "Do 1 registro" : `Dos ${total.toLocaleString("pt-BR")} registros`}, {importedText} e{" "}
         {errorText}. Por isso, esta versão não substituiu a versão atual de{" "}
         {pricingBaseTypeLabel(version.baseType)}.
       </ImportCallout>
