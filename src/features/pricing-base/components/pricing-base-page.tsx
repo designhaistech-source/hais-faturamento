@@ -710,11 +710,7 @@ export function PricingBasePage() {
 }
 
 function CurrentBadge() {
-  return (
-    <Badge variant="success-soft" size="sm" className="shrink-0">
-      Atual
-    </Badge>
-  );
+  return <span className="shrink-0 text-xs font-medium text-primary">Atual</span>;
 }
 
 /** Nome do primeiro arquivo truncado + "+N arquivos"; a lista completa fica em tooltip. */
