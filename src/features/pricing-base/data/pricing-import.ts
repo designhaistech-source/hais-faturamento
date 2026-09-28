@@ -198,7 +198,7 @@ function parseSimproImport(content: string): PricingImportResult {
   if (missing.length > 0) {
     return failure(
       "NOT_SUPPORTED",
-      `Layout SIMPRO não reconhecido. Colunas esperadas: ${SIMPRO_LAYOUT.map(({ header }) => header).join(" | ")}. Não encontrada${missing.length > 1 ? "s" : ""}: ${missing.join(", ")}.`,
+      `Colunas esperadas no SIMPRO: ${SIMPRO_LAYOUT.map(({ header }) => header).join(" | ")}. Não encontrada${missing.length > 1 ? "s" : ""}: ${missing.join(", ")}.`,
     );
   }
   const columns = SIMPRO_LAYOUT.filter(
@@ -268,7 +268,7 @@ function parseBrasindiceImport(content: string): PricingImportResult {
   if (keyField === null || missing.length > 0) {
     return failure(
       "NOT_SUPPORTED",
-      `Layout não suportado: coluna${missing.length > 1 ? "s" : ""} obrigatória${missing.length > 1 ? "s" : ""} não encontrada${missing.length > 1 ? "s" : ""} no cabeçalho: ${missing.join(", ")}.`,
+      `Coluna${missing.length > 1 ? "s" : ""} obrigatória${missing.length > 1 ? "s" : ""} não encontrada${missing.length > 1 ? "s" : ""} no cabeçalho: ${missing.join(", ")}.`,
     );
   }
 
