@@ -297,19 +297,43 @@ function ImportedRecords({ version }: { version: PricingVersion }) {
   );
 }
 
-function ErrorRows({ version }: { version: PricingVersion }) {
-  const rows = version.errorRows;
-  const errors = version.errorCount ?? rows.length;
-  const total = errors + (version.processedCount ?? 0);
-  const { page, setPage, start, pageSize, onPageSizeChange } = usePage(rows.length);
-  const lineWord = total === 1 ? "linha" : "linhas";
+function CompletedWithErrors({ version }: { version: PricingVersion }) {
+  const errors = version.errorCount ?? version.errorRows.length;
+  const imported = version.processedCount ?? 0;
+  const total = errors + imported;
+  const importedText =
+    imported === 1 ? "1 foi importado" : `${imported.toLocaleString("pt-BR")} foram importados`;
+  const errorText =
+    errors === 1 ? "1 apresentou erro" : `${errors.toLocaleString("pt-BR")} apresentaram erro`;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <ImportCallout tone="warning" title="Base processada com erros">
-        {errors} de {total} {lineWord} com erro. Por isso esta versão não substitui a versão atual
-        de {pricingBaseTypeLabel(version.baseType)}.
+        {total.toLocaleString("pt-BR")} {total === 1 ? "registro" : "registros"}: {importedText} e{" "}
+        {errorText}. Por isso, esta versão não substituiu a versão atual de{" "}
+        {pricingBaseTypeLabel(version.baseType)}.
       </ImportCallout>
+      <section aria-labelledby="pricing-import-ok" className="space-y-2">
+        <h3 id="pricing-import-ok" className="text-sm font-semibold text-foreground">
+          Registros importados ({imported.toLocaleString("pt-BR")})
+        </h3>
+        <ImportedRecords version={version} hideSummary />
+      </section>
+      <section aria-labelledby="pricing-import-err" className="space-y-2">
+        <h3 id="pricing-import-err" className="text-sm font-semibold text-foreground">
+          Registros com erro ({errors.toLocaleString("pt-BR")})
+        </h3>
+        <ErrorRows version={version} />
+      </section>
+    </div>
+  );
+}
+
+function ErrorRows({ version }: { version: PricingVersion }) {
+  const rows = version.errorRows;
+  const { page, setPage, start, pageSize, onPageSizeChange } = usePage(rows.length);
+
+  return (
       <DataTable>
         <div className="overflow-x-auto">
           <DataTableRoot>
