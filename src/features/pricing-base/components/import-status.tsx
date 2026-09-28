@@ -134,7 +134,7 @@ function ImportDetailsBody({ version }: { version: PricingVersion }) {
     case "COMPLETED":
       return <ImportedRecords version={version} />;
     case "COMPLETED_WITH_ERRORS":
-      return <ErrorRows version={version} />;
+      return <CompletedWithErrors version={version} />;
     case "NOT_SUPPORTED":
       // Neutro, como o badge: não é erro, apenas arquivo fora do suportado.
       return (
@@ -196,7 +196,13 @@ function usePage(total: number) {
   };
 }
 
-function ImportedRecords({ version }: { version: PricingVersion }) {
+function ImportedRecords({
+  version,
+  hideSummary = false,
+}: {
+  version: PricingVersion;
+  hideSummary?: boolean;
+}) {
   const query = useQuery({
     queryKey: ["pricing-version-records", version.id],
     queryFn: async () => {
@@ -229,13 +235,19 @@ function ImportedRecords({ version }: { version: PricingVersion }) {
   // Sem colunas reconhecidas no cabeçalho, a linha é exibida como veio no arquivo.
   const showRaw = fields.length === 0;
 
+  if (hideSummary && records.length === 0) {
+    return <p className="text-sm text-muted-foreground">Nenhum registro foi importado.</p>;
+  }
+
   return (
     <div className="space-y-3">
-      <p className="text-sm text-muted-foreground">
-        {records.length === 1
-          ? "1 registro importado."
-          : `${records.length.toLocaleString("pt-BR")} registros importados.`}
-      </p>
+      {!hideSummary && (
+        <p className="text-sm text-muted-foreground">
+          {records.length === 1
+            ? "1 registro importado."
+            : `${records.length.toLocaleString("pt-BR")} registros importados.`}
+        </p>
+      )}
       <DataTable>
         <div className="overflow-x-auto">
           <DataTableRoot>
@@ -371,6 +383,5 @@ function ErrorRows({ version }: { version: PricingVersion }) {
           />
         )}
       </DataTable>
-    </div>
   );
 }
