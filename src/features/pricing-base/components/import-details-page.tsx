@@ -17,7 +17,10 @@ import {
   DataTableRoot,
   DataTableRow,
 } from "@/components/data-table";
-import { SearchField } from "@/components/form-field";
+import { FilterCard } from "@/components/filter-card";
+import { SearchField, SelectField } from "@/components/form-field";
+import { Input } from "@/components/ui/input";
+import { toLocalIsoDate } from "@/lib/date";
 import { PageHeader } from "@/components/page-header";
 import { SiteFooter } from "@/components/site-footer";
 import { SurfaceCard } from "@/components/surface-card";
@@ -246,13 +249,13 @@ function ImportDetailsContent({
             )}
           </TabsList>
 
-          <TabsContent value="files">
+          <TabsContent value="files" forceMount className="data-[state=inactive]:hidden">
             <FilesTab
               version={version}
               recordsPerFile={recordsQuery.isSuccess ? recordsPerFile : null}
             />
           </TabsContent>
-          <TabsContent value="codes" className="space-y-3">
+          <TabsContent value="codes" forceMount className="data-[state=inactive]:hidden space-y-3">
             {(updateCount > 0 || updatedAt) && (
               <p className="text-sm text-muted-foreground">
                 {updateCount === 1
@@ -278,8 +281,8 @@ function ImportDetailsContent({
             )}
           </TabsContent>
           {errors.length > 0 && (
-            <TabsContent value="errors">
-              <ErrorsTab rows={errors} multi={multi} />
+            <TabsContent value="errors" forceMount className="data-[state=inactive]:hidden">
+              <ErrorsTab rows={errors} multi={multi} fileNames={version.files.map((file) => file.name)} />
             </TabsContent>
           )}
         </Tabs>
@@ -321,15 +324,65 @@ function TabSearch({
   return (
     <SearchField
       id={id}
-      aria-label={placeholder}
-      fieldClassName="w-full sm:max-w-[440px]"
-      className="shadow-none border-border-strong bg-card"
+      label="Buscar"
+      fieldClassName="sm:col-span-2 lg:col-span-1"
       placeholder={placeholder}
       value={value}
       clearable
       onChange={(event) => onChange(event.target.value)}
       onClear={() => onChange("")}
     />
+  );
+}
+
+const KIND_OPTIONS = [
+  { value: "version", label: "Versão" },
+  { value: "update", label: "Atualização" },
+];
+
+type KindFilter = "all" | "version" | "update";
+
+function DateRangeFilter({
+  id,
+  from,
+  to,
+  onFromChange,
+  onToChange,
+}: {
+  id: string;
+  from: string;
+  to: string;
+  onFromChange: (value: string) => void;
+  onToChange: (value: string) => void;
+}) {
+  return (
+    <fieldset className="min-w-0 space-y-1.5 sm:col-span-2 sm:space-y-2 lg:col-span-1">
+      <legend className="text-xs font-medium leading-snug text-muted-foreground">
+        Data do cadastro
+      </legend>
+      <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
+        <span className="shrink-0 text-xs text-muted-foreground">De</span>
+        <Input
+          id={`${id}-from`}
+          type="date"
+          aria-label="Data do cadastro de"
+          className="min-w-0 flex-1"
+          value={from}
+          max={to || undefined}
+          onChange={(event) => onFromChange(event.target.value)}
+        />
+        <span className="shrink-0 text-xs text-muted-foreground">até</span>
+        <Input
+          id={`${id}-to`}
+          type="date"
+          aria-label="Data do cadastro até"
+          className="min-w-0 flex-1"
+          value={to}
+          min={from || undefined}
+          onChange={(event) => onToChange(event.target.value)}
+        />
+      </div>
+    </fieldset>
   );
 }
 
@@ -351,20 +404,63 @@ function FilesTab({
   recordsPerFile: Map<string, number> | null;
 }) {
   const [search, setSearch] = useState("");
-  const filtered = version.files.filter((file) => normalize(file.name).includes(normalize(search)));
+  const [kind, setKind] = useState<KindFilter>("all");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const filtered = version.files.filter((file) => {
+    if (!normalize(file.name).includes(normalize(search))) return false;
+    if (kind !== "all" && (file.kind === "update" ? "update" : "version") !== kind) return false;
+    const day = toLocalIsoDate(new Date(file.addedAt ?? version.createdAt));
+    if (from && day < from) return false;
+    if (to && day > to) return false;
+    return true;
+  });
   const { rows, pagination, resetPage } = usePaged(filtered);
+  const activeCount = [search, kind !== "all", from || to].filter(Boolean).length;
+  const update = (fn: () => void) => {
+    fn();
+    resetPage();
+  };
 
   return (
     <div className="space-y-3">
-      <TabSearch
-        id="import-files-search"
-        placeholder="Buscar por nome do arquivo"
-        value={search}
-        onChange={(value) => {
-          setSearch(value);
-          resetPage();
-        }}
-      />
+      <FilterCard
+        id="import-files-filters"
+        variant="bar"
+        activeCount={activeCount}
+        clearDisabled={activeCount === 0}
+        onClear={() =>
+          update(() => {
+            setSearch("");
+            setKind("all");
+            setFrom("");
+            setTo("");
+          })
+        }
+        barColumnsClassName="lg:grid-cols-[minmax(12rem,1fr)_11rem_22rem_auto] lg:gap-4"
+      >
+        <TabSearch
+          id="import-files-search"
+          placeholder="Buscar por nome do arquivo"
+          value={search}
+          onChange={(value) => update(() => setSearch(value))}
+        />
+        <SelectField
+          id="import-files-kind"
+          label="Tipo"
+          className="sm:col-span-2 lg:col-span-1"
+          value={kind}
+          options={[{ value: "all", label: "Todos os tipos" }, ...KIND_OPTIONS]}
+          onValueChange={(value) => update(() => setKind(value as KindFilter))}
+        />
+        <DateRangeFilter
+          id="import-files-date"
+          from={from}
+          to={to}
+          onFromChange={(value) => update(() => setFrom(value))}
+          onToChange={(value) => update(() => setTo(value))}
+        />
+      </FilterCard>
       <DataTable>
         <div className="overflow-x-auto">
           <DataTableRoot>
@@ -436,9 +532,17 @@ function CodesTab({
   fields: ReturnType<typeof parsePricingImportSet>["fields"];
 }) {
   const [search, setSearch] = useState("");
+  const [origin, setOrigin] = useState<KindFilter>("all");
   const term = normalize(search);
+  const byOrigin =
+    origin === "all"
+      ? records
+      : records.filter((record) => {
+          const file = version.files.find((item) => item.name === record.file) ?? version.file;
+          return (file.kind === "update" ? "update" : "version") === origin;
+        });
   const filtered = term
-    ? records.filter((record) =>
+    ? byOrigin.filter((record) =>
         [
           record.values.code,
           record.values.tuss,
@@ -449,22 +553,46 @@ function CodesTab({
           .filter(Boolean)
           .some((value) => normalize(value as string).includes(term)),
       )
-    : records;
+    : byOrigin;
   const { rows, pagination, resetPage } = usePaged(filtered);
   const showRaw = fields.length === 0;
   const codeLabel = version.baseType === "simpro" ? "Código SIMPRO" : "Código";
 
   return (
     <div className="space-y-3">
-      <TabSearch
-        id="import-codes-search"
-        placeholder={`Buscar por ${codeLabel.toLowerCase()}, TUSS ou descrição`}
-        value={search}
-        onChange={(value) => {
-          setSearch(value);
+      <FilterCard
+        id="import-codes-filters"
+        variant="bar"
+        activeCount={[search, origin !== "all"].filter(Boolean).length}
+        clearDisabled={!search && origin === "all"}
+        onClear={() => {
+          setSearch("");
+          setOrigin("all");
           resetPage();
         }}
-      />
+        barColumnsClassName="lg:grid-cols-[minmax(12rem,1fr)_12rem_auto] lg:gap-4"
+      >
+        <TabSearch
+          id="import-codes-search"
+          placeholder={`Buscar por ${codeLabel.replace("Código", "código")}, TUSS ou descrição`}
+          value={search}
+          onChange={(value) => {
+            setSearch(value);
+            resetPage();
+          }}
+        />
+        <SelectField
+          id="import-codes-origin"
+          label="Origem"
+          className="sm:col-span-2 lg:col-span-1"
+          value={origin}
+          options={[{ value: "all", label: "Todas as origens" }, ...KIND_OPTIONS]}
+          onValueChange={(value) => {
+            setOrigin(value as KindFilter);
+            resetPage();
+          }}
+        />
+      </FilterCard>
       <DataTable>
         <div className="overflow-x-auto">
           <DataTableRoot>
@@ -519,27 +647,70 @@ function CodesTab({
   );
 }
 
-function ErrorsTab({ rows: allRows, multi }: { rows: ImportErrorRow[]; multi: boolean }) {
+function ErrorsTab({
+  rows: allRows,
+  multi,
+  fileNames,
+}: {
+  rows: ImportErrorRow[];
+  multi: boolean;
+  fileNames: string[];
+}) {
   const [search, setSearch] = useState("");
+  const [fileFilter, setFileFilter] = useState("all");
   const term = normalize(search);
+  const byFile = fileFilter === "all" ? allRows : allRows.filter((row) => row.file === fileFilter);
   const filtered = term
-    ? allRows.filter((row) =>
+    ? byFile.filter((row) =>
         [row.reason, row.content, row.file ?? ""].some((value) => normalize(value).includes(term)),
       )
-    : allRows;
+    : byFile;
   const { rows, pagination, resetPage } = usePaged(filtered);
 
   return (
     <div className="space-y-3">
-      <TabSearch
-        id="import-errors-search"
-        placeholder="Buscar por motivo ou conteúdo"
-        value={search}
-        onChange={(value) => {
-          setSearch(value);
+      <FilterCard
+        id="import-errors-filters"
+        variant="bar"
+        activeCount={[search, fileFilter !== "all"].filter(Boolean).length}
+        clearDisabled={!search && fileFilter === "all"}
+        onClear={() => {
+          setSearch("");
+          setFileFilter("all");
           resetPage();
         }}
-      />
+        barColumnsClassName={
+          multi
+            ? "lg:grid-cols-[minmax(12rem,1fr)_16rem_auto] lg:gap-4"
+            : "lg:grid-cols-[minmax(12rem,1fr)_auto] lg:gap-4"
+        }
+      >
+        <TabSearch
+          id="import-errors-search"
+          placeholder="Buscar por motivo ou conteúdo"
+          value={search}
+          onChange={(value) => {
+            setSearch(value);
+            resetPage();
+          }}
+        />
+        {multi && (
+          <SelectField
+            id="import-errors-file"
+            label="Arquivo"
+            className="sm:col-span-2 lg:col-span-1"
+            value={fileFilter}
+            options={[
+              { value: "all", label: "Todos os arquivos" },
+              ...fileNames.map((name) => ({ value: name, label: name })),
+            ]}
+            onValueChange={(value) => {
+              setFileFilter(value);
+              resetPage();
+            }}
+          />
+        )}
+      </FilterCard>
       <DataTable>
         <div className="overflow-x-auto">
           <DataTableRoot>
