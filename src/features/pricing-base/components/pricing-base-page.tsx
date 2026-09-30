@@ -9,7 +9,7 @@ import {
   EyeOff,
   FlaskConical,
   FileSearch,
-  Files,
+  ClipboardList,
   Plus,
   Trash2,
 } from "lucide-react";
@@ -730,7 +730,7 @@ function VersionActions({
                 aria-label={`Ver detalhes da importação de ${version.file.name}`}
               >
                 <Link to="/base-precificacao/$versionId" params={{ versionId: version.id }}>
-                  <Files className="size-4" aria-hidden="true" />
+                  <ClipboardList className="size-4" aria-hidden="true" />
                 </Link>
               </Button>
             ) : (
@@ -741,7 +741,7 @@ function VersionActions({
                 disabled
                 aria-label={`Detalhes indisponíveis para ${version.file.name}. A importação não foi concluída.`}
               >
-                <Files className="size-4" aria-hidden="true" />
+                <ClipboardList className="size-4" aria-hidden="true" />
               </Button>
             )}
           </span>

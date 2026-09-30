@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   ChevronDown,
-  Files,
+  ClipboardList,
   CircleAlert,
   CircleCheck,
   CircleX,
@@ -158,7 +158,7 @@ export function ProcessingDetailsModal({
                 to="/analise-faturamento/$analysisId/resultado"
                 params={{ analysisId: analysis.id }}
               >
-                <Files className="size-4" aria-hidden="true" />
+                <ClipboardList className="size-4" aria-hidden="true" />
                 Ver detalhes da análise
               </Link>
             </Button>

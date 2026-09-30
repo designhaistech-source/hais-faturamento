@@ -10,7 +10,7 @@ import {
   Eye,
   EyeOff,
   FileSearch,
-  Files,
+  ClipboardList,
   LoaderCircle,
   Plus,
   Trash2,
@@ -688,7 +688,7 @@ function AnalysisActions({
                   params={{ analysisId: analysis.id }}
                   aria-label={`Ver detalhes da análise ${analysis.fileName}`}
                 >
-                  <Files className="size-4" aria-hidden="true" />
+                  <ClipboardList className="size-4" aria-hidden="true" />
                 </Link>
               </Button>
             ) : (
@@ -699,7 +699,7 @@ function AnalysisActions({
                 disabled
                 aria-label={`Detalhes indisponíveis para ${analysis.fileName}. A análise não foi concluída.`}
               >
-                <Files className="size-4" aria-hidden="true" />
+                <ClipboardList className="size-4" aria-hidden="true" />
               </Button>
             )}
           </span>

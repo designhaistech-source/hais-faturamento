@@ -5,7 +5,7 @@ import {
   CircleCheck,
   CircleX,
   FileWarning,
-  Files,
+  ClipboardList,
   Info,
   TriangleAlert,
   type LucideIcon,
@@ -136,7 +136,7 @@ export function ImportSummaryModal({ version, onOpenChange }: ImportSummaryModal
           {browsable && version && (
             <Button asChild>
               <Link to="/base-precificacao/$versionId" params={{ versionId: version.id }}>
-                <Files className="size-4" aria-hidden="true" />
+                <ClipboardList className="size-4" aria-hidden="true" />
                 Ver detalhes da importação
               </Link>
             </Button>
