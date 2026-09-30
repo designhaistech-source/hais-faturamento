@@ -127,6 +127,13 @@
       "when": 1790364849890,
       "tag": "0017_pricing_versions_drop_legacy_status_default",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790796490557,
+      "tag": "0018_create_contract_amendments",
+      "breakpoints": true
     }
   ]
 }
