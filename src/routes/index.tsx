@@ -72,7 +72,7 @@ function HomePage() {
         <main className="flex-1 space-y-6 p-6 pb-16">
           <PageHeader
             title="HaisFaturamento"
-            description="Antecipe inconsistências no faturamento antes do envio à operadora."
+            description="Antecipe inconsistências e reduza glosas no faturamento hospitalar."
           />
 
           <div className="grid gap-4 pt-2 sm:grid-cols-2 xl:grid-cols-4">
