@@ -33,6 +33,8 @@ interface NewPricingVersionModalProps {
   onCreate: (version: NewPricingVersionInput) => void;
   /** Tipos de base que já possuem ao menos uma versão cadastrada. */
   existingBaseTypes?: readonly PricingBaseType[];
+  /** Tipo da base escolhido pelo modal pai; quando informado, o seletor interno é ocultado. */
+  fixedBaseType?: PricingBaseType | "";
 }
 
 /** Cadastro de uma nova versão (tipo da base + arquivo CSV/TXT; SIMPRO aceita vários arquivos). */
@@ -43,9 +45,12 @@ export function NewPricingVersionModal({
   onOpenChange,
   onCreate,
   existingBaseTypes = [],
+  fixedBaseType,
 }: NewPricingVersionModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [baseType, setBaseType] = useState<PricingBaseType | "">("");
+  const [ownBaseType, setBaseType] = useState<PricingBaseType | "">("");
+  const controlled = fixedBaseType !== undefined;
+  const baseType = controlled ? fixedBaseType : ownBaseType;
   const [baseTypeTouched, setBaseTypeTouched] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [fileTouched, setFileTouched] = useState(false);
@@ -149,24 +154,26 @@ export function NewPricingVersionModal({
           submit();
         }}
       >
-        <SelectField
-          id="pricing-version-base-type"
-          label="Tipo da base"
-          required
-          placeholder="Selecione o tipo da base"
-          options={BASE_TYPE_OPTIONS}
-          // line-height 1 do trigger cortava o texto no mobile: usa leading normal.
-          triggerClassName="text-base/normal sm:text-sm/normal [&>span]:line-clamp-none [&>span]:block [&>span]:truncate"
-          value={baseType === "" ? undefined : baseType}
-          error={baseTypeError}
-          onValueChange={(value) => {
-            setBaseTypeTouched(true);
-            const next = value as PricingBaseType;
-            // Tipos de arquivo único mantêm só o primeiro arquivo já escolhido.
-            if (!allowsMultipleFiles(next)) setFiles((previous) => previous.slice(0, 1));
-            setBaseType(next);
-          }}
-        />
+        {!controlled && (
+          <SelectField
+            id="pricing-version-base-type"
+            label="Tipo da base"
+            required
+            placeholder="Selecione o tipo da base"
+            options={BASE_TYPE_OPTIONS}
+            // line-height 1 do trigger cortava o texto no mobile: usa leading normal.
+            triggerClassName="text-base/normal sm:text-sm/normal [&>span]:line-clamp-none [&>span]:block [&>span]:truncate"
+            value={baseType === "" ? undefined : baseType}
+            error={baseTypeError}
+            onValueChange={(value) => {
+              setBaseTypeTouched(true);
+              const next = value as PricingBaseType;
+              // Tipos de arquivo único mantêm só o primeiro arquivo já escolhido.
+              if (!allowsMultipleFiles(next)) setFiles((previous) => previous.slice(0, 1));
+              setBaseType(next);
+            }}
+          />
+        )}
 
         {multiple ? (
           <Field
