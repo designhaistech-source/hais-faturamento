@@ -643,7 +643,6 @@ function ContractActions({
 }) {
   return (
     <div className="inline-flex items-center gap-1">
-
       {extractedDataAvailable && (
         <Tooltip>
           <TooltipTrigger asChild>
