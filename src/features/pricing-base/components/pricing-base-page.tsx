@@ -223,6 +223,8 @@ export function PricingBasePage() {
     [],
   );
 
+  const backgroundTask = useBackgroundTask();
+
   function startBaseProcessing(input: NewPricingVersionInput) {
     // Simulação provisória vale só para um cadastro e é desligada em seguida.
     const failNext = simulateFailure;
