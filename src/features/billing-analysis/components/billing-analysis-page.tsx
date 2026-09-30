@@ -662,39 +662,53 @@ function AnalysisActions({
 
   return (
     <div className="inline-flex items-center gap-1">
-      {hasProcessingIssue(analysis.processingStatus) &&
-        analysis.processingStatus !== "PARTIALLY_EXTRACTED" && (
-          <Tooltip>
-            <TooltipTrigger asChild>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={`Ver resumo da análise ${analysis.fileName}`}
+            onClick={() => onShowDetails(analysis)}
+          >
+            <FileSearch className="size-4" aria-hidden="true" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Ver resumo da análise</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {/* Span keeps the tooltip reachable when the button is disabled. */}
+          <span tabIndex={hasAnalysisResult(analysis) ? -1 : 0} className="inline-flex">
+            {hasAnalysisResult(analysis) ? (
+              <Button asChild variant="ghost" size="icon">
+                <Link
+                  to="/analise-faturamento/$analysisId/resultado"
+                  params={{ analysisId: analysis.id }}
+                  aria-label={`Ver detalhes da análise ${analysis.fileName}`}
+                >
+                  <Files className="size-4" aria-hidden="true" />
+                </Link>
+              </Button>
+            ) : (
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                aria-label={`Ver detalhes do processamento ${analysis.fileName}`}
-                onClick={() => onShowDetails(analysis)}
+                disabled
+                aria-label={`Detalhes indisponíveis para ${analysis.fileName}. A análise não foi concluída.`}
               >
-                <ActionIcon.inspectProcessing className="size-4" aria-hidden="true" />
+                <Files className="size-4" aria-hidden="true" />
               </Button>
-            </TooltipTrigger>
-            <TooltipContent>Ver detalhes do processamento</TooltipContent>
-          </Tooltip>
-        )}
-      {hasAnalysisResult(analysis) && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button asChild variant="ghost" size="icon">
-              <Link
-                to="/analise-faturamento/$analysisId/resultado"
-                params={{ analysisId: analysis.id }}
-                aria-label={`Ver resultado da análise ${analysis.fileName}`}
-              >
-                <FileSearch className="size-4" aria-hidden="true" />
-              </Link>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Ver resultado</TooltipContent>
-        </Tooltip>
-      )}
+            )}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>
+          {hasAnalysisResult(analysis)
+            ? "Ver detalhes da análise"
+            : "Detalhes indisponíveis. A análise não foi concluída."}
+        </TooltipContent>
+      </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
