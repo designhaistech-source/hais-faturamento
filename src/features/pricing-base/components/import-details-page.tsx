@@ -39,7 +39,6 @@ import {
   currentVersionIdsByType,
   formatVersionDateTime,
   hasBrowsableDetails,
-  lastUpdateAt,
   pricingBaseTypeLabel,
   type PricingVersion,
   type PricingVersionFile,
