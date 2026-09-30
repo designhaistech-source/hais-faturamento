@@ -687,6 +687,11 @@ export function PricingBasePage() {
         open={modalOpen}
         onOpenChange={setModalOpen}
         existingBaseTypes={existingBaseTypes}
+        currentSimproVersion={storedVersions.find(
+          (version) =>
+            version.baseType === "simpro" &&
+            currentVersionIdsByType(storedVersions).has(version.id),
+        )}
         onCreate={startBaseProcessing}
       />
 

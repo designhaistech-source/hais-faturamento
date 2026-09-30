@@ -74,6 +74,11 @@ export interface NewPricingVersionInput {
   /** One file for Brasíndice/CBHPM; one or more for SIMPRO, all forming a single version. */
   files: File[];
   baseType?: PricingBaseType;
+  /**
+   * SIMPRO partial update: files of the current version kept in the new one,
+   * in their original order, with `files[0]` placed where `replacedPath` was.
+   */
+  partialUpdate?: { sourceFiles: PricingVersionFile[]; replacedPath: string };
 }
 
 /** Base types whose version may be split across several files. */

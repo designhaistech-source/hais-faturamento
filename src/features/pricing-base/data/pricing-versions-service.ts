@@ -137,12 +137,30 @@ async function sha256(file: File): Promise<string> {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+/**
+ * Atualização parcial: copia os arquivos mantidos da versão anterior (a versão
+ * anterior fica intacta) e coloca o novo arquivo na posição do substituído.
+ */
+async function composeFiles(input: NewPricingVersionInput): Promise<File[]> {
+  const update = input.partialUpdate;
+  const [replacement] = input.files;
+  if (!update || !replacement) return input.files;
+  return Promise.all(
+    update.sourceFiles.map(async (source) => {
+      if (source.path === update.replacedPath) return replacement;
+      const blob = await downloadPricingVersionBlob(source.path);
+      return new File([blob], source.name, { type: source.type || blob.type });
+    }),
+  );
+}
+
 /** Cadastra os arquivos como uma única versão e registra o resultado; devolve o status obtido. */
 export async function createPricingVersion(
   input: NewPricingVersionInput,
   /** Ferramenta provisória de testes: força FAILED sem olhar o arquivo. Não é regra de negócio. */
   testing?: { simulateFailure?: boolean },
 ): Promise<ImportStatus> {
+  input = { ...input, files: await composeFiles(input) };
   const [firstFile] = input.files;
   if (!firstFile) throw new Error("Nenhum arquivo selecionado.");
   const baseType = input.baseType ?? inferPricingBaseType(firstFile.name);

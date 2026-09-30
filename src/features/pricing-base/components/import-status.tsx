@@ -330,8 +330,8 @@ function CompletedWithErrors({ version }: { version: PricingVersion }) {
   return (
     <div className="space-y-6">
       <ImportCallout tone="warning" title="Base processada com erros">
-        {total === 1 ? "Do 1 registro" : `Dos ${total.toLocaleString("pt-BR")} registros`}, {importedText} e{" "}
-        {errorText}. Por isso, esta versão não substituiu a versão atual de{" "}
+        {total === 1 ? "Do 1 registro" : `Dos ${total.toLocaleString("pt-BR")} registros`},{" "}
+        {importedText} e {errorText}. Por isso, esta versão não substituiu a versão atual de{" "}
         {pricingBaseTypeLabel(version.baseType)}.
       </ImportCallout>
       <section aria-labelledby="pricing-import-ok" className="space-y-2">
@@ -355,42 +355,42 @@ function ErrorRows({ version }: { version: PricingVersion }) {
   const { page, setPage, start, pageSize, onPageSizeChange } = usePage(rows.length);
 
   return (
-      <DataTable>
-        <div className="overflow-x-auto">
-          <DataTableRoot>
-            <DataTableHeader>
-              <tr>
-                <DataTableHead>Linha</DataTableHead>
-                <DataTableHead>Motivo</DataTableHead>
-                <DataTableHead>Conteúdo da linha</DataTableHead>
-              </tr>
-            </DataTableHeader>
-            <DataTableBody>
-              {rows.slice(start, start + pageSize).map((row) => (
-                <DataTableRow key={`${row.file ?? ""}-${row.line}`}>
-                  <DataTableCell className="whitespace-nowrap font-mono text-xs align-top">
-                    {lineLabel(row.line, row.file)}
-                  </DataTableCell>
-                  <DataTableCell className="align-top">{row.reason}</DataTableCell>
-                  <DataTableCell className="max-w-72 break-all align-top font-mono text-xs text-muted-foreground">
-                    {row.content}
-                  </DataTableCell>
-                </DataTableRow>
-              ))}
-            </DataTableBody>
-          </DataTableRoot>
-        </div>
-        {rows.length > 10 && (
-          <TablePagination
-            id="pricing-import-errors"
-            totalItems={rows.length}
-            page={page}
-            pageSize={pageSize}
-            onPageChange={setPage}
-            onPageSizeChange={onPageSizeChange}
-            className="px-4 pb-4"
-          />
-        )}
-      </DataTable>
+    <DataTable>
+      <div className="overflow-x-auto">
+        <DataTableRoot>
+          <DataTableHeader>
+            <tr>
+              <DataTableHead>Linha</DataTableHead>
+              <DataTableHead>Motivo</DataTableHead>
+              <DataTableHead>Conteúdo da linha</DataTableHead>
+            </tr>
+          </DataTableHeader>
+          <DataTableBody>
+            {rows.slice(start, start + pageSize).map((row) => (
+              <DataTableRow key={`${row.file ?? ""}-${row.line}`}>
+                <DataTableCell className="whitespace-nowrap font-mono text-xs align-top">
+                  {lineLabel(row.line, row.file)}
+                </DataTableCell>
+                <DataTableCell className="align-top">{row.reason}</DataTableCell>
+                <DataTableCell className="max-w-72 break-all align-top font-mono text-xs text-muted-foreground">
+                  {row.content}
+                </DataTableCell>
+              </DataTableRow>
+            ))}
+          </DataTableBody>
+        </DataTableRoot>
+      </div>
+      {rows.length > 10 && (
+        <TablePagination
+          id="pricing-import-errors"
+          totalItems={rows.length}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={onPageSizeChange}
+          className="px-4 pb-4"
+        />
+      )}
+    </DataTable>
   );
 }
