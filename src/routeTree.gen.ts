@@ -18,6 +18,7 @@ import { Route as DesignSystemIconesRouteImport } from './routes/design-system-i
 import { Route as TussRouteImport } from './routes/tuss'
 import { Route as AnaliseFaturamentoAnalysisIdRouteImport } from './routes/analise-faturamento_.$analysisId'
 import { Route as BasePrecificacaoVersionIdRouteImport } from './routes/base-precificacao_.$versionId'
+import { Route as ContratosContractIdRouteImport } from './routes/contratos_.$contractId'
 import { Route as AnaliseFaturamentoAnalysisIdResultadoRouteImport } from './routes/analise-faturamento_.$analysisId_.resultado'
 
 const IndexRoute = IndexRouteImport.update({
@@ -67,6 +68,11 @@ const BasePrecificacaoVersionIdRoute =
     path: '/base-precificacao/$versionId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ContratosContractIdRoute = ContratosContractIdRouteImport.update({
+  id: '/contratos_/$contractId',
+  path: '/contratos/$contractId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AnaliseFaturamentoAnalysisIdResultadoRoute =
   AnaliseFaturamentoAnalysisIdResultadoRouteImport.update({
     id: '/analise-faturamento_/$analysisId_/resultado',
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/tuss': typeof TussRoute
   '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
   '/base-precificacao/$versionId': typeof BasePrecificacaoVersionIdRoute
+  '/contratos/$contractId': typeof ContratosContractIdRoute
   '/analise-faturamento/$analysisId/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
 export interface FileRoutesByTo {
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/tuss': typeof TussRoute
   '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
   '/base-precificacao/$versionId': typeof BasePrecificacaoVersionIdRoute
+  '/contratos/$contractId': typeof ContratosContractIdRoute
   '/analise-faturamento/$analysisId/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
 export interface FileRoutesById {
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/tuss': typeof TussRoute
   '/analise-faturamento_/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
   '/base-precificacao_/$versionId': typeof BasePrecificacaoVersionIdRoute
+  '/contratos_/$contractId': typeof ContratosContractIdRoute
   '/analise-faturamento_/$analysisId_/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
 export interface FileRouteTypes {
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/tuss'
     | '/analise-faturamento/$analysisId'
     | '/base-precificacao/$versionId'
+    | '/contratos/$contractId'
     | '/analise-faturamento/$analysisId/resultado'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
     | '/tuss'
     | '/analise-faturamento/$analysisId'
     | '/base-precificacao/$versionId'
+    | '/contratos/$contractId'
     | '/analise-faturamento/$analysisId/resultado'
   id:
     | '__root__'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/tuss'
     | '/analise-faturamento_/$analysisId'
     | '/base-precificacao_/$versionId'
+    | '/contratos_/$contractId'
     | '/analise-faturamento_/$analysisId_/resultado'
   fileRoutesById: FileRoutesById
 }
@@ -160,6 +172,7 @@ export interface RootRouteChildren {
   TussRoute: typeof TussRoute
   AnaliseFaturamentoAnalysisIdRoute: typeof AnaliseFaturamentoAnalysisIdRoute
   BasePrecificacaoVersionIdRoute: typeof BasePrecificacaoVersionIdRoute
+  ContratosContractIdRoute: typeof ContratosContractIdRoute
   AnaliseFaturamentoAnalysisIdResultadoRoute: typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
 
@@ -228,6 +241,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BasePrecificacaoVersionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contratos_/$contractId': {
+      id: '/contratos_/$contractId'
+      path: '/contratos/$contractId'
+      fullPath: '/contratos/$contractId'
+      preLoaderRoute: typeof ContratosContractIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/analise-faturamento_/$analysisId_/resultado': {
       id: '/analise-faturamento_/$analysisId_/resultado'
       path: '/analise-faturamento/$analysisId/resultado'
@@ -248,6 +268,7 @@ const rootRouteChildren: RootRouteChildren = {
   TussRoute: TussRoute,
   AnaliseFaturamentoAnalysisIdRoute: AnaliseFaturamentoAnalysisIdRoute,
   BasePrecificacaoVersionIdRoute: BasePrecificacaoVersionIdRoute,
+  ContratosContractIdRoute: ContratosContractIdRoute,
   AnaliseFaturamentoAnalysisIdResultadoRoute:
     AnaliseFaturamentoAnalysisIdResultadoRoute,
 }
