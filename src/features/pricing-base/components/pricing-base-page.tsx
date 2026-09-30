@@ -50,7 +50,7 @@ import {
 } from "@/components/data-table";
 
 import { IMPORT_STATUSES, IMPORT_STATUS_LABEL, type ImportStatus } from "../data/pricing-import";
-import { ImportDetailsModal, ImportStatusBadge } from "./import-status";
+import { ImportStatusBadge, ImportSummaryModal } from "./import-status";
 
 const STATUS_FILTER_OPTIONS = [
   { value: "all", label: "Todos os status" },
@@ -222,21 +222,6 @@ export function PricingBasePage() {
     [],
   );
 
-  // Expanding is presentation only: it never touches filters, pagination or status.
-  const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(new Set());
-  const hasMultiFileRow = paginatedVersions.some((version) => version.files.length > 1);
-  function toggleExpanded(id: string) {
-    setExpandedIds((previous) => {
-      const next = new Set(previous);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  const backgroundTask = useBackgroundTask();
-
-  // Runs in the global background task so it survives navigation; the task card is the only feedback.
   function startBaseProcessing(input: NewPricingVersionInput) {
     // Simulação provisória vale só para um cadastro e é desligada em seguida.
     const failNext = simulateFailure;
@@ -491,44 +476,11 @@ export function PricingBasePage() {
                             </DataTableHeader>
                             <DataTableBody>
                               {paginatedVersions.map((version) => {
-                                const multi = version.files.length > 1;
-                                const expanded = multi && expandedIds.has(version.id);
                                 return (
                                   <Fragment key={version.id}>
                                     <DataTableRow>
                                       <DataTableCell className="max-w-96">
                                         <div className="flex min-w-0 items-center gap-2">
-                                          {multi ? (
-                                            <Button
-                                              type="button"
-                                              variant="ghost"
-                                              size="icon"
-                                              className="-my-1 -ml-3 size-10 shrink-0 rounded-md hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
-                                              aria-expanded={expanded}
-                                              aria-controls={`pricing-version-files-${version.id}`}
-                                              aria-label={
-                                                expanded
-                                                  ? `Recolher arquivos de ${version.file.name}`
-                                                  : `Expandir arquivos de ${version.file.name}`
-                                              }
-                                              onClick={() => toggleExpanded(version.id)}
-                                            >
-                                              <ChevronRight
-                                                className={cn(
-                                                  "size-4 transition-transform motion-reduce:transition-none",
-                                                  expanded && "rotate-90",
-                                                )}
-                                                aria-hidden="true"
-                                              />
-                                            </Button>
-                                          ) : (
-                                            hasMultiFileRow && (
-                                              <span
-                                                className="-ml-3 size-10 shrink-0"
-                                                aria-hidden="true"
-                                              />
-                                            )
-                                          )}
                                           <VersionFileName version={version} />
                                           {currentVersionIds.has(version.id) && <CurrentBadge />}
                                         </div>
@@ -549,37 +501,10 @@ export function PricingBasePage() {
                                       <DataTableCell className="text-right">
                                         <VersionActions
                                           version={version}
-                                          onShowDetails={setDetailsVersion}
+                                          onShowSummary={setDetailsVersion}
                                         />
                                       </DataTableCell>
                                     </DataTableRow>
-                                    {expanded &&
-                                      version.files.map((file, index) => (
-                                        <DataTableRow
-                                          key={file.path}
-                                          id={
-                                            index === 0
-                                              ? `pricing-version-files-${version.id}`
-                                              : undefined
-                                          }
-                                          className="bg-muted/40"
-                                        >
-                                          <DataTableCell colSpan={5} className="py-1">
-                                            <div className="flex min-w-0 items-center gap-2 pl-8 before:h-4 before:w-3 before:shrink-0 before:border-b before:border-l before:border-border before:content-['']">
-                                              <Paperclip
-                                                className="size-4 shrink-0 text-muted-foreground"
-                                                aria-hidden="true"
-                                              />
-                                              <span className="min-w-0 break-all text-sm">
-                                                {file.name}
-                                              </span>
-                                            </div>
-                                          </DataTableCell>
-                                          <DataTableCell className="py-1 text-right">
-                                            <FileDownloadButton file={file} />
-                                          </DataTableCell>
-                                        </DataTableRow>
-                                      ))}
                                   </Fragment>
                                 );
                               })}
@@ -616,35 +541,10 @@ export function PricingBasePage() {
                                 ]}
                               />
 
-                              {version.files.length > 1 && (
-                                <details className="group rounded-lg border border-border">
-                                  <summary className="flex cursor-pointer list-none items-center gap-1.5 px-3 py-2 text-xs font-medium text-muted-foreground">
-                                    <ChevronRight
-                                      className="size-4 transition-transform group-open:rotate-90 motion-reduce:transition-none"
-                                      aria-hidden="true"
-                                    />
-                                    {version.files.length} arquivos nesta versão
-                                  </summary>
-                                  <ul className="divide-y divide-border border-t border-border">
-                                    {version.files.map((file) => (
-                                      <li
-                                        key={file.path}
-                                        className="flex min-w-0 items-center gap-2 py-1 pl-4 pr-1"
-                                      >
-                                        <span className="min-w-0 flex-1 break-all text-sm">
-                                          {file.name}
-                                        </span>
-                                        <FileDownloadButton file={file} />
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </details>
-                              )}
-
                               <DataTableCardActions className="-mt-0.5 justify-end">
                                 <VersionActions
                                   version={version}
-                                  onShowDetails={setDetailsVersion}
+                                  onShowSummary={setDetailsVersion}
                                 />
                               </DataTableCardActions>
                             </DataTableCard>
@@ -734,7 +634,7 @@ export function PricingBasePage() {
         onUpdate={startBaseUpdate}
       />
 
-      <ImportDetailsModal
+      <ImportSummaryModal
         version={detailsVersion}
         onOpenChange={(open) => {
           if (!open) setDetailsVersion(null);
@@ -790,40 +690,63 @@ function VersionFileName({ version }: { version: PricingVersion }) {
   );
 }
 
-/** Ações da linha: detalhes da importação e download do arquivo original. */
+/** Ações da linha: resumo, detalhes da importação e download do(s) arquivo(s). */
 function VersionActions({
   version,
-  onShowDetails,
+  onShowSummary,
 }: {
   version: PricingVersion;
-  onShowDetails: (version: PricingVersion) => void;
+  onShowSummary: (version: PricingVersion) => void;
 }) {
+  const browsable = hasBrowsableDetails(version);
   return (
     <div className="inline-flex items-center gap-1">
       <Tooltip>
         <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={`Ver resumo da importação de ${version.file.name}`}
+            onClick={() => onShowSummary(version)}
+          >
+            <FileSearch className="size-4" aria-hidden="true" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Ver resumo da importação</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
           {/* Span keeps the tooltip reachable when the button is disabled. */}
-          <span tabIndex={version.detailsAvailable ? -1 : 0} className="inline-flex">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              disabled={!version.detailsAvailable}
-              aria-label={
-                version.detailsAvailable
-                  ? `Ver detalhes da importação de ${version.file.name}`
-                  : `Detalhes da importação indisponíveis para ${version.file.name}`
-              }
-              onClick={() => onShowDetails(version)}
-            >
-              <FileSearch className="size-4" aria-hidden="true" />
-            </Button>
+          <span tabIndex={browsable ? -1 : 0} className="inline-flex">
+            {browsable ? (
+              <Button
+                asChild
+                variant="ghost"
+                size="icon"
+                aria-label={`Ver detalhes da importação de ${version.file.name}`}
+              >
+                <Link to="/base-precificacao/$versionId" params={{ versionId: version.id }}>
+                  <Files className="size-4" aria-hidden="true" />
+                </Link>
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                disabled
+                aria-label={`Detalhes indisponíveis para ${version.file.name}. A importação não foi concluída.`}
+              >
+                <Files className="size-4" aria-hidden="true" />
+              </Button>
+            )}
           </span>
         </TooltipTrigger>
         <TooltipContent>
-          {version.detailsAvailable
+          {browsable
             ? "Ver detalhes da importação"
-            : "Detalhes da importação indisponíveis"}
+            : "Detalhes indisponíveis. A importação não foi concluída."}
         </TooltipContent>
       </Tooltip>
       <Tooltip>
@@ -843,28 +766,9 @@ function VersionActions({
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          {version.files.length > 1 ? "Baixar todos os arquivos (.zip)" : "Baixar"}
+          {version.files.length > 1 ? "Baixar arquivos (.zip)" : "Baixar arquivo"}
         </TooltipContent>
       </Tooltip>
     </div>
-  );
-}
-
-function FileDownloadButton({ file }: { file: PricingVersionFile }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={`Baixar arquivo ${file.name}`}
-          onClick={() => void downloadSingleFile(file)}
-        >
-          <Download className="size-4" aria-hidden="true" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>Baixar arquivo</TooltipContent>
-    </Tooltip>
   );
 }
