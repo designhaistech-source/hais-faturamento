@@ -44,6 +44,27 @@ export interface PricingVersionFile {
   /** Storage path inside the `pricing-versions` bucket. */
   path: string;
   type: string;
+  /** "update" para arquivos adicionados depois como atualização; ausente = arquivo da versão. */
+  kind?: "version" | "update";
+  /** ISO timestamp de quando o arquivo foi adicionado (apenas atualizações). */
+  addedAt?: string;
+}
+
+/** Whether import details (files, codes, errors) can be browsed for this version. */
+export function hasBrowsableDetails(version: PricingVersion): boolean {
+  return (
+    version.detailsAvailable &&
+    (version.importStatus === "COMPLETED" || version.importStatus === "COMPLETED_WITH_ERRORS")
+  );
+}
+
+/** ISO timestamp of the latest update file, when the version received updates. */
+export function lastUpdateAt(version: PricingVersion): string | null {
+  const dates = version.files
+    .filter((file) => file.kind === "update" && file.addedAt)
+    .map((file) => file.addedAt as string)
+    .sort();
+  return dates.at(-1) ?? null;
 }
 
 export interface PricingVersion {

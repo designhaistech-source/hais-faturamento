@@ -17,6 +17,7 @@ import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as DesignSystemIconesRouteImport } from './routes/design-system-icones'
 import { Route as TussRouteImport } from './routes/tuss'
 import { Route as AnaliseFaturamentoAnalysisIdRouteImport } from './routes/analise-faturamento_.$analysisId'
+import { Route as BasePrecificacaoVersionIdRouteImport } from './routes/base-precificacao_.$versionId'
 import { Route as AnaliseFaturamentoAnalysisIdResultadoRouteImport } from './routes/analise-faturamento_.$analysisId_.resultado'
 
 const IndexRoute = IndexRouteImport.update({
@@ -60,6 +61,12 @@ const AnaliseFaturamentoAnalysisIdRoute =
     path: '/analise-faturamento/$analysisId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const BasePrecificacaoVersionIdRoute =
+  BasePrecificacaoVersionIdRouteImport.update({
+    id: '/base-precificacao_/$versionId',
+    path: '/base-precificacao/$versionId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AnaliseFaturamentoAnalysisIdResultadoRoute =
   AnaliseFaturamentoAnalysisIdResultadoRouteImport.update({
     id: '/analise-faturamento_/$analysisId_/resultado',
@@ -76,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/design-system-icones': typeof DesignSystemIconesRoute
   '/tuss': typeof TussRoute
   '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
+  '/base-precificacao/$versionId': typeof BasePrecificacaoVersionIdRoute
   '/analise-faturamento/$analysisId/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
 export interface FileRoutesByTo {
@@ -87,6 +95,7 @@ export interface FileRoutesByTo {
   '/design-system-icones': typeof DesignSystemIconesRoute
   '/tuss': typeof TussRoute
   '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
+  '/base-precificacao/$versionId': typeof BasePrecificacaoVersionIdRoute
   '/analise-faturamento/$analysisId/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
 export interface FileRoutesById {
@@ -99,6 +108,7 @@ export interface FileRoutesById {
   '/design-system-icones': typeof DesignSystemIconesRoute
   '/tuss': typeof TussRoute
   '/analise-faturamento_/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
+  '/base-precificacao_/$versionId': typeof BasePrecificacaoVersionIdRoute
   '/analise-faturamento_/$analysisId_/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
 export interface FileRouteTypes {
@@ -112,6 +122,7 @@ export interface FileRouteTypes {
     | '/design-system-icones'
     | '/tuss'
     | '/analise-faturamento/$analysisId'
+    | '/base-precificacao/$versionId'
     | '/analise-faturamento/$analysisId/resultado'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -123,6 +134,7 @@ export interface FileRouteTypes {
     | '/design-system-icones'
     | '/tuss'
     | '/analise-faturamento/$analysisId'
+    | '/base-precificacao/$versionId'
     | '/analise-faturamento/$analysisId/resultado'
   id:
     | '__root__'
@@ -134,6 +146,7 @@ export interface FileRouteTypes {
     | '/design-system-icones'
     | '/tuss'
     | '/analise-faturamento_/$analysisId'
+    | '/base-precificacao_/$versionId'
     | '/analise-faturamento_/$analysisId_/resultado'
   fileRoutesById: FileRoutesById
 }
@@ -146,6 +159,7 @@ export interface RootRouteChildren {
   DesignSystemIconesRoute: typeof DesignSystemIconesRoute
   TussRoute: typeof TussRoute
   AnaliseFaturamentoAnalysisIdRoute: typeof AnaliseFaturamentoAnalysisIdRoute
+  BasePrecificacaoVersionIdRoute: typeof BasePrecificacaoVersionIdRoute
   AnaliseFaturamentoAnalysisIdResultadoRoute: typeof AnaliseFaturamentoAnalysisIdResultadoRoute
 }
 
@@ -207,6 +221,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnaliseFaturamentoAnalysisIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/base-precificacao_/$versionId': {
+      id: '/base-precificacao_/$versionId'
+      path: '/base-precificacao/$versionId'
+      fullPath: '/base-precificacao/$versionId'
+      preLoaderRoute: typeof BasePrecificacaoVersionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/analise-faturamento_/$analysisId_/resultado': {
       id: '/analise-faturamento_/$analysisId_/resultado'
       path: '/analise-faturamento/$analysisId/resultado'
@@ -226,6 +247,7 @@ const rootRouteChildren: RootRouteChildren = {
   DesignSystemIconesRoute: DesignSystemIconesRoute,
   TussRoute: TussRoute,
   AnaliseFaturamentoAnalysisIdRoute: AnaliseFaturamentoAnalysisIdRoute,
+  BasePrecificacaoVersionIdRoute: BasePrecificacaoVersionIdRoute,
   AnaliseFaturamentoAnalysisIdResultadoRoute:
     AnaliseFaturamentoAnalysisIdResultadoRoute,
 }

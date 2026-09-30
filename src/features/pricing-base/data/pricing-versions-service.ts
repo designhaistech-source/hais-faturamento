@@ -111,7 +111,15 @@ function toFiles(value: unknown): PricingVersionFile[] {
     if (typeof item !== "object" || item === null) return [];
     const file = item as Record<string, unknown>;
     if (typeof file.name !== "string" || typeof file.path !== "string") return [];
-    return [{ name: file.name, path: file.path, type: String(file.type ?? "") }];
+    return [
+      {
+        name: file.name,
+        path: file.path,
+        type: String(file.type ?? ""),
+        ...(file.kind === "update" ? { kind: "update" as const } : {}),
+        ...(typeof file.addedAt === "string" ? { addedAt: file.addedAt } : {}),
+      },
+    ];
   });
 }
 
@@ -241,7 +249,16 @@ export async function addPricingVersionUpdate(
   });
   if (uploadError) throw uploadError;
 
-  const files = [...version.files, { name: file.name, path, type: file.type }];
+  const files = [
+    ...version.files,
+    {
+      name: file.name,
+      path,
+      type: file.type,
+      kind: "update" as const,
+      addedAt: new Date().toISOString(),
+    },
+  ];
   const { error } = await supabase
     .from("pricing_versions")
     .update({

@@ -39,9 +39,12 @@ export function AppBreadcrumb({ className }: { className?: string }) {
     pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
   // Página de detalhe: Início > Análise de faturamento > Detalhes da análise.
   const isAnalysisDetail = normalized.startsWith("/analise-faturamento/");
+  const isPricingDetail = normalized.startsWith("/base-precificacao/");
   const meta = isAnalysisDetail
     ? { label: normalized.endsWith("/resultado") ? "Resultado da análise" : "Detalhes da análise" }
-    : ROUTE_META[normalized];
+    : isPricingDetail
+      ? { label: "Detalhes da importação" }
+      : ROUTE_META[normalized];
 
   if (!meta || normalized === "/") return null;
 
@@ -68,6 +71,18 @@ export function AppBreadcrumb({ className }: { className?: string }) {
               <BreadcrumbLink asChild>
                 <Link to="/analise-faturamento" className="transition-colors hover:text-foreground">
                   Análise de faturamento
+                </Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator className="shrink-0" />
+          </>
+        )}
+        {isPricingDetail && (
+          <>
+            <BreadcrumbItem className="shrink-0">
+              <BreadcrumbLink asChild>
+                <Link to="/base-precificacao" className="transition-colors hover:text-foreground">
+                  Base de precificação
                 </Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
