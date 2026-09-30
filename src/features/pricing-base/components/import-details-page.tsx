@@ -183,7 +183,6 @@ function ImportDetailsContent({
   }, [records, multi, version.file.name]);
 
   const errors = version.errorRows;
-  const updatedAt = lastUpdateAt(version);
   const updateCount = version.files.filter((file) => file.kind === "update").length;
   const lastUpdateName = version.files
     .filter((file) => file.kind === "update")
