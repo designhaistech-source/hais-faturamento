@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   ChevronDown,
+  Files,
   CircleAlert,
   CircleCheck,
   CircleX,
@@ -20,6 +22,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 
 import {
   formatAnalysisDateTime,
+  hasAnalysisResult,
+  hasProcessingIssue,
+  analysisResultLabel,
   PROCESSING_STATUS_LABEL,
   type BillingAnalysis,
   type ProcessingStatus,
@@ -116,6 +121,12 @@ export function ProcessingDetailsModal({
   if (!analysis) return null;
 
   const guidance = guidanceFor(analysis);
+  const hasResult = hasAnalysisResult(analysis);
+  const hasIssue = hasProcessingIssue(analysis.processingStatus);
+  const conformCount = Math.max(
+    0,
+    analysis.itemCount - analysis.divergenceCount - analysis.unanalyzedCount,
+  );
   const details = analysis.processingDetails;
   const skipped = details.skippedParts ?? [];
   const technical = details.technicalMessage ?? analysis.errorMessage ?? null;
@@ -127,10 +138,9 @@ export function ProcessingDetailsModal({
         if (!open) setTechnicalOpen(false);
         onOpenChange(open);
       }}
-      title="Detalhes do processamento"
-      description="Informações sobre o processamento técnico do arquivo."
+      title="Resumo da análise"
+      description="Visão rápida do processamento e do resultado da análise."
       descriptionHidden
-      icon={<CircleAlert className="size-5" aria-hidden="true" />}
       footer={
         <>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
@@ -142,53 +152,102 @@ export function ProcessingDetailsModal({
               Tentar novamente
             </Button>
           )}
+          {hasResult && (
+            <Button asChild>
+              <Link
+                to="/analise-faturamento/$analysisId/resultado"
+                params={{ analysisId: analysis.id }}
+              >
+                <Files className="size-4" aria-hidden="true" />
+                Ver detalhes da análise
+              </Link>
+            </Button>
+          )}
         </>
       }
     >
       <div className="space-y-5 text-sm">
-        <dl className="grid gap-3 sm:grid-cols-[8rem_minmax(0,1fr)]">
+        <dl className="grid gap-3 sm:grid-cols-[9rem_minmax(0,1fr)]">
           <dt className="text-xs font-medium text-muted-foreground">Arquivo</dt>
           <dd className="break-all text-foreground">{analysis.fileName}</dd>
+          <dt className="text-xs font-medium text-muted-foreground">Contrato</dt>
+          <dd className="text-foreground">{analysis.contractCompany || "—"}</dd>
+          <dt className="text-xs font-medium text-muted-foreground">Prestador</dt>
+          <dd className="text-foreground">{analysis.provider || "—"}</dd>
+          <dt className="text-xs font-medium text-muted-foreground">Operadora</dt>
+          <dd className="text-foreground">{analysis.healthPlan || "—"}</dd>
+          <dt className="text-xs font-medium text-muted-foreground">Data da análise</dt>
+          <dd className="text-foreground">{formatAnalysisDateTime(analysis.analyzedAt)}</dd>
           <dt className="text-xs font-medium text-muted-foreground">Status</dt>
           <dd>
             <ProcessingStatusBadge status={analysis.processingStatus} />
           </dd>
+          {hasResult && (
+            <>
+              <dt className="text-xs font-medium text-muted-foreground">Resultado</dt>
+              <dd className="text-foreground">{analysisResultLabel(analysis)}</dd>
+            </>
+          )}
         </dl>
 
-        <section className="space-y-1">
-          <h3 className="font-display text-sm font-semibold text-foreground">O que aconteceu</h3>
-          <p className="text-muted-foreground">{guidance.explanation}</p>
-        </section>
-
-        {analysis.processingStatus === "PARTIALLY_EXTRACTED" && skipped.length > 0 && (
-          <section className="space-y-2">
-            <h3 className="font-display text-sm font-semibold text-foreground">
-              Trechos não processados ({skipped.length})
-            </h3>
-            <ul className="max-h-48 space-y-1 overflow-y-auto rounded-md border border-border p-3">
-              {skipped.map((part) => (
-                <li key={part.position} className="text-muted-foreground">
-                  Item {part.position} do arquivo{" "}
-                  <span className="font-mono text-xs">&lt;{part.tag}&gt;</span> — formato não
-                  suportado
-                </li>
-              ))}
-            </ul>
-          </section>
+        {hasResult && (
+          <dl className="grid grid-cols-3 gap-3">
+            {[
+              { label: "Divergências", value: analysis.divergenceCount },
+              { label: "Não analisados", value: analysis.unanalyzedCount },
+              { label: "Sem divergências", value: conformCount },
+            ].map((item) => (
+              <div key={item.label} className="rounded-md border border-border p-3">
+                <dt className="text-xs font-medium text-muted-foreground">{item.label}</dt>
+                <dd className="mt-1 font-mono text-lg font-semibold tabular-nums text-foreground">
+                  {item.value.toLocaleString("pt-BR")}
+                </dd>
+              </div>
+            ))}
+          </dl>
         )}
 
-        {analysis.processingStatus === "DUPLICATE_FILE" && details.duplicateOf && (
-          <p className="text-muted-foreground">
-            Análise anterior realizada em {formatAnalysisDateTime(details.duplicateOf.analyzedAt)}.
-          </p>
+        {hasIssue && (
+          <>
+            <section className="space-y-1">
+              <h3 className="font-display text-sm font-semibold text-foreground">
+                O que aconteceu
+              </h3>
+              <p className="text-muted-foreground">{guidance.explanation}</p>
+            </section>
+
+            {analysis.processingStatus === "PARTIALLY_EXTRACTED" && skipped.length > 0 && (
+              <section className="space-y-2">
+                <h3 className="font-display text-sm font-semibold text-foreground">
+                  Trechos não processados ({skipped.length})
+                </h3>
+                <ul className="max-h-48 space-y-1 overflow-y-auto rounded-md border border-border p-3">
+                  {skipped.map((part) => (
+                    <li key={part.position} className="text-muted-foreground">
+                      Item {part.position} do arquivo{" "}
+                      <span className="font-mono text-xs">&lt;{part.tag}&gt;</span> — formato não
+                      suportado
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {analysis.processingStatus === "DUPLICATE_FILE" && details.duplicateOf && (
+              <p className="text-muted-foreground">
+                Análise anterior realizada em{" "}
+                {formatAnalysisDateTime(details.duplicateOf.analyzedAt)}.
+              </p>
+            )}
+
+            <section className="space-y-1">
+              <h3 className="font-display text-sm font-semibold text-foreground">Como resolver</h3>
+              <p className="text-muted-foreground">{guidance.resolution}</p>
+            </section>
+          </>
         )}
 
-        <section className="space-y-1">
-          <h3 className="font-display text-sm font-semibold text-foreground">Como resolver</h3>
-          <p className="text-muted-foreground">{guidance.resolution}</p>
-        </section>
-
-        {technical && (
+        {hasIssue && technical && (
           <Collapsible open={technicalOpen} onOpenChange={setTechnicalOpen}>
             <CollapsibleTrigger asChild>
               <Button
