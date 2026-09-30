@@ -26,6 +26,8 @@ interface PricingUpdateModalProps {
   /** Versão "Atual" de cada tipo; tipos sem versão atual não podem receber atualização. */
   currentVersions: ReadonlyMap<PricingBaseType, PricingVersion>;
   onSubmit: (version: PricingVersion, file: File) => void;
+  /** Tipo da base escolhido pelo modal pai; quando informado, o seletor interno é ocultado. */
+  fixedBaseType?: PricingBaseType | "";
 }
 
 /** Adiciona um arquivo à composição da versão atual de uma base (sem criar nova versão). */
@@ -36,9 +38,12 @@ export function PricingUpdateModal({
   onOpenChange,
   currentVersions,
   onSubmit,
+  fixedBaseType,
 }: PricingUpdateModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [baseType, setBaseType] = useState<PricingBaseType | "">("");
+  const [ownBaseType, setBaseType] = useState<PricingBaseType | "">("");
+  const controlled = fixedBaseType !== undefined;
+  const baseType = controlled ? fixedBaseType : ownBaseType;
   const [baseTypeTouched, setBaseTypeTouched] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [fileTouched, setFileTouched] = useState(false);
@@ -136,7 +141,7 @@ export function PricingUpdateModal({
           submit();
         }}
       >
-        <SelectField
+        {!controlled && (<SelectField
           id="pricing-update-base-type"
           label="Tipo da base"
           required
@@ -149,7 +154,7 @@ export function PricingUpdateModal({
             setBaseTypeTouched(true);
             setBaseType(value as PricingBaseType);
           }}
-        />
+        />)}
 
         <Field
           id="pricing-update-file"
