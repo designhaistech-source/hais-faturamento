@@ -97,13 +97,13 @@ export function ImportDetailsPage({ versionId }: { versionId: string }) {
           <main className="flex-1 space-y-6 p-6 pb-16">
             <AppBreadcrumb />
             <PageHeader
-              title="Detalhes da importação"
-              description={version?.file.name}
+              title="Detalhes da base de precificação"
+              description={version ? pricingBaseTypeLabel(version.baseType) : undefined}
               actions={
                 <Button asChild variant="outline" className="w-full sm:w-auto">
                   <Link to="/base-precificacao">
                     <ArrowLeft className="size-4" aria-hidden="true" />
-                    Voltar para a base
+                    Voltar para bases de precificação
                   </Link>
                 </Button>
               }
@@ -183,41 +183,49 @@ function ImportDetailsContent({
 
   const errors = version.errorRows;
 
+  const summary: { label: string; value: React.ReactNode }[] = [
+    { label: "Tipo da base", value: pricingBaseTypeLabel(version.baseType) },
+    { label: "Data do cadastro", value: formatVersionDateTime(version.createdAt) },
+    { label: "Status", value: <ImportStatusBadge status={version.importStatus} /> },
+    {
+      label: "Situação da versão",
+      value: isCurrent ? (
+        <span className="text-xs font-medium text-primary">Atual</span>
+      ) : (
+        <span className="text-muted-foreground">—</span>
+      ),
+    },
+    { label: "Quantidade de arquivos", value: version.files.length.toLocaleString("pt-BR") },
+    {
+      label: "Registros importados",
+      value: version.processedCount?.toLocaleString("pt-BR") ?? "—",
+    },
+    ...(errors.length > 0
+      ? [{ label: "Registros com erros", value: errors.length.toLocaleString("pt-BR") }]
+      : []),
+    { label: "Cadastrado por", value: version.createdBy },
+  ];
+
   return (
     <div className="space-y-6">
       <SurfaceCard padding="md">
-        <SummaryList
-          items={[
-            { label: "Tipo da base", value: pricingBaseTypeLabel(version.baseType) },
-            { label: "Data do cadastro", value: formatVersionDateTime(version.createdAt) },
-            {
-              label: "Status",
-              value: <ImportStatusBadge status={version.importStatus} />,
-            },
-            ...(isCurrent
-              ? [
-                  {
-                    label: "Situação da versão",
-                    value: <span className="text-xs font-medium text-primary">Atual</span>,
-                  },
-                ]
-              : []),
-            {
-              label: "Quantidade de arquivos",
-              value: version.files.length.toLocaleString("pt-BR"),
-            },
-            {
-              label: "Registros importados",
-              value: version.processedCount?.toLocaleString("pt-BR") ?? "—",
-            },
-            ...(errors.length > 0
-              ? [{ label: "Registros com erros", value: errors.length.toLocaleString("pt-BR") }]
-              : []),
-            { label: "Cadastrado por", value: version.createdBy },
-          ]}
-        />
+        <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+          {summary.map((item) => (
+            <div key={item.label} className="min-w-0 space-y-0.5">
+              <dt className="text-xs font-medium text-muted-foreground">{item.label}</dt>
+              <dd className="min-w-0 break-words text-sm text-foreground">{item.value}</dd>
+            </div>
+          ))}
+        </dl>
       </SurfaceCard>
 
+      <section className="space-y-4" aria-labelledby="base-content-title">
+      <h2
+        id="base-content-title"
+        className="font-display text-base font-semibold tracking-tight text-foreground"
+      >
+        Conteúdo da base
+      </h2>
       {!browsable ? (
         <ImportCallout tone="neutral" title="Detalhes indisponíveis">
           A importação não foi concluída. Consulte o resumo da importação para ver o motivo.
