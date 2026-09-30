@@ -1,7 +1,9 @@
+import type React from "react";
 import { useRef, useState } from "react";
 import { FilePlus2, Info, Paperclip, Trash2, Upload } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
+import { DialogBody, DialogFooter } from "@/components/ui/dialog";
 import { Field, SelectField, type SelectOption } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -15,6 +17,10 @@ import {
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
 interface PricingUpdateModalProps {
+  /** Renderiza só corpo + rodapé, para uso dentro de outro modal. */
+  embedded?: boolean;
+  /** Conteúdo exibido antes dos campos (ex.: escolha da operação). */
+  leading?: React.ReactNode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Versão "Atual" de cada tipo; tipos sem versão atual não podem receber atualização. */
@@ -24,6 +30,8 @@ interface PricingUpdateModalProps {
 
 /** Adiciona um arquivo à composição da versão atual de uma base (sem criar nova versão). */
 export function PricingUpdateModal({
+  embedded = false,
+  leading,
   open,
   onOpenChange,
   currentVersions,
@@ -104,24 +112,20 @@ export function PricingUpdateModal({
     },
   };
 
-  return (
-    <AppModal
-      open={open}
-      onOpenChange={(next) => (next ? onOpenChange(true) : close())}
-      title="Adicionar atualização"
-      description="Envie um arquivo de atualização para adicioná-lo à versão atual da base."
-      icon={<FilePlus2 className="size-5" aria-hidden="true" />}
-      footer={
-        <>
-          <Button type="button" variant="outline" size="sm" onClick={close}>
-            Cancelar
-          </Button>
-          <Button type="button" size="sm" disabled={!canSubmit} onClick={submit}>
-            Adicionar
-          </Button>
-        </>
-      }
-    >
+  const footer = (
+    <>
+      <Button type="button" variant="outline" size="sm" onClick={close}>
+        Cancelar
+      </Button>
+      <Button type="button" size="sm" disabled={!canSubmit} onClick={submit}>
+        Adicionar
+      </Button>
+    </>
+  );
+
+  const body = (
+    <div className="space-y-4">
+      {leading}
       <form
         className="space-y-4"
         onSubmit={(event) => {
@@ -245,6 +249,28 @@ export function PricingUpdateModal({
           </>
         )}
       </form>
+    </div>
+  );
+
+  if (embedded) {
+    return (
+      <>
+        <DialogBody>{body}</DialogBody>
+        <DialogFooter>{footer}</DialogFooter>
+      </>
+    );
+  }
+
+  return (
+    <AppModal
+      open={open}
+      onOpenChange={(next) => (next ? onOpenChange(true) : close())}
+      title="Adicionar atualização"
+      description="Envie um arquivo de atualização para adicioná-lo à versão atual da base."
+      icon={<FilePlus2 className="size-5" aria-hidden="true" />}
+      footer={footer}
+    >
+      {body}
     </AppModal>
   );
 }

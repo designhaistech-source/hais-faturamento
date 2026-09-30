@@ -1,7 +1,9 @@
+import type React from "react";
 import { useRef, useState } from "react";
 import { Database, Info, Paperclip, Trash2, Upload } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
+import { DialogBody, DialogFooter } from "@/components/ui/dialog";
 import { Field, SelectField, type SelectOption } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -22,6 +24,10 @@ const BASE_TYPE_OPTIONS: SelectOption[] = PRICING_BASE_TYPES.map((type) => ({
 }));
 
 interface NewPricingVersionModalProps {
+  /** Renderiza só corpo + rodapé, para uso dentro de outro modal. */
+  embedded?: boolean;
+  /** Conteúdo exibido antes dos campos (ex.: escolha da operação). */
+  leading?: React.ReactNode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreate: (version: NewPricingVersionInput) => void;
@@ -31,6 +37,8 @@ interface NewPricingVersionModalProps {
 
 /** Cadastro de uma nova versão (tipo da base + arquivo CSV/TXT; SIMPRO aceita vários arquivos). */
 export function NewPricingVersionModal({
+  embedded = false,
+  leading,
   open,
   onOpenChange,
   onCreate,
@@ -120,24 +128,20 @@ export function NewPricingVersionModal({
     onOpenChange(false);
   }
 
-  return (
-    <AppModal
-      open={open}
-      onOpenChange={(next) => (next ? onOpenChange(true) : close())}
-      title="Nova versão da base"
-      description="Envie os arquivos que irão compor uma nova versão da base de precificação."
-      icon={<Database className="size-5" aria-hidden="true" />}
-      footer={
-        <>
-          <Button type="button" variant="outline" size="sm" onClick={close}>
-            Cancelar
-          </Button>
-          <Button type="button" size="sm" disabled={!canSubmit} onClick={submit}>
-            Cadastrar
-          </Button>
-        </>
-      }
-    >
+  const footer = (
+    <>
+      <Button type="button" variant="outline" size="sm" onClick={close}>
+        Cancelar
+      </Button>
+      <Button type="button" size="sm" disabled={!canSubmit} onClick={submit}>
+        Cadastrar
+      </Button>
+    </>
+  );
+
+  const body = (
+    <div className="space-y-4">
+      {leading}
       <form
         className="space-y-4"
         onSubmit={(event) => {
@@ -383,6 +387,28 @@ export function NewPricingVersionModal({
           </div>
         )}
       </form>
+    </div>
+  );
+
+  if (embedded) {
+    return (
+      <>
+        <DialogBody>{body}</DialogBody>
+        <DialogFooter>{footer}</DialogFooter>
+      </>
+    );
+  }
+
+  return (
+    <AppModal
+      open={open}
+      onOpenChange={(next) => (next ? onOpenChange(true) : close())}
+      title="Nova versão da base"
+      description="Envie os arquivos que irão compor uma nova versão da base de precificação."
+      icon={<Database className="size-5" aria-hidden="true" />}
+      footer={footer}
+    >
+      {body}
     </AppModal>
   );
 }

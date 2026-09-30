@@ -56,14 +56,7 @@ const STATUS_FILTER_OPTIONS = [
   { value: "all", label: "Todos os status" },
   ...IMPORT_STATUSES.map((status) => ({ value: status, label: IMPORT_STATUS_LABEL[status] })),
 ];
-import { NewPricingVersionModal } from "./new-pricing-version-modal";
-import { PricingUpdateModal } from "./pricing-update-modal";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { AddPricingBaseModal } from "./add-pricing-base-modal";
 import {
   currentVersionIdsByType,
   formatVersionDateTime,
@@ -134,7 +127,6 @@ async function downloadVersionFile(version: PricingVersion) {
 
 export function PricingBasePage() {
   const [modalOpen, setModalOpen] = useState(false);
-  const [updateOpen, setUpdateOpen] = useState(false);
   const [detailsVersion, setDetailsVersion] = useState<PricingVersion | null>(null);
   const queryClient = useQueryClient();
 
@@ -346,34 +338,14 @@ export function PricingBasePage() {
               title="Base de precificação"
               description="Gerencie as bases de valores utilizadas na análise do faturamento."
               actions={
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button type="button" className="w-full sm:w-auto">
-                      <Plus className="size-4" aria-hidden="true" />
-                      Adicionar
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-72">
-                    <DropdownMenuItem
-                      className="flex-col items-start gap-0.5"
-                      onSelect={() => setModalOpen(true)}
-                    >
-                      <span className="text-sm font-medium">Nova versão</span>
-                      <span className="text-xs text-muted-foreground">
-                        Cadastre uma nova versão de uma base de precificação.
-                      </span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="flex-col items-start gap-0.5"
-                      onSelect={() => setUpdateOpen(true)}
-                    >
-                      <span className="text-sm font-medium">Atualização</span>
-                      <span className="text-xs text-muted-foreground">
-                        Adicione um arquivo à versão atual de uma base de precificação.
-                      </span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Button
+                  type="button"
+                  className="w-full sm:w-auto"
+                  onClick={() => setModalOpen(true)}
+                >
+                  <Plus className="size-4" aria-hidden="true" />
+                  Adicionar
+                </Button>
               }
             />
 
@@ -753,18 +725,13 @@ export function PricingBasePage() {
         </div>
       </div>
 
-      <NewPricingVersionModal
+      <AddPricingBaseModal
         open={modalOpen}
         onOpenChange={setModalOpen}
         existingBaseTypes={existingBaseTypes}
-        onCreate={startBaseProcessing}
-      />
-
-      <PricingUpdateModal
-        open={updateOpen}
-        onOpenChange={setUpdateOpen}
         currentVersions={currentVersionsByType}
-        onSubmit={startBaseUpdate}
+        onCreate={startBaseProcessing}
+        onUpdate={startBaseUpdate}
       />
 
       <ImportDetailsModal
