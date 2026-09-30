@@ -25,7 +25,6 @@ import { PageHeader } from "@/components/page-header";
 import { SiteFooter } from "@/components/site-footer";
 import { SurfaceCard } from "@/components/surface-card";
 import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/table-pagination";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -186,6 +185,10 @@ function ImportDetailsContent({
   const errors = version.errorRows;
   const updatedAt = lastUpdateAt(version);
   const updateCount = version.files.filter((file) => file.kind === "update").length;
+  const lastUpdateName = version.files
+    .filter((file) => file.kind === "update")
+    .sort((a, b) => (a.addedAt ?? "").localeCompare(b.addedAt ?? ""))
+    .at(-1)?.name;
 
   return (
     <div className="space-y-6">
@@ -345,13 +348,6 @@ function TabSearch({
     />
   );
 }
-
-const KIND_OPTIONS = [
-  { value: "version", label: "Versão" },
-  { value: "update", label: "Atualização" },
-];
-
-type KindFilter = "all" | "version" | "update";
 
 function DateRangeFilter({
   id,
