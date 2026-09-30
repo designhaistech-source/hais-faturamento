@@ -10,6 +10,7 @@ import {
   Eye,
   EyeOff,
   FileSearch,
+  Files,
   LoaderCircle,
   Plus,
   Trash2,

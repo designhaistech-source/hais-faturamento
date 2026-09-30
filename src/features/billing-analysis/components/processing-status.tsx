@@ -209,38 +209,41 @@ export function ProcessingDetailsModal({
 
         {hasIssue && (
           <>
-        <section className="space-y-1">
-          <h3 className="font-display text-sm font-semibold text-foreground">O que aconteceu</h3>
-          <p className="text-muted-foreground">{guidance.explanation}</p>
-        </section>
+            <section className="space-y-1">
+              <h3 className="font-display text-sm font-semibold text-foreground">
+                O que aconteceu
+              </h3>
+              <p className="text-muted-foreground">{guidance.explanation}</p>
+            </section>
 
-        {analysis.processingStatus === "PARTIALLY_EXTRACTED" && skipped.length > 0 && (
-          <section className="space-y-2">
-            <h3 className="font-display text-sm font-semibold text-foreground">
-              Trechos não processados ({skipped.length})
-            </h3>
-            <ul className="max-h-48 space-y-1 overflow-y-auto rounded-md border border-border p-3">
-              {skipped.map((part) => (
-                <li key={part.position} className="text-muted-foreground">
-                  Item {part.position} do arquivo{" "}
-                  <span className="font-mono text-xs">&lt;{part.tag}&gt;</span> — formato não
-                  suportado
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+            {analysis.processingStatus === "PARTIALLY_EXTRACTED" && skipped.length > 0 && (
+              <section className="space-y-2">
+                <h3 className="font-display text-sm font-semibold text-foreground">
+                  Trechos não processados ({skipped.length})
+                </h3>
+                <ul className="max-h-48 space-y-1 overflow-y-auto rounded-md border border-border p-3">
+                  {skipped.map((part) => (
+                    <li key={part.position} className="text-muted-foreground">
+                      Item {part.position} do arquivo{" "}
+                      <span className="font-mono text-xs">&lt;{part.tag}&gt;</span> — formato não
+                      suportado
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
-        {analysis.processingStatus === "DUPLICATE_FILE" && details.duplicateOf && (
-          <p className="text-muted-foreground">
-            Análise anterior realizada em {formatAnalysisDateTime(details.duplicateOf.analyzedAt)}.
-          </p>
-        )}
+            {analysis.processingStatus === "DUPLICATE_FILE" && details.duplicateOf && (
+              <p className="text-muted-foreground">
+                Análise anterior realizada em{" "}
+                {formatAnalysisDateTime(details.duplicateOf.analyzedAt)}.
+              </p>
+            )}
 
-        <section className="space-y-1">
-          <h3 className="font-display text-sm font-semibold text-foreground">Como resolver</h3>
-          <p className="text-muted-foreground">{guidance.resolution}</p>
-        </section>
+            <section className="space-y-1">
+              <h3 className="font-display text-sm font-semibold text-foreground">Como resolver</h3>
+              <p className="text-muted-foreground">{guidance.resolution}</p>
+            </section>
           </>
         )}
 
