@@ -464,7 +464,9 @@ function FilesTab({
                 return (
                   <DataTableRow key={file.path}>
                     <DataTableCell>
-                      <span className="block min-w-32 max-w-48 break-all lg:max-w-none">{file.name}</span>
+                      <span className="block min-w-32 max-w-48 break-all lg:max-w-none">
+                        {file.name}
+                      </span>
                     </DataTableCell>
                     <DataTableCell>
                       {formatVersionDateTime(file.addedAt ?? version.createdAt)}
