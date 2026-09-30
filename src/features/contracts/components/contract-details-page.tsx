@@ -59,6 +59,8 @@ import {
   type AmendmentExtractionStatus,
   type ContractAmendment,
 } from "../data/contract-amendments-service";
+import { ActionIcon } from "@/components/action-icons";
+import { ContractExtractedDataModal } from "./contract-extracted-data-modal";
 import type { ContractRulesDisplayStatus } from "../data/contract-rules";
 import {
   contractRulesStatusQueryKey,
@@ -167,10 +169,11 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
   });
   const extractionStates = useContractExtractionStates();
   const rulesStatus: ContractRulesDisplayStatus | null =
-    extractionStates[contract.id] ??
+    (extractionStates[contract.id] as ContractRulesDisplayStatus | undefined) ??
     (rulesStatusQuery.data ? (rulesStatusQuery.data[contract.id] ?? "not_extracted") : null);
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [rulesOpen, setRulesOpen] = useState(false);
   const [preview, setPreview] = useState<Contract | null>(null);
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState("");
@@ -266,14 +269,35 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
             {
               label: "Contrato",
               value: (
-                <button
-                  type="button"
-                  className="max-w-full truncate rounded-sm text-left text-primary underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                  title={contract.file.name}
-                  onClick={() => setPreview(contract)}
-                >
-                  {contract.file.name}
-                </button>
+                <div className="flex min-w-0 items-center gap-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="min-w-0 truncate">{contract.file.name}</span>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-sm break-all">
+                      {contract.file.name}
+                    </TooltipContent>
+                  </Tooltip>
+                  <div className="-my-2 inline-flex shrink-0 items-center gap-1">
+                    <IconAction
+                      label="Visualizar contrato"
+                      icon={ActionIcon.viewOriginal}
+                      onClick={() => setPreview(contract)}
+                    />
+                    {rulesStatus === "available" && (
+                      <IconAction
+                        label="Ver dados extraídos"
+                        icon={ActionIcon.inspectProcessing}
+                        onClick={() => setRulesOpen(true)}
+                      />
+                    )}
+                    <IconAction
+                      label="Baixar contrato"
+                      icon={ActionIcon.download}
+                      onClick={() => void downloadFile(contract.file)}
+                    />
+                  </div>
+                </div>
               ),
             },
             { label: "Validade", value: formatIsoToBr(contract.validUntil) || "—" },
@@ -493,7 +517,34 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
         }}
         onDownload={(item) => void downloadFile(item.file)}
       />
+
+      <ContractExtractedDataModal
+        contract={rulesOpen ? contract : null}
+        open={rulesOpen}
+        onOpenChange={setRulesOpen}
+      />
     </div>
+  );
+}
+
+function IconAction({
+  label,
+  icon: Icon,
+  onClick,
+}: {
+  label: string;
+  icon: LucideIcon;
+  onClick: () => void;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button type="button" variant="ghost" size="icon" aria-label={label} onClick={onClick}>
+          <Icon className="size-4" aria-hidden="true" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
   );
 }
 
