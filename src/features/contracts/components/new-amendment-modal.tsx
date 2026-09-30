@@ -17,7 +17,12 @@ interface NewAmendmentModalProps {
 }
 
 /** Envio do arquivo do aditivo, com as mesmas restrições do cadastro de contrato. */
-export function NewAmendmentModal({ open, onOpenChange, onCreate, pending }: NewAmendmentModalProps) {
+export function NewAmendmentModal({
+  open,
+  onOpenChange,
+  onCreate,
+  pending,
+}: NewAmendmentModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | undefined>();
@@ -117,7 +122,12 @@ export function NewAmendmentModal({ open, onOpenChange, onCreate, pending }: New
                 {file.name}
               </span>
               <div className="flex shrink-0 items-center gap-2">
-                <Button type="button" variant="ghost" size="sm" onClick={() => inputRef.current?.click()}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => inputRef.current?.click()}
+                >
                   Substituir
                 </Button>
                 <Button
@@ -141,7 +151,12 @@ export function NewAmendmentModal({ open, onOpenChange, onCreate, pending }: New
             >
               <Upload className="size-5 text-muted-foreground" aria-hidden="true" />
               <p className="text-sm text-muted-foreground">Arraste e solte o arquivo aqui</p>
-              <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => inputRef.current?.click()}
+              >
                 Selecionar arquivo
               </Button>
             </div>
