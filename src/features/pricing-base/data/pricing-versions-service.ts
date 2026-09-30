@@ -137,30 +137,12 @@ async function sha256(file: File): Promise<string> {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-/**
- * Atualização parcial: copia os arquivos mantidos da versão anterior (a versão
- * anterior fica intacta) e coloca o novo arquivo na posição do substituído.
- */
-async function composeFiles(input: NewPricingVersionInput): Promise<File[]> {
-  const update = input.partialUpdate;
-  const [replacement] = input.files;
-  if (!update || !replacement) return input.files;
-  return Promise.all(
-    update.sourceFiles.map(async (source) => {
-      if (source.path === update.replacedPath) return replacement;
-      const blob = await downloadPricingVersionBlob(source.path);
-      return new File([blob], source.name, { type: source.type || blob.type });
-    }),
-  );
-}
-
 /** Cadastra os arquivos como uma única versão e registra o resultado; devolve o status obtido. */
 export async function createPricingVersion(
   input: NewPricingVersionInput,
   /** Ferramenta provisória de testes: força FAILED sem olhar o arquivo. Não é regra de negócio. */
   testing?: { simulateFailure?: boolean },
 ): Promise<ImportStatus> {
-  input = { ...input, files: await composeFiles(input) };
   const [firstFile] = input.files;
   if (!firstFile) throw new Error("Nenhum arquivo selecionado.");
   const baseType = input.baseType ?? inferPricingBaseType(firstFile.name);
@@ -229,6 +211,51 @@ export async function createPricingVersion(
     throw cause;
   }
   return status;
+}
+
+/**
+ * Atualização incremental: processa a composição atual junto com o novo arquivo e,
+ * somente se o resultado for Concluído, acrescenta o arquivo à mesma versão.
+ * Nenhuma versão nova é criada e os arquivos existentes são mantidos.
+ */
+export async function addPricingVersionUpdate(
+  version: PricingVersion,
+  file: File,
+): Promise<ImportStatus> {
+  const existing = await Promise.all(
+    version.files.map(async (item) => ({
+      name: item.name,
+      content: await (await downloadPricingVersionBlob(item.path)).text(),
+    })),
+  );
+  const result = parsePricingImportSet(
+    [...existing, { name: file.name, content: await file.text() }],
+    version.baseType,
+  );
+  if (result.status !== "COMPLETED") return result.status;
+
+  const path = `${crypto.randomUUID()}-${sanitizeFileName(file.name)}`;
+  const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file, {
+    contentType:
+      file.type || (file.name.toLowerCase().endsWith(".txt") ? "text/plain" : "text/csv"),
+  });
+  if (uploadError) throw uploadError;
+
+  const files = [...version.files, { name: file.name, path, type: file.type }];
+  const { error } = await supabase
+    .from("pricing_versions")
+    .update({
+      files: files.map((item) => ({ ...item })),
+      processed_count: result.records.length,
+      unprocessed_count: result.errors.length,
+      unprocessed_reasons: result.errors.map((row) => ({ ...row })),
+    })
+    .eq("id", version.id);
+  if (error) {
+    await supabase.storage.from(BUCKET).remove([path]);
+    throw error;
+  }
+  return result.status;
 }
 
 /** Ferramenta provisória de testes: apaga todas as versões e seus arquivos. */

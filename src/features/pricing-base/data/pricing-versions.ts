@@ -74,12 +74,13 @@ export interface NewPricingVersionInput {
   /** One file for Brasíndice/CBHPM; one or more for SIMPRO, all forming a single version. */
   files: File[];
   baseType?: PricingBaseType;
-  /**
-   * SIMPRO partial update: files of the current version kept in the new one,
-   * in their original order, with `files[0]` placed where `replacedPath` was.
-   */
-  partialUpdate?: { sourceFiles: PricingVersionFile[]; replacedPath: string };
 }
+
+/**
+ * Base types that accept incremental updates (a file added to the current version).
+ * Add new types here to enable them in the update flow.
+ */
+export const INCREMENTAL_UPDATE_BASE_TYPES: readonly PricingBaseType[] = ["simpro"];
 
 /** Base types whose version may be split across several files. */
 export function allowsMultipleFiles(type: PricingBaseType | ""): boolean {
