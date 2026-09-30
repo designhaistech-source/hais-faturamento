@@ -220,75 +220,79 @@ function ImportDetailsContent({
       </SurfaceCard>
 
       <section className="space-y-4" aria-labelledby="base-content-title">
-      <h2
-        id="base-content-title"
-        className="font-display text-base font-semibold tracking-tight text-foreground"
-      >
-        Conteúdo da base
-      </h2>
-      {!browsable ? (
-        <ImportCallout tone="neutral" title="Detalhes indisponíveis">
-          A importação não foi concluída. Consulte o resumo da importação para ver o motivo.
-        </ImportCallout>
-      ) : (
-        <Tabs defaultValue="files" className="space-y-4">
-          <TabsList className={appTabsListClass}>
-            <TabsTrigger value="files" className={appTabsTriggerClass}>
-              <span className={appTabsLabelClass}>
-                Arquivos ({version.files.length.toLocaleString("pt-BR")})
-              </span>
-            </TabsTrigger>
-            <TabsTrigger value="codes" className={appTabsTriggerClass}>
-              <span className={appTabsLabelClass}>
-                Registros vigentes
-                {recordsQuery.isSuccess && ` (${currentCodes.length.toLocaleString("pt-BR")})`}
-              </span>
-            </TabsTrigger>
-            {errors.length > 0 && (
-              <TabsTrigger value="errors" className={appTabsTriggerClass}>
+        <h2
+          id="base-content-title"
+          className="font-display text-base font-semibold tracking-tight text-foreground"
+        >
+          Conteúdo da base
+        </h2>
+        {!browsable ? (
+          <ImportCallout tone="neutral" title="Detalhes indisponíveis">
+            A importação não foi concluída. Consulte o resumo da importação para ver o motivo.
+          </ImportCallout>
+        ) : (
+          <Tabs defaultValue="files" className="space-y-4">
+            <TabsList className={appTabsListClass}>
+              <TabsTrigger value="files" className={appTabsTriggerClass}>
                 <span className={appTabsLabelClass}>
-                  Erros ({errors.length.toLocaleString("pt-BR")})
+                  Arquivos ({version.files.length.toLocaleString("pt-BR")})
                 </span>
               </TabsTrigger>
-            )}
-          </TabsList>
+              <TabsTrigger value="codes" className={appTabsTriggerClass}>
+                <span className={appTabsLabelClass}>
+                  Registros vigentes
+                  {recordsQuery.isSuccess && ` (${currentCodes.length.toLocaleString("pt-BR")})`}
+                </span>
+              </TabsTrigger>
+              {errors.length > 0 && (
+                <TabsTrigger value="errors" className={appTabsTriggerClass}>
+                  <span className={appTabsLabelClass}>
+                    Erros ({errors.length.toLocaleString("pt-BR")})
+                  </span>
+                </TabsTrigger>
+              )}
+            </TabsList>
 
-          <TabsContent value="files" forceMount className="data-[state=inactive]:hidden">
-            <FilesTab
-              version={version}
-              recordsPerFile={recordsQuery.isSuccess ? recordsPerFile : null}
-            />
-          </TabsContent>
-          <TabsContent value="codes" forceMount className="data-[state=inactive]:hidden space-y-3">
-            {recordsQuery.isPending ? (
-              <TableSkeleton rows={5} columns={5} />
-            ) : recordsQuery.isError ? (
-              <ErrorState
-                title="Não foi possível carregar os códigos"
-                description="Tente novamente em alguns instantes."
-                onRetry={() => void recordsQuery.refetch()}
-              />
-            ) : (
-              <CodesTab
+            <TabsContent value="files" forceMount className="data-[state=inactive]:hidden">
+              <FilesTab
                 version={version}
-                records={currentCodes}
-                fields={orderCodeFields(
-                  (recordsQuery.data?.fields ?? []).filter((field) => field !== "ean"),
-                )}
-              />
-            )}
-          </TabsContent>
-          {errors.length > 0 && (
-            <TabsContent value="errors" forceMount className="data-[state=inactive]:hidden">
-              <ErrorsTab
-                rows={errors}
-                multi={multi}
-                fileNames={version.files.map((file) => file.name)}
+                recordsPerFile={recordsQuery.isSuccess ? recordsPerFile : null}
               />
             </TabsContent>
-          )}
-        </Tabs>
-      )}
+            <TabsContent
+              value="codes"
+              forceMount
+              className="data-[state=inactive]:hidden space-y-3"
+            >
+              {recordsQuery.isPending ? (
+                <TableSkeleton rows={5} columns={5} />
+              ) : recordsQuery.isError ? (
+                <ErrorState
+                  title="Não foi possível carregar os códigos"
+                  description="Tente novamente em alguns instantes."
+                  onRetry={() => void recordsQuery.refetch()}
+                />
+              ) : (
+                <CodesTab
+                  version={version}
+                  records={currentCodes}
+                  fields={orderCodeFields(
+                    (recordsQuery.data?.fields ?? []).filter((field) => field !== "ean"),
+                  )}
+                />
+              )}
+            </TabsContent>
+            {errors.length > 0 && (
+              <TabsContent value="errors" forceMount className="data-[state=inactive]:hidden">
+                <ErrorsTab
+                  rows={errors}
+                  multi={multi}
+                  fileNames={version.files.map((file) => file.name)}
+                />
+              </TabsContent>
+            )}
+          </Tabs>
+        )}
       </section>
     </div>
   );
