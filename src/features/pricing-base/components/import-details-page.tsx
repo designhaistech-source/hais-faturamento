@@ -451,7 +451,7 @@ function FilesTab({
           <DataTableRoot>
             <DataTableHeader>
               <tr>
-                <DataTableHead className="w-full">Arquivo</DataTableHead>
+                <DataTableHead>Arquivo</DataTableHead>
                 <DataTableHead className="whitespace-nowrap">Data</DataTableHead>
                 <DataTableHead className="text-right">Registros</DataTableHead>
                 <DataTableHead className="text-right">Ações</DataTableHead>
@@ -464,7 +464,7 @@ function FilesTab({
                 return (
                   <DataTableRow key={file.path}>
                     <DataTableCell>
-                      <span className="block min-w-48 break-all">{file.name}</span>
+                      <span className="block min-w-40 break-all">{file.name}</span>
                     </DataTableCell>
                     <DataTableCell className="whitespace-nowrap">
                       {formatVersionDateTime(file.addedAt ?? version.createdAt)}

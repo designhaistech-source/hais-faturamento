@@ -463,7 +463,7 @@ export function PricingBasePage() {
                         Histórico de versões
                       </h2>
                       <DataTable>
-                        <DataTableDesktop>
+                        <DataTableDesktop breakpoint="xl">
                           <DataTableRoot>
                             <DataTableHeader>
                               <tr>
@@ -515,7 +515,7 @@ export function PricingBasePage() {
                           </DataTableRoot>
                         </DataTableDesktop>
 
-                        <DataTableCardList divided>
+                        <DataTableCardList breakpoint="xl" divided>
                           {paginatedVersions.map((version) => (
                             <DataTableCard key={version.id} flat className="space-y-1.5 py-2.5">
                               <DataTableCardHeader
