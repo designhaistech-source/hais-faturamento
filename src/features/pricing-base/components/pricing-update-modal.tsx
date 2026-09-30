@@ -45,10 +45,13 @@ export function PricingUpdateModal({
   const [fileProblem, setFileProblem] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
 
-  const available = INCREMENTAL_UPDATE_BASE_TYPES.filter((type) => currentVersions.has(type));
-  const options: SelectOption[] = available.map((type) => ({
+  // Todos os tipos incrementais aparecem; sem versão atual a opção fica indisponível.
+  const options: SelectOption[] = INCREMENTAL_UPDATE_BASE_TYPES.map((type) => ({
     value: type,
-    label: pricingBaseTypeLabel(type),
+    label: currentVersions.has(type)
+      ? pricingBaseTypeLabel(type)
+      : `${pricingBaseTypeLabel(type)} (sem versão atual)`,
+    disabled: !currentVersions.has(type),
   }));
   const target = baseType === "" ? undefined : currentVersions.get(baseType);
   const canSubmit = target !== undefined && file !== null;
@@ -137,116 +140,100 @@ export function PricingUpdateModal({
           id="pricing-update-base-type"
           label="Tipo da base"
           required
-          placeholder={
-            options.length > 0 ? "Selecione o tipo da base" : "Nenhuma base com versão atual"
-          }
+          placeholder="Selecione o tipo da base"
           options={options}
-          disabled={options.length === 0}
           triggerClassName="text-base/normal sm:text-sm/normal [&>span]:line-clamp-none [&>span]:block [&>span]:truncate"
           value={baseType === "" ? undefined : baseType}
           error={baseTypeError}
-          hint={
-            options.length === 0
-              ? "Cadastre uma versão concluída de uma base que aceite atualização."
-              : undefined
-          }
           onValueChange={(value) => {
             setBaseTypeTouched(true);
             setBaseType(value as PricingBaseType);
           }}
         />
 
-        {target && (
-          <>
-            <Field
+        <Field
+          id="pricing-update-file"
+          label="Arquivo de atualização"
+          required
+          error={fileError}
+          hint="CSV ou TXT • Máx. 10 MB"
+          injectChildProps={false}
+        >
+          <div className="min-w-0" {...dropHandlers}>
+            <input
+              ref={inputRef}
               id="pricing-update-file"
-              label="Arquivo de atualização"
-              required
-              error={fileError}
-              hint="CSV ou TXT • Máx. 10 MB"
-              injectChildProps={false}
-            >
-              <div className="min-w-0" {...dropHandlers}>
-                <input
-                  ref={inputRef}
-                  id="pricing-update-file"
-                  type="file"
-                  accept=".csv,.txt,text/csv,text/plain"
-                  className="sr-only"
-                  onChange={(event) => select(event.target.files?.[0] ?? null)}
-                />
-                {file ? (
-                  <div
-                    className={cn(
-                      "flex min-w-0 flex-wrap items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-3 transition-colors",
-                      dragActive && "border-primary bg-primary-muted",
-                    )}
-                  >
-                    <Paperclip
-                      className="size-4 shrink-0 text-muted-foreground"
-                      aria-hidden="true"
-                    />
-                    <span
-                      className="min-w-0 flex-1 truncate text-sm text-foreground"
-                      title={file.name}
-                    >
-                      {file.name}
-                    </span>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => inputRef.current?.click()}
-                      >
-                        Substituir
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => select(null)}
-                      >
-                        <Trash2 className="size-4" aria-hidden="true" />
-                        Remover
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div
-                    className={cn(
-                      "flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-6 text-center transition-colors",
-                      dragActive && "border-primary bg-primary-muted",
-                    )}
-                  >
-                    <Upload className="size-5 text-muted-foreground" aria-hidden="true" />
-                    <p className="text-sm text-muted-foreground">Arraste e solte o arquivo aqui</p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => inputRef.current?.click()}
-                    >
-                      Selecionar arquivo
-                    </Button>
-                  </div>
+              type="file"
+              accept=".csv,.txt,text/csv,text/plain"
+              className="sr-only"
+              onChange={(event) => select(event.target.files?.[0] ?? null)}
+            />
+            {file ? (
+              <div
+                className={cn(
+                  "flex min-w-0 flex-wrap items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-3 transition-colors",
+                  dragActive && "border-primary bg-primary-muted",
                 )}
+              >
+                <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <span className="min-w-0 flex-1 truncate text-sm text-foreground" title={file.name}>
+                  {file.name}
+                </span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => inputRef.current?.click()}
+                  >
+                    Substituir
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => select(null)}
+                  >
+                    <Trash2 className="size-4" aria-hidden="true" />
+                    Remover
+                  </Button>
+                </div>
               </div>
-            </Field>
+            ) : (
+              <div
+                className={cn(
+                  "flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-6 text-center transition-colors",
+                  dragActive && "border-primary bg-primary-muted",
+                )}
+              >
+                <Upload className="size-5 text-muted-foreground" aria-hidden="true" />
+                <p className="text-sm text-muted-foreground">Arraste e solte o arquivo aqui</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => inputRef.current?.click()}
+                >
+                  Selecionar arquivo
+                </Button>
+              </div>
+            )}
+          </div>
+        </Field>
 
-            <div className="flex items-start gap-3 rounded-xl border border-info/30 bg-info-muted px-4 py-3">
-              <Info className="mt-0.5 size-4 shrink-0 text-info-strong" aria-hidden="true" />
-              <div className="min-w-0 space-y-0.5">
-                <p className="text-sm font-medium text-foreground">
-                  {`Atualização da ${pricingBaseTypeLabel(target.baseType)}`}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {`O arquivo será adicionado aos arquivos que compõem a versão atual da ${pricingBaseTypeLabel(target.baseType)}. Não será criada uma nova versão.`}
-                </p>
-              </div>
+        {target && (
+          <div className="flex items-start gap-3 rounded-xl border border-info/30 bg-info-muted px-4 py-3">
+            <Info className="mt-0.5 size-4 shrink-0 text-info-strong" aria-hidden="true" />
+            <div className="min-w-0 space-y-0.5">
+              <p className="text-sm font-medium text-foreground">
+                {`Atualização da ${pricingBaseTypeLabel(target.baseType)}`}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {`O arquivo será adicionado aos arquivos que compõem a versão atual da ${pricingBaseTypeLabel(target.baseType)}. Não será criada uma nova versão.`}
+              </p>
             </div>
-          </>
+          </div>
         )}
       </form>
     </div>

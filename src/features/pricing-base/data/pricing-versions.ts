@@ -80,7 +80,7 @@ export interface NewPricingVersionInput {
  * Base types that accept incremental updates (a file added to the current version).
  * Add new types here to enable them in the update flow.
  */
-export const INCREMENTAL_UPDATE_BASE_TYPES: readonly PricingBaseType[] = ["simpro"];
+export const INCREMENTAL_UPDATE_BASE_TYPES: readonly PricingBaseType[] = ["simpro", "cbhpm"];
 
 /** Base types whose version may be split across several files. */
 export function allowsMultipleFiles(type: PricingBaseType | ""): boolean {
