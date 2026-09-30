@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -59,10 +59,8 @@ import {
   type AmendmentExtractionStatus,
   type ContractAmendment,
 } from "../data/contract-amendments-service";
-import { ActionIcon } from "@/components/action-icons";
 import { appTabsLabelClass, appTabsListClass, appTabsTriggerClass } from "@/components/app-tabs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ContractExtractedDataModal } from "./contract-extracted-data-modal";
 import type { ContractRulesDisplayStatus } from "../data/contract-rules";
 import {
   contractRulesStatusQueryKey,
@@ -74,7 +72,14 @@ import { ContractRulesStatusBadge } from "./contract-rules-status-badge";
 import { ContractRulesList } from "./contract-rules-list";
 import { NewAmendmentModal } from "./new-amendment-modal";
 
-const COLUMNS = ["Aditivo", "Cadastrado por", "Data do cadastro", "Status da extração", "Ações"];
+const COLUMNS = [
+  "Arquivo",
+  "Tipo",
+  "Cadastrado por",
+  "Data do cadastro",
+  "Status da extração",
+  "Ações",
+];
 
 const STATUS_CONFIG = {
   available: { tone: "success", icon: CircleCheck, label: "Concluída" },
@@ -165,7 +170,7 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
     queryKey,
     queryFn: () => listContractAmendments(contract.id),
   });
-  const amendments = amendmentsQuery.data ?? [];
+  const amendments = useMemo(() => amendmentsQuery.data ?? [], [amendmentsQuery.data]);
   const rulesStatusQuery = useQuery({
     queryKey: contractRulesStatusQueryKey,
     queryFn: listContractRulesStatuses,
@@ -176,7 +181,6 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
     (rulesStatusQuery.data ? (rulesStatusQuery.data[contract.id] ?? "not_extracted") : null);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [rulesOpen, setRulesOpen] = useState(false);
   const [preview, setPreview] = useState<Contract | null>(null);
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState("");
@@ -184,18 +188,46 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
+  const files = useMemo<FileRow[]>(
+    () => [
+      {
+        id: contract.id,
+        name: contract.file.name,
+        kind: "Contrato original",
+        createdBy: "—",
+        createdAt: contract.createdAt,
+        status: <ContractRulesStatusBadge status={rulesStatus} />,
+        file: contract.file,
+        onView: () => setPreview(contract),
+      },
+      ...amendments.map<FileRow>((item) => ({
+        id: item.id,
+        name: item.file.name,
+        kind: "Aditivo",
+        createdBy: item.createdBy,
+        createdAt: item.createdAt,
+        status: <AmendmentStatusBadge status={item.extractionStatus} />,
+        file: item.file,
+        onView: () => setPreview(amendmentAsContractFile(item, contract.company)),
+      })),
+    ],
+    [contract, amendments, rulesStatus],
+  );
+
   const activeCount = [search.trim() !== "", from !== "", to !== ""].filter(Boolean).length;
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return amendments.filter((item) => {
-      if (term && !item.file.name.toLowerCase().includes(term)) return false;
+    return files.filter((item) => {
+      if (term && !item.name.toLowerCase().includes(term)) return false;
+      if ((from || to) && !item.createdAt) return false;
+      if (!item.createdAt) return true;
       const day = toLocalIsoDate(new Date(item.createdAt));
       if (from && day < from) return false;
       if (to && day > to) return false;
       return true;
     });
-  }, [amendments, search, from, to]);
+  }, [files, search, from, to]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -265,44 +297,10 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
   return (
     <div className="space-y-6">
       <SurfaceCard padding="md">
-        <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-5">
+        <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { label: "Prestador", value: contract.company },
             { label: "CNPJ", value: <span className="font-mono">{contract.cnpj || "—"}</span> },
-            {
-              label: "Contrato",
-              value: (
-                <div className="flex min-w-0 items-center gap-1">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="min-w-0 truncate">{contract.file.name}</span>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-sm break-all">
-                      {contract.file.name}
-                    </TooltipContent>
-                  </Tooltip>
-                  <div className="-my-2 inline-flex shrink-0 items-center gap-1">
-                    <IconAction
-                      label="Visualizar contrato"
-                      icon={ActionIcon.viewOriginal}
-                      onClick={() => setPreview(contract)}
-                    />
-                    {rulesStatus === "available" && (
-                      <IconAction
-                        label="Ver dados extraídos"
-                        icon={ActionIcon.inspectProcessing}
-                        onClick={() => setRulesOpen(true)}
-                      />
-                    )}
-                    <IconAction
-                      label="Baixar contrato"
-                      icon={ActionIcon.download}
-                      onClick={() => void downloadFile(contract.file)}
-                    />
-                  </div>
-                </div>
-              ),
-            },
             { label: "Validade", value: formatIsoToBr(contract.validUntil) || "—" },
             {
               label: "Status da extração",
@@ -322,10 +320,10 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
           <TabsTrigger value="extracted" className={appTabsTriggerClass}>
             <span className={appTabsLabelClass}>Dados extraídos</span>
           </TabsTrigger>
-          <TabsTrigger value="amendments" className={appTabsTriggerClass}>
+          <TabsTrigger value="files" className={appTabsTriggerClass}>
             <span className={appTabsLabelClass}>
-              Aditivos contratuais
-              {amendmentsQuery.data ? ` (${amendments.length.toLocaleString("pt-BR")})` : ""}
+              Arquivos
+              {amendmentsQuery.data ? ` (${files.length.toLocaleString("pt-BR")})` : ""}
             </span>
           </TabsTrigger>
         </TabsList>
@@ -342,16 +340,12 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
           )}
         </TabsContent>
 
-        <TabsContent
-          value="amendments"
-          forceMount
-          className="space-y-4 data-[state=inactive]:hidden"
-        >
+        <TabsContent value="files" forceMount className="space-y-4 data-[state=inactive]:hidden">
           <div className="flex justify-end">{addButton}</div>
 
           {amendmentsQuery.isPending ? (
             <SurfaceCard padding="none">
-              <TableSkeleton rows={3} columns={5} />
+              <TableSkeleton rows={3} columns={6} />
             </SurfaceCard>
           ) : amendmentsQuery.isError ? (
             <SurfaceCard padding="md">
@@ -361,13 +355,6 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
                 onRetry={() => void amendmentsQuery.refetch()}
               />
             </SurfaceCard>
-          ) : amendments.length === 0 ? (
-            <EmptyStateCard
-              icon={<FileText className="size-10" aria-hidden="true" />}
-              title="Nenhum aditivo cadastrado"
-              description="Adicione um aditivo para vinculá-lo a este contrato."
-              action={addButton}
-            />
           ) : (
             <>
               <FilterCard
@@ -430,7 +417,7 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
               {filtered.length === 0 ? (
                 <EmptyStateCard
                   icon={<FileText className="size-10" aria-hidden="true" />}
-                  title="Nenhum aditivo encontrado"
+                  title="Nenhum arquivo encontrado"
                   description="Ajuste a busca ou o período de cadastro para ver outros resultados."
                   action={
                     <Button type="button" variant="outline" onClick={clearFilters}>
@@ -458,22 +445,18 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
                         {paginated.map((item) => (
                           <DataTableRow key={item.id}>
                             <DataTableCell className="max-w-72 font-medium">
-                              <span className="block truncate" title={item.file.name}>
-                                {item.file.name}
+                              <span className="block truncate" title={item.name}>
+                                {item.name}
                               </span>
                             </DataTableCell>
+                            <DataTableCell>{item.kind}</DataTableCell>
                             <DataTableCell>{item.createdBy}</DataTableCell>
-                            <DataTableCell>{formatDateTime(item.createdAt)}</DataTableCell>
                             <DataTableCell>
-                              <AmendmentStatusBadge status={item.extractionStatus} />
+                              {item.createdAt ? formatDateTime(item.createdAt) : "—"}
                             </DataTableCell>
+                            <DataTableCell>{item.status}</DataTableCell>
                             <DataTableCell className="text-right">
-                              <AmendmentActions
-                                amendment={item}
-                                onView={() =>
-                                  setPreview(amendmentAsContractFile(item, contract.company))
-                                }
-                              />
+                              <FileActions row={item} />
                             </DataTableCell>
                           </DataTableRow>
                         ))}
@@ -485,33 +468,29 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
                     {paginated.map((item) => (
                       <DataTableCard key={item.id} flat className="space-y-1.5 py-2.5">
                         <DataTableCardHeader
-                          title={<span className="min-w-0 truncate">{item.file.name}</span>}
+                          title={<span className="min-w-0 truncate">{item.name}</span>}
                         />
                         <DataTableCardFields
                           className="gap-x-4 gap-y-1"
                           fields={[
+                            { label: "Tipo", value: item.kind },
                             { label: "Cadastrado por", value: item.createdBy },
-                            { label: "Data do cadastro", value: formatDateTime(item.createdAt) },
                             {
-                              label: "Status da extração",
-                              value: <AmendmentStatusBadge status={item.extractionStatus} />,
+                              label: "Data do cadastro",
+                              value: item.createdAt ? formatDateTime(item.createdAt) : "—",
                             },
+                            { label: "Status da extração", value: item.status },
                           ]}
                         />
                         <DataTableCardActions className="-mt-0.5 justify-end">
-                          <AmendmentActions
-                            amendment={item}
-                            onView={() =>
-                              setPreview(amendmentAsContractFile(item, contract.company))
-                            }
-                          />
+                          <FileActions row={item} />
                         </DataTableCardActions>
                       </DataTableCard>
                     ))}
                   </DataTableCardList>
 
                   <TablePagination
-                    id="amendments"
+                    id="contract-files"
                     totalItems={filtered.length}
                     page={currentPage}
                     pageSize={pageSize}
@@ -544,36 +523,7 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
         }}
         onDownload={(item) => void downloadFile(item.file)}
       />
-
-      <ContractExtractedDataModal
-        contract={rulesOpen ? contract : null}
-        open={rulesOpen}
-        status={rulesStatus}
-        showDetailsLink={false}
-        onOpenChange={setRulesOpen}
-      />
     </div>
-  );
-}
-
-function IconAction({
-  label,
-  icon: Icon,
-  onClick,
-}: {
-  label: string;
-  icon: LucideIcon;
-  onClick: () => void;
-}) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button type="button" variant="ghost" size="icon" aria-label={label} onClick={onClick}>
-          <Icon className="size-4" aria-hidden="true" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
-    </Tooltip>
   );
 }
 
@@ -582,13 +532,19 @@ function AmendmentStatusBadge({ status }: { status: AmendmentExtractionStatus })
   return <StatusBadge tone={tone} icon={icon} label={label} spinning={status === "extracting"} />;
 }
 
-function AmendmentActions({
-  amendment,
-  onView,
-}: {
-  amendment: ContractAmendment;
+interface FileRow {
+  id: string;
+  name: string;
+  kind: "Contrato original" | "Aditivo";
+  createdBy: string;
+  createdAt?: string;
+  status: ReactNode;
+  file: { path: string; name: string };
   onView: () => void;
-}) {
+}
+
+function FileActions({ row }: { row: FileRow }) {
+  const noun = row.kind === "Aditivo" ? "aditivo" : "contrato";
   return (
     <div className="inline-flex items-center gap-1">
       <Tooltip>
@@ -597,13 +553,13 @@ function AmendmentActions({
             type="button"
             variant="ghost"
             size="icon"
-            aria-label={`Visualizar aditivo ${amendment.file.name}`}
-            onClick={onView}
+            aria-label={`Visualizar ${noun} ${row.name}`}
+            onClick={row.onView}
           >
             <Eye className="size-4" aria-hidden="true" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Visualizar aditivo</TooltipContent>
+        <TooltipContent>Visualizar {noun}</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
@@ -611,13 +567,13 @@ function AmendmentActions({
             type="button"
             variant="ghost"
             size="icon"
-            aria-label={`Baixar aditivo ${amendment.file.name}`}
-            onClick={() => void downloadFile(amendment.file)}
+            aria-label={`Baixar ${noun} ${row.name}`}
+            onClick={() => void downloadFile(row.file)}
           >
             <Download className="size-4" aria-hidden="true" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Baixar aditivo</TooltipContent>
+        <TooltipContent>Baixar {noun}</TooltipContent>
       </Tooltip>
     </div>
   );
