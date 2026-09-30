@@ -68,7 +68,8 @@ import {
 } from "../data/contract-rules-service";
 import { useContractExtractionStates } from "../data/contract-extraction";
 import { ContractPreviewModal } from "./contract-preview-modal";
-import { ContractRulesStatusBadge } from "./contracts-page";
+import { ContractRulesStatusBadge } from "./contract-rules-status-badge";
+import { ContractRulesList } from "./contract-rules-list";
 import { NewAmendmentModal } from "./new-amendment-modal";
 
 const COLUMNS = ["Aditivo", "Cadastrado por", "Data do cadastro", "Status da extração", "Ações"];
