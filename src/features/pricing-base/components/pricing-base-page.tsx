@@ -463,7 +463,7 @@ export function PricingBasePage() {
                         Histórico de versões
                       </h2>
                       <DataTable>
-                        <DataTableDesktop>
+                        <DataTableDesktop breakpoint="lg">
                           <DataTableRoot>
                             <DataTableHeader>
                               <tr>
@@ -482,8 +482,8 @@ export function PricingBasePage() {
                                 return (
                                   <Fragment key={version.id}>
                                     <DataTableRow>
-                                      <DataTableCell className="max-w-96">
-                                        <div className="flex min-w-0 items-center gap-2">
+                                      <DataTableCell>
+                                        <div className="flex min-w-0 max-w-60 2xl:max-w-96 items-center gap-2">
                                           <VersionFileName version={version} />
                                           {currentVersionIds.has(version.id) && <CurrentBadge />}
                                         </div>
@@ -515,7 +515,7 @@ export function PricingBasePage() {
                           </DataTableRoot>
                         </DataTableDesktop>
 
-                        <DataTableCardList divided>
+                        <DataTableCardList breakpoint="lg" divided>
                           {paginatedVersions.map((version) => (
                             <DataTableCard key={version.id} flat className="space-y-1.5 py-2.5">
                               <DataTableCardHeader
