@@ -174,7 +174,7 @@ export function NewPricingVersionModal({
             label="Arquivos"
             required
             error={fileError}
-            hint="Um ou mais arquivos CSV ou TXT • Máx. 10 MB por arquivo"
+            hint="CSV ou TXT • Máx. 10 MB"
             injectChildProps={false}
           >
             <div className="min-w-0 space-y-2">
@@ -267,7 +267,7 @@ export function NewPricingVersionModal({
         ) : (
           <Field
             id="pricing-version-file"
-            label="Arquivo CSV ou TXT"
+            label="Arquivo"
             required
             error={fileError}
             hint="CSV ou TXT • Máx. 10 MB"

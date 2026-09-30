@@ -47,7 +47,7 @@ export function AddPricingBaseModal({
   const operationPicker = (
     <fieldset className="min-w-0 space-y-2">
       <legend className="mb-2 text-sm font-medium text-foreground">
-        O que deseja adicionar?{" "}
+        Tipo de cadastro{" "}
         <span className="text-destructive" aria-hidden="true">
           *
         </span>
@@ -74,7 +74,7 @@ export function AddPricingBaseModal({
     <AppModal
       open={open}
       onOpenChange={handleOpenChange}
-      title="Adicionar base de precificação"
+      title="Adicionar à base de precificação"
       description="Cadastre uma nova versão ou adicione uma atualização a uma base existente."
       icon={<Database className="size-5" aria-hidden="true" />}
       unstyledBody
