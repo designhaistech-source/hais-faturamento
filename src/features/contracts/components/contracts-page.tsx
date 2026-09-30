@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CircleAlert,
   CircleCheck,
+  ClipboardList,
   Download,
   Eye,
   EyeOff,
@@ -671,6 +672,22 @@ function ContractActions({
           <TooltipContent>Ver dados extraídos</TooltipContent>
         </Tooltip>
       )}
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            aria-label={`Ver detalhes do contrato de ${contract.company}`}
+          >
+            <Link to="/contratos/$contractId" params={{ contractId: contract.id }}>
+              <ClipboardList className="size-4" aria-hidden="true" />
+            </Link>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Ver detalhes do contrato</TooltipContent>
+      </Tooltip>
 
       <Tooltip>
         <TooltipTrigger asChild>

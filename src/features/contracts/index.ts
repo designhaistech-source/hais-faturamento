@@ -1,3 +1,4 @@
+export { ContractDetailsPage } from "./components/contract-details-page";
 export { ContractsPage } from "./components/contracts-page";
 export { ContractExtractedDataModal } from "./components/contract-extracted-data-modal";
 export type { Contract, ContractFile, NewContractInput } from "./data/contracts";

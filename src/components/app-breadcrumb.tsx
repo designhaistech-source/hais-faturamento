@@ -40,11 +40,14 @@ export function AppBreadcrumb({ className }: { className?: string }) {
   // Página de detalhe: Início > Análise de faturamento > Detalhes da análise.
   const isAnalysisDetail = normalized.startsWith("/analise-faturamento/");
   const isPricingDetail = normalized.startsWith("/base-precificacao/");
+  const isContractDetail = normalized.startsWith("/contratos/");
   const meta = isAnalysisDetail
     ? { label: normalized.endsWith("/resultado") ? "Resultado da análise" : "Detalhes da análise" }
     : isPricingDetail
       ? { label: "Detalhes da importação" }
-      : ROUTE_META[normalized];
+      : isContractDetail
+        ? { label: "Detalhes do contrato" }
+        : ROUTE_META[normalized];
 
   if (!meta || normalized === "/") return null;
 
@@ -83,6 +86,18 @@ export function AppBreadcrumb({ className }: { className?: string }) {
               <BreadcrumbLink asChild>
                 <Link to="/base-precificacao" className="transition-colors hover:text-foreground">
                   Base de precificação
+                </Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator className="shrink-0" />
+          </>
+        )}
+        {isContractDetail && (
+          <>
+            <BreadcrumbItem className="shrink-0">
+              <BreadcrumbLink asChild>
+                <Link to="/contratos" className="transition-colors hover:text-foreground">
+                  Contratos
                 </Link>
               </BreadcrumbLink>
             </BreadcrumbItem>

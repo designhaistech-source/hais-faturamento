@@ -41,7 +41,8 @@ function sanitizeFileName(name: string): string {
     .replace(/[^a-zA-Z0-9._-]+/g, "-");
 }
 
-const COLUMNS = "id, contract_id, file_name, file_path, file_type, created_by, created_at, extraction_status";
+const COLUMNS =
+  "id, contract_id, file_name, file_path, file_type, created_by, created_at, extraction_status";
 
 type Row = {
   id: string;
