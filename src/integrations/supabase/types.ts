@@ -171,6 +171,47 @@ export type Database = {
           },
         ]
       }
+      contract_amendments: {
+        Row: {
+          contract_id: string
+          created_at: string
+          created_by: string
+          extraction_status: string
+          file_name: string
+          file_path: string
+          file_type: string
+          id: string
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          created_by: string
+          extraction_status?: string
+          file_name: string
+          file_path: string
+          file_type?: string
+          id?: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          created_by?: string
+          extraction_status?: string
+          file_name?: string
+          file_path?: string
+          file_type?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_amendments_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_rules: {
         Row: {
           adjustment_percent: number
