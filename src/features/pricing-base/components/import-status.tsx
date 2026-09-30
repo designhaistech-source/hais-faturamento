@@ -1,40 +1,29 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import type { ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   Ban,
   CircleCheck,
   CircleX,
   FileWarning,
+  Files,
   Info,
-  Paperclip,
   TriangleAlert,
   type LucideIcon,
 } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
-import { ErrorState, TableSkeleton } from "@/components/data-state";
-import {
-  DataTable,
-  DataTableBody,
-  DataTableCell,
-  DataTableHead,
-  DataTableHeader,
-  DataTableRoot,
-  DataTableRow,
-} from "@/components/data-table";
 import { StatusBadge, type StatusTone } from "@/components/status-badge";
-import { TablePagination } from "@/components/table-pagination";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
+import { IMPORT_STATUS_LABEL, type ImportStatus } from "../data/pricing-import";
 import {
-  IMPORT_STATUS_LABEL,
-  importFieldLabel,
-  parsePricingImportSet,
-  type ImportStatus,
-} from "../data/pricing-import";
-import { pricingBaseTypeLabel, type PricingVersion } from "../data/pricing-versions";
-import { downloadPricingVersionBlob } from "../data/pricing-versions-service";
+  formatVersionDateTime,
+  hasBrowsableDetails,
+  lastUpdateAt,
+  pricingBaseTypeLabel,
+  type PricingVersion,
+} from "../data/pricing-versions";
 
 const STATUS_VISUAL: Record<ImportStatus, { tone: StatusTone; icon: LucideIcon }> = {
   COMPLETED: { tone: "success", icon: CircleCheck },
@@ -53,111 +42,23 @@ export function ImportStatusBadge({ status }: { status: ImportStatus | null }) {
   return <StatusBadge tone={visual.tone} icon={visual.icon} label={IMPORT_STATUS_LABEL[status]} />;
 }
 
-const PAGE_SIZE = 20;
-
 const BLOCKING_TITLE: Partial<Record<ImportStatus, string>> = {
   FAILED: "A importação falhou",
   NOT_SUPPORTED: "Arquivo não suportado",
   INVALID_FORMAT: "Formato inválido",
 };
 
-interface ImportDetailsModalProps {
-  version: PricingVersion | null;
-  onOpenChange: (open: boolean) => void;
-}
-
-/** Mesmo modal para todos os status; só o conteúdo central muda. */
-export function ImportDetailsModal({ version, onOpenChange }: ImportDetailsModalProps) {
-  return (
-    <AppModal
-      open={version !== null}
-      onOpenChange={onOpenChange}
-      title="Detalhes da importação"
-      description={
-        version
-          ? version.files.length > 1
-            ? `${version.file.name} +${version.files.length - 1} ${version.files.length === 2 ? "arquivo" : "arquivos"}`
-            : version.file.name
-          : undefined
-      }
-      size="lg"
-      footer={
-        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-          Fechar
-        </Button>
-      }
-    >
-      {version && <ImportDetailsContent key={version.id} version={version} />}
-    </AppModal>
-  );
-}
-
-function ImportDetailsContent({ version }: { version: PricingVersion }) {
-  if (version.files.length <= 1) return <ImportDetailsBody version={version} />;
-  return (
-    <div className="space-y-4">
-      <section aria-labelledby="pricing-import-files" className="space-y-2">
-        <h3 id="pricing-import-files" className="text-sm font-medium text-foreground">
-          {version.files.length} arquivos nesta importação
-        </h3>
-        <ul className="divide-y divide-border rounded-xl border border-border">
-          {version.files.map((file) => (
-            <li key={file.path} className="flex min-w-0 items-center gap-3 px-3 py-2">
-              <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-              <span className="min-w-0 flex-1 break-all text-sm text-foreground">{file.name}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-      <ImportDetailsBody version={version} />
-    </div>
-  );
-}
-
 /** Versões antigas gravaram o status no início do motivo; o título do callout já o comunica. */
-function importReason(problem: string | null): string {
+export function importReason(problem: string | null): string {
   if (!problem) return "Motivo não informado.";
-  const reason = problem
+  return problem
     .replace(/^((?:[^:]+: )?)Layout não suportado: c/, "$1C")
     .replace(/^((?:[^:]+: )?)Layout SIMPRO não reconhecido\. /, "$1");
-  return reason;
 }
 
-function lineLabel(line: number, file: string | undefined): string {
+/** "arquivo.csv · linha 3" em versões com vários arquivos; só o número caso contrário. */
+export function lineLabel(line: number, file: string | undefined): string {
   return file ? `${file} · linha ${line}` : String(line);
-}
-
-function ImportDetailsBody({ version }: { version: PricingVersion }) {
-  if (!version.detailsAvailable || version.importStatus === null) {
-    return (
-      <Alert>
-        <Info className="size-4" aria-hidden="true" />
-        <AlertTitle>Detalhes da importação indisponíveis</AlertTitle>
-        <AlertDescription>
-          Esta versão foi cadastrada antes da disponibilização do detalhamento das importações.
-        </AlertDescription>
-      </Alert>
-    );
-  }
-  switch (version.importStatus) {
-    case "COMPLETED":
-      return <ImportedRecords version={version} />;
-    case "COMPLETED_WITH_ERRORS":
-      return <CompletedWithErrors version={version} />;
-    case "NOT_SUPPORTED":
-      // Neutro, como o badge: não é erro, apenas arquivo fora do suportado.
-      return (
-        <ImportCallout tone="neutral" title={BLOCKING_TITLE.NOT_SUPPORTED}>
-          {importReason(version.importProblem)}
-        </ImportCallout>
-      );
-    default:
-      return (
-        <ImportCallout tone="danger" title={BLOCKING_TITLE[version.importStatus]}>
-          {importReason(version.importProblem)}
-        </ImportCallout>
-      );
-  }
 }
 
 type CalloutTone = "warning" | "neutral" | "danger";
@@ -169,14 +70,14 @@ const CALLOUT_ICON: Record<CalloutTone, LucideIcon> = {
 };
 
 /** Callout único dos resultados da importação: fundo tonal, borda sutil, ícone, título e descrição. */
-function ImportCallout({
+export function ImportCallout({
   tone,
   title,
   children,
 }: {
   tone: CalloutTone;
   title?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const Icon = CALLOUT_ICON[tone];
   return (
@@ -188,209 +89,122 @@ function ImportCallout({
   );
 }
 
-function usePage(total: number) {
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(PAGE_SIZE);
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const current = Math.min(page, totalPages);
-  return {
-    page: current,
-    setPage,
-    pageSize,
-    onPageSizeChange: (size: number) => {
-      setPageSize(size);
-      setPage(1);
-    },
-    start: (current - 1) * pageSize,
-  };
+function count(value: number | null | undefined): string {
+  return value === null || value === undefined ? "—" : value.toLocaleString("pt-BR");
 }
 
-function ImportedRecords({
-  version,
-  hideSummary = false,
-}: {
-  version: PricingVersion;
-  hideSummary?: boolean;
-}) {
-  const query = useQuery({
-    queryKey: ["pricing-version-records", version.id],
-    queryFn: async () => {
-      const parts = await Promise.all(
-        version.files.map(async (file) => ({
-          name: file.name,
-          content: await (await downloadPricingVersionBlob(file.path)).text(),
-        })),
-      );
-      return parsePricingImportSet(parts, version.baseType);
-    },
-    staleTime: Infinity,
-  });
-  const records = query.data?.records ?? [];
-  const { page, setPage, start, pageSize, onPageSizeChange } = usePage(records.length);
+/** Lista de pares rótulo/valor usada no resumo e no cabeçalho da página de detalhes. */
+export function SummaryList({ items }: { items: Array<{ label: string; value: ReactNode }> }) {
+  return (
+    <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+      {items.map((item) => (
+        <div key={item.label} className="min-w-0 space-y-0.5">
+          <dt className="text-xs font-medium text-muted-foreground">{item.label}</dt>
+          <dd className="break-words text-sm text-foreground">{item.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
 
-  if (query.isPending) return <TableSkeleton rows={5} columns={5} />;
-  if (query.isError) {
+interface ImportSummaryModalProps {
+  version: PricingVersion | null;
+  onOpenChange: (open: boolean) => void;
+}
+
+/** Visão resumida da importação; o detalhamento completo fica na página dedicada. */
+export function ImportSummaryModal({ version, onOpenChange }: ImportSummaryModalProps) {
+  const browsable = version !== null && hasBrowsableDetails(version);
+  return (
+    <AppModal
+      open={version !== null}
+      onOpenChange={onOpenChange}
+      title="Resumo da importação"
+      description={
+        version
+          ? version.files.length > 1
+            ? `${version.file.name} +${version.files.length - 1} ${version.files.length === 2 ? "arquivo" : "arquivos"}`
+            : version.file.name
+          : undefined
+      }
+      size="md"
+      footer={
+        <>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            Fechar
+          </Button>
+          {browsable && version && (
+            <Button asChild>
+              <Link to="/base-precificacao/$versionId" params={{ versionId: version.id }}>
+                <Files className="size-4" aria-hidden="true" />
+                Ver detalhes da importação
+              </Link>
+            </Button>
+          )}
+        </>
+      }
+    >
+      {version && <ImportSummaryBody version={version} />}
+    </AppModal>
+  );
+}
+
+function ImportSummaryBody({ version }: { version: PricingVersion }) {
+  if (version.importStatus === null) {
     return (
-      <ErrorState
-        title="Não foi possível carregar os registros"
-        description="Tente novamente em alguns instantes."
-        onRetry={() => void query.refetch()}
-      />
+      <Alert>
+        <Info className="size-4" aria-hidden="true" />
+        <AlertTitle>Detalhes da importação indisponíveis</AlertTitle>
+        <AlertDescription>
+          Esta versão foi cadastrada antes da disponibilização do detalhamento das importações.
+        </AlertDescription>
+      </Alert>
     );
   }
 
-  // EAN é usado só na validação; a listagem segue as colunas definidas para a base.
-  const fields = (query.data?.fields ?? []).filter((field) => field !== "ean");
-  // Sem colunas reconhecidas no cabeçalho, a linha é exibida como veio no arquivo.
-  const showRaw = fields.length === 0;
-
-  if (hideSummary && records.length === 0) {
-    return <p className="text-sm text-muted-foreground">Nenhum registro foi importado.</p>;
+  const status = version.importStatus;
+  const updatedAt = lastUpdateAt(version);
+  const items: Array<{ label: string; value: ReactNode }> = [
+    { label: "Status", value: <ImportStatusBadge status={status} /> },
+    { label: "Tipo da base", value: pricingBaseTypeLabel(version.baseType) },
+    { label: "Quantidade de arquivos", value: count(version.files.length) },
+  ];
+  if (status === "COMPLETED" || status === "COMPLETED_WITH_ERRORS") {
+    items.push({ label: "Registros importados", value: count(version.processedCount) });
+  }
+  if (status === "COMPLETED_WITH_ERRORS") {
+    items.push({
+      label: "Registros com erros",
+      value: count(version.errorCount ?? version.errorRows.length),
+    });
+  }
+  items.push(
+    { label: "Cadastrado por", value: version.createdBy },
+    { label: "Data do cadastro", value: formatVersionDateTime(version.createdAt) },
+  );
+  if (updatedAt) {
+    items.push({ label: "Última atualização", value: formatVersionDateTime(updatedAt) });
   }
 
   return (
-    <div className="space-y-3">
-      {!hideSummary && (
-        <p className="text-sm text-muted-foreground">
-          {records.length === 1
-            ? "1 registro importado."
-            : `${records.length.toLocaleString("pt-BR")} registros importados.`}
-        </p>
+    <div className="space-y-5">
+      {status === "NOT_SUPPORTED" && (
+        <ImportCallout tone="neutral" title={BLOCKING_TITLE.NOT_SUPPORTED}>
+          {importReason(version.importProblem)}
+        </ImportCallout>
       )}
-      <DataTable>
-        <div className="overflow-x-auto">
-          <DataTableRoot>
-            <DataTableHeader>
-              <tr>
-                <DataTableHead>Linha</DataTableHead>
-                {showRaw && <DataTableHead>Conteúdo da linha</DataTableHead>}
-                {fields.map((field) => (
-                  <DataTableHead
-                    key={field}
-                    className={field === "price" ? "text-right" : undefined}
-                  >
-                    {importFieldLabel(field, version.baseType)}
-                  </DataTableHead>
-                ))}
-              </tr>
-            </DataTableHeader>
-            <DataTableBody>
-              {records.slice(start, start + pageSize).map((record) => (
-                <DataTableRow key={`${record.file ?? ""}-${record.line}`}>
-                  <DataTableCell className="whitespace-nowrap font-mono text-xs">
-                    {lineLabel(record.line, record.file)}
-                  </DataTableCell>
-                  {showRaw && (
-                    <DataTableCell className="max-w-96 break-all font-mono text-xs">
-                      {record.content}
-                    </DataTableCell>
-                  )}
-                  {fields.map((field) => (
-                    <DataTableCell
-                      key={field}
-                      className={
-                        field === "description" ? undefined : "font-mono text-xs tabular-nums"
-                      }
-                    >
-                      <span className={field === "price" ? "block text-right" : undefined}>
-                        {record.values[field] || "—"}
-                      </span>
-                    </DataTableCell>
-                  ))}
-                </DataTableRow>
-              ))}
-            </DataTableBody>
-          </DataTableRoot>
-        </div>
-        {records.length > 10 && (
-          <TablePagination
-            id="pricing-import-records"
-            totalItems={records.length}
-            page={page}
-            pageSize={pageSize}
-            onPageChange={setPage}
-            onPageSizeChange={onPageSizeChange}
-            className="px-4 pb-4"
-          />
-        )}
-      </DataTable>
-    </div>
-  );
-}
-
-function CompletedWithErrors({ version }: { version: PricingVersion }) {
-  const errors = version.errorCount ?? version.errorRows.length;
-  const imported = version.processedCount ?? 0;
-  const total = errors + imported;
-  const importedText =
-    imported === 1 ? "1 foi importado" : `${imported.toLocaleString("pt-BR")} foram importados`;
-  const errorText =
-    errors === 1 ? "1 apresentou erro" : `${errors.toLocaleString("pt-BR")} apresentaram erro`;
-
-  return (
-    <div className="space-y-6">
-      <ImportCallout tone="warning" title="Base processada com erros">
-        {total === 1 ? "Do 1 registro" : `Dos ${total.toLocaleString("pt-BR")} registros`},{" "}
-        {importedText} e {errorText}. Por isso, esta versão não substituiu a versão atual de{" "}
-        {pricingBaseTypeLabel(version.baseType)}.
-      </ImportCallout>
-      <section aria-labelledby="pricing-import-ok" className="space-y-2">
-        <h3 id="pricing-import-ok" className="text-sm font-semibold text-foreground">
-          Registros importados ({imported.toLocaleString("pt-BR")})
-        </h3>
-        <ImportedRecords version={version} hideSummary />
-      </section>
-      <section aria-labelledby="pricing-import-err" className="space-y-2">
-        <h3 id="pricing-import-err" className="text-sm font-semibold text-foreground">
-          Registros com erros ({errors.toLocaleString("pt-BR")})
-        </h3>
-        <ErrorRows version={version} />
-      </section>
-    </div>
-  );
-}
-
-function ErrorRows({ version }: { version: PricingVersion }) {
-  const rows = version.errorRows;
-  const { page, setPage, start, pageSize, onPageSizeChange } = usePage(rows.length);
-
-  return (
-    <DataTable>
-      <div className="overflow-x-auto">
-        <DataTableRoot>
-          <DataTableHeader>
-            <tr>
-              <DataTableHead>Linha</DataTableHead>
-              <DataTableHead>Motivo</DataTableHead>
-              <DataTableHead>Conteúdo da linha</DataTableHead>
-            </tr>
-          </DataTableHeader>
-          <DataTableBody>
-            {rows.slice(start, start + pageSize).map((row) => (
-              <DataTableRow key={`${row.file ?? ""}-${row.line}`}>
-                <DataTableCell className="whitespace-nowrap font-mono text-xs align-top">
-                  {lineLabel(row.line, row.file)}
-                </DataTableCell>
-                <DataTableCell className="align-top">{row.reason}</DataTableCell>
-                <DataTableCell className="max-w-72 break-all align-top font-mono text-xs text-muted-foreground">
-                  {row.content}
-                </DataTableCell>
-              </DataTableRow>
-            ))}
-          </DataTableBody>
-        </DataTableRoot>
-      </div>
-      {rows.length > 10 && (
-        <TablePagination
-          id="pricing-import-errors"
-          totalItems={rows.length}
-          page={page}
-          pageSize={pageSize}
-          onPageChange={setPage}
-          onPageSizeChange={onPageSizeChange}
-          className="px-4 pb-4"
-        />
+      {(status === "INVALID_FORMAT" || status === "FAILED") && (
+        <ImportCallout tone="danger" title={BLOCKING_TITLE[status]}>
+          {importReason(version.importProblem)}
+        </ImportCallout>
       )}
-    </DataTable>
+      {status === "COMPLETED_WITH_ERRORS" && (
+        <ImportCallout tone="warning" title="Base processada com erros">
+          Por isso, esta versão não substituiu a versão atual de{" "}
+          {pricingBaseTypeLabel(version.baseType)}.
+        </ImportCallout>
+      )}
+      <SummaryList items={items} />
+    </div>
   );
 }
