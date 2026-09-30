@@ -643,22 +643,6 @@ function ContractActions({
 }) {
   return (
     <div className="inline-flex items-center gap-1">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={`Visualizar contrato de ${contract.company}`}
-            onClick={() => onView(contract)}
-            onMouseEnter={() => prefetchContractFile(contract.file.path)}
-            onFocus={() => prefetchContractFile(contract.file.path)}
-          >
-            <Eye className="size-4" aria-hidden="true" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Visualizar contrato</TooltipContent>
-      </Tooltip>
 
       {extractedDataAvailable && (
         <Tooltip>
