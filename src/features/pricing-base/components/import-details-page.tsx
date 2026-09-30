@@ -25,7 +25,6 @@ import { PageHeader } from "@/components/page-header";
 import { SiteFooter } from "@/components/site-footer";
 import { SurfaceCard } from "@/components/surface-card";
 import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/table-pagination";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -40,7 +39,6 @@ import {
   currentVersionIdsByType,
   formatVersionDateTime,
   hasBrowsableDetails,
-  lastUpdateAt,
   pricingBaseTypeLabel,
   type PricingVersion,
   type PricingVersionFile,
@@ -184,8 +182,11 @@ function ImportDetailsContent({
   }, [records, multi, version.file.name]);
 
   const errors = version.errorRows;
-  const updatedAt = lastUpdateAt(version);
   const updateCount = version.files.filter((file) => file.kind === "update").length;
+  const lastUpdateName = version.files
+    .filter((file) => file.kind === "update")
+    .sort((a, b) => (a.addedAt ?? "").localeCompare(b.addedAt ?? ""))
+    .at(-1)?.name;
 
   return (
     <div className="space-y-6">
@@ -256,12 +257,12 @@ function ImportDetailsContent({
             />
           </TabsContent>
           <TabsContent value="codes" forceMount className="data-[state=inactive]:hidden space-y-3">
-            {(updateCount > 0 || updatedAt) && (
+            {updateCount > 0 && (
               <p className="text-sm text-muted-foreground">
                 {updateCount === 1
-                  ? "1 atualização aplicada"
-                  : `${updateCount.toLocaleString("pt-BR")} atualizações aplicadas`}
-                {updatedAt && ` · Última atualização: ${formatVersionDateTime(updatedAt)}`}
+                  ? "1 atualização"
+                  : `${updateCount.toLocaleString("pt-BR")} atualizações`}
+                {lastUpdateName && ` · Última atualização aplicada: ${lastUpdateName}`}
               </p>
             )}
             {recordsQuery.isPending ? (
@@ -276,13 +277,19 @@ function ImportDetailsContent({
               <CodesTab
                 version={version}
                 records={currentCodes}
-                fields={(recordsQuery.data?.fields ?? []).filter((field) => field !== "ean")}
+                fields={orderCodeFields(
+                  (recordsQuery.data?.fields ?? []).filter((field) => field !== "ean"),
+                )}
               />
             )}
           </TabsContent>
           {errors.length > 0 && (
             <TabsContent value="errors" forceMount className="data-[state=inactive]:hidden">
-              <ErrorsTab rows={errors} multi={multi} fileNames={version.files.map((file) => file.name)} />
+              <ErrorsTab
+                rows={errors}
+                multi={multi}
+                fileNames={version.files.map((file) => file.name)}
+              />
             </TabsContent>
           )}
         </Tabs>
@@ -291,9 +298,18 @@ function ImportDetailsContent({
   );
 }
 
+/** Column order: code, description, TUSS/TISS, price, then anything else. */
+const CODE_FIELD_ORDER = ["code", "description", "tuss", "tiss", "price"];
+function orderCodeFields<T extends string>(fields: T[]): T[] {
+  const rank = (field: string) => {
+    const index = CODE_FIELD_ORDER.indexOf(field);
+    return index === -1 ? CODE_FIELD_ORDER.length : index;
+  };
+  return [...fields].sort((a, b) => rank(a) - rank(b));
+}
+
 function fileOrigin(version: PricingVersion, fileName: string | undefined): string {
-  const file = version.files.find((item) => item.name === fileName) ?? version.file;
-  return file.kind === "update" ? `Atualização · ${file.name}` : `Versão · ${file.name}`;
+  return (version.files.find((item) => item.name === fileName) ?? version.file).name;
 }
 
 async function downloadFile(file: PricingVersionFile) {
@@ -334,13 +350,6 @@ function TabSearch({
     />
   );
 }
-
-const KIND_OPTIONS = [
-  { value: "version", label: "Versão" },
-  { value: "update", label: "Atualização" },
-];
-
-type KindFilter = "all" | "version" | "update";
 
 function DateRangeFilter({
   id,
@@ -404,19 +413,17 @@ function FilesTab({
   recordsPerFile: Map<string, number> | null;
 }) {
   const [search, setSearch] = useState("");
-  const [kind, setKind] = useState<KindFilter>("all");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const filtered = version.files.filter((file) => {
     if (!normalize(file.name).includes(normalize(search))) return false;
-    if (kind !== "all" && (file.kind === "update" ? "update" : "version") !== kind) return false;
     const day = toLocalIsoDate(new Date(file.addedAt ?? version.createdAt));
     if (from && day < from) return false;
     if (to && day > to) return false;
     return true;
   });
   const { rows, pagination, resetPage } = usePaged(filtered);
-  const activeCount = [search, kind !== "all", from || to].filter(Boolean).length;
+  const activeCount = [search, from || to].filter(Boolean).length;
   const update = (fn: () => void) => {
     fn();
     resetPage();
@@ -432,26 +439,17 @@ function FilesTab({
         onClear={() =>
           update(() => {
             setSearch("");
-            setKind("all");
             setFrom("");
             setTo("");
           })
         }
-        barColumnsClassName="lg:grid-cols-[minmax(12rem,1fr)_11rem_22rem_auto] lg:gap-4"
+        barColumnsClassName="lg:grid-cols-[minmax(12rem,1fr)_22rem_auto] lg:gap-4"
       >
         <TabSearch
           id="import-files-search"
           placeholder="Buscar por nome do arquivo"
           value={search}
           onChange={(value) => update(() => setSearch(value))}
-        />
-        <SelectField
-          id="import-files-kind"
-          label="Tipo"
-          className="sm:col-span-2 lg:col-span-1"
-          value={kind}
-          options={[{ value: "all", label: "Todos os tipos" }, ...KIND_OPTIONS]}
-          onValueChange={(value) => update(() => setKind(value as KindFilter))}
         />
         <DateRangeFilter
           id="import-files-date"
@@ -466,26 +464,19 @@ function FilesTab({
           <DataTableRoot>
             <DataTableHeader>
               <tr>
-                <DataTableHead>Arquivo</DataTableHead>
-                <DataTableHead>Tipo</DataTableHead>
-                <DataTableHead>Data</DataTableHead>
+                <DataTableHead className="w-full">Arquivo</DataTableHead>
+                <DataTableHead className="whitespace-nowrap">Data</DataTableHead>
                 <DataTableHead className="text-right">Registros</DataTableHead>
                 <DataTableHead className="text-right">Ações</DataTableHead>
               </tr>
             </DataTableHeader>
             <DataTableBody>
-              {rows.length === 0 && <EmptyRow colSpan={5} />}
+              {rows.length === 0 && <EmptyRow colSpan={4} />}
               {rows.map((file) => {
-                const isUpdate = file.kind === "update";
                 const records = recordsPerFile?.get(file.name);
                 return (
                   <DataTableRow key={file.path}>
-                    <DataTableCell className="max-w-96 break-all">{file.name}</DataTableCell>
-                    <DataTableCell>
-                      <Badge variant={isUpdate ? "info-soft" : "neutral-soft"} size="sm">
-                        {isUpdate ? "Atualização" : "Versão"}
-                      </Badge>
-                    </DataTableCell>
+                    <DataTableCell className="break-all">{file.name}</DataTableCell>
                     <DataTableCell className="whitespace-nowrap">
                       {formatVersionDateTime(file.addedAt ?? version.createdAt)}
                     </DataTableCell>
@@ -532,17 +523,9 @@ function CodesTab({
   fields: ReturnType<typeof parsePricingImportSet>["fields"];
 }) {
   const [search, setSearch] = useState("");
-  const [origin, setOrigin] = useState<KindFilter>("all");
   const term = normalize(search);
-  const byOrigin =
-    origin === "all"
-      ? records
-      : records.filter((record) => {
-          const file = version.files.find((item) => item.name === record.file) ?? version.file;
-          return (file.kind === "update" ? "update" : "version") === origin;
-        });
   const filtered = term
-    ? byOrigin.filter((record) =>
+    ? records.filter((record) =>
         [
           record.values.code,
           record.values.tuss,
@@ -553,7 +536,7 @@ function CodesTab({
           .filter(Boolean)
           .some((value) => normalize(value as string).includes(term)),
       )
-    : byOrigin;
+    : records;
   const { rows, pagination, resetPage } = usePaged(filtered);
   const showRaw = fields.length === 0;
   const codeLabel = version.baseType === "simpro" ? "Código SIMPRO" : "Código";
@@ -563,14 +546,13 @@ function CodesTab({
       <FilterCard
         id="import-codes-filters"
         variant="bar"
-        activeCount={[search, origin !== "all"].filter(Boolean).length}
-        clearDisabled={!search && origin === "all"}
+        activeCount={search ? 1 : 0}
+        clearDisabled={!search}
         onClear={() => {
           setSearch("");
-          setOrigin("all");
           resetPage();
         }}
-        barColumnsClassName="lg:grid-cols-[minmax(12rem,1fr)_12rem_auto] lg:gap-4"
+        barColumnsClassName="lg:grid-cols-[minmax(12rem,1fr)_auto] lg:gap-4"
       >
         <TabSearch
           id="import-codes-search"
@@ -578,17 +560,6 @@ function CodesTab({
           value={search}
           onChange={(value) => {
             setSearch(value);
-            resetPage();
-          }}
-        />
-        <SelectField
-          id="import-codes-origin"
-          label="Origem"
-          className="sm:col-span-2 lg:col-span-1"
-          value={origin}
-          options={[{ value: "all", label: "Todas as origens" }, ...KIND_OPTIONS]}
-          onValueChange={(value) => {
-            setOrigin(value as KindFilter);
             resetPage();
           }}
         />
