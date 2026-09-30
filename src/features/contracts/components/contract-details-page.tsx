@@ -59,7 +59,14 @@ import {
   type AmendmentExtractionStatus,
   type ContractAmendment,
 } from "../data/contract-amendments-service";
+import type { ContractRulesDisplayStatus } from "../data/contract-rules";
+import {
+  contractRulesStatusQueryKey,
+  listContractRulesStatuses,
+} from "../data/contract-rules-service";
+import { useContractExtractionStates } from "../data/contract-extraction";
 import { ContractPreviewModal } from "./contract-preview-modal";
+import { ContractRulesStatusBadge } from "./contracts-page";
 import { NewAmendmentModal } from "./new-amendment-modal";
 
 const COLUMNS = ["Aditivo", "Cadastrado por", "Data do cadastro", "Status da extração", "Ações"];
@@ -154,6 +161,14 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
     queryFn: () => listContractAmendments(contract.id),
   });
   const amendments = amendmentsQuery.data ?? [];
+  const rulesStatusQuery = useQuery({
+    queryKey: contractRulesStatusQueryKey,
+    queryFn: listContractRulesStatuses,
+  });
+  const extractionStates = useContractExtractionStates();
+  const rulesStatus: ContractRulesDisplayStatus | null =
+    extractionStates[contract.id] ??
+    (rulesStatusQuery.data ? (rulesStatusQuery.data[contract.id] ?? "not_extracted") : null);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [preview, setPreview] = useState<Contract | null>(null);
@@ -244,11 +259,10 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
   return (
     <div className="space-y-6">
       <SurfaceCard padding="md">
-        <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
+        <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-5">
           {[
             { label: "Prestador", value: contract.company },
             { label: "CNPJ", value: <span className="font-mono">{contract.cnpj || "—"}</span> },
-            { label: "Validade", value: formatIsoToBr(contract.validUntil) || "—" },
             {
               label: "Contrato",
               value: (
@@ -261,6 +275,11 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
                   {contract.file.name}
                 </button>
               ),
+            },
+            { label: "Validade", value: formatIsoToBr(contract.validUntil) || "—" },
+            {
+              label: "Status da extração",
+              value: <ContractRulesStatusBadge status={rulesStatus} />,
             },
           ].map((item) => (
             <div key={item.label} className="min-w-0 space-y-0.5">
@@ -279,7 +298,7 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
           >
             Aditivos contratuais
           </h2>
-          {amendments.length > 0 && addButton}
+          {addButton}
         </div>
 
         {amendmentsQuery.isPending ? (
