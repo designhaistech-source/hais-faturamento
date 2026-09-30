@@ -321,8 +321,9 @@ function TabSearch({
   return (
     <SearchField
       id={id}
-      label="Buscar"
-      fieldClassName="max-w-md"
+      aria-label={placeholder}
+      fieldClassName="w-full sm:max-w-[440px]"
+      className="shadow-none"
       placeholder={placeholder}
       value={value}
       clearable
