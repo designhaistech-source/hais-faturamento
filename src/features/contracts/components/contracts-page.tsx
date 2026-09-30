@@ -55,6 +55,7 @@ import { formatIsoToBr } from "@/lib/date";
 import { NewContractModal } from "./new-contract-modal";
 import { ContractPreviewModal } from "./contract-preview-modal";
 import { ContractExtractedDataModal } from "./contract-extracted-data-modal";
+import { ContractRulesStatusBadge } from "./contract-rules-status-badge";
 import type { Contract, NewContractInput } from "../data/contracts";
 import {
   contractsQueryKey,
@@ -591,26 +592,6 @@ const EXTRACTION_STATUS_FILTER_OPTIONS = [
   { value: "not_identified", label: "Não identificados" },
   { value: "failed", label: "Falha na extração" },
 ];
-
-export function ContractRulesStatusBadge({
-  status,
-}: {
-  status: ContractRulesDisplayStatus | null;
-}) {
-  if (status === null) {
-    return <span className="text-sm text-muted-foreground">—</span>;
-  }
-  const label = contractRulesStatusLabel(status);
-  const config = {
-    available: { tone: "success", icon: CircleCheck },
-    extracting: { tone: "info", icon: LoaderCircle },
-    not_identified: { tone: "warning", icon: TriangleAlert },
-    failed: { tone: "danger", icon: CircleAlert },
-    not_extracted: { tone: "neutral", icon: FileSearch },
-  } as const satisfies Record<ContractRulesDisplayStatus, { tone: StatusTone; icon: LucideIcon }>;
-  const { tone, icon } = config[status];
-  return <StatusBadge tone={tone} icon={icon} label={label} spinning={status === "extracting"} />;
-}
 
 /** Nome do arquivo truncado, com o valor completo em tooltip (mouse e teclado). */
 function ContractFileName({ name }: { name: string }) {

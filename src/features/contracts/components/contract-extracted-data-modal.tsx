@@ -1,30 +1,34 @@
 import { useQuery } from "@tanstack/react-query";
-import { FileSearch, Quote } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { ClipboardList } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
+import { SummaryList } from "@/features/pricing-base";
 import { Button } from "@/components/ui/button";
-import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
 import { formatIsoToBr } from "@/lib/date";
 
 import type { Contract } from "../data/contracts";
-import {
-  contractRuleTitle,
-  formatContractRuleValidity,
-  summarizeContractRule,
-} from "../data/contract-rules";
+import type { ContractRulesDisplayStatus } from "../data/contract-rules";
 import { contractRulesQueryKey, listContractRules } from "../data/contract-rules-service";
+import { ContractRulesStatusBadge } from "./contract-rules-status-badge";
 
 interface ContractExtractedDataModalProps {
   contract: Contract | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Situação atual da extração; o modal só é aberto com extração concluída. */
+  status?: ContractRulesDisplayStatus | null;
+  /** Oculta o atalho quando o modal já é aberto na própria página de detalhes. */
+  showDetailsLink?: boolean;
 }
 
-/** Consulta somente leitura dos dados que a IA identificou no contrato. */
+/** Visão resumida dos dados extraídos; o conteúdo completo fica em Detalhes do contrato. */
 export function ContractExtractedDataModal({
   contract,
   open,
   onOpenChange,
+  status = "available",
+  showDetailsLink = true,
 }: ContractExtractedDataModalProps) {
   const contractId = contract?.id ?? "";
   const query = useQuery({
@@ -33,75 +37,48 @@ export function ContractExtractedDataModal({
     enabled: open && contractId !== "",
   });
 
+  const count = query.data
+    ? query.data.length.toLocaleString("pt-BR")
+    : query.isError
+      ? "—"
+      : "Carregando...";
+
   return (
     <AppModal
       open={open}
       onOpenChange={onOpenChange}
-      size="lg"
+      size="md"
       title="Dados extraídos"
-      description={contract ? `Informações identificadas no contrato de ${contract.company}.` : ""}
-      icon={<FileSearch className="size-5" aria-hidden="true" />}
+      description={contract?.file.name}
       footer={
-        <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
-          Fechar
-        </Button>
+        <>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            Fechar
+          </Button>
+          {showDetailsLink && contract && (
+            <Button asChild>
+              <Link to="/contratos/$contractId" params={{ contractId: contract.id }}>
+                <ClipboardList className="size-4" aria-hidden="true" />
+                Ver detalhes do contrato
+              </Link>
+            </Button>
+          )}
+        </>
       }
     >
       {contract && (
-        <dl className="mb-4 grid gap-3 rounded-xl border border-border bg-muted/40 p-4 sm:grid-cols-3">
-          <div className="min-w-0 space-y-0.5">
-            <dt className="text-xs text-muted-foreground">Prestador</dt>
-            <dd className="truncate text-sm font-semibold text-foreground">{contract.company}</dd>
-          </div>
-          <div className="space-y-0.5">
-            <dt className="text-xs text-muted-foreground">CNPJ</dt>
-            <dd className="font-mono text-sm text-foreground">{contract.cnpj || "—"}</dd>
-          </div>
-          <div className="space-y-0.5">
-            <dt className="text-xs text-muted-foreground">Validade</dt>
-            <dd className="font-mono text-sm text-foreground">
-              {contract.validUntil ? formatIsoToBr(contract.validUntil) : "—"}
-            </dd>
-          </div>
-        </dl>
-      )}
-      {query.isPending ? (
-        <LoadingState title="Carregando dados extraídos" />
-      ) : query.isError ? (
-        <ErrorState
-          title="Não foi possível carregar os dados extraídos"
-          onRetry={() => void query.refetch()}
+        <SummaryList
+          items={[
+            { label: "Prestador", value: contract.company },
+            {
+              label: "CNPJ",
+              value: <span className="font-mono">{contract.cnpj || "—"}</span>,
+            },
+            { label: "Validade", value: formatIsoToBr(contract.validUntil) || "—" },
+            { label: "Status da extração", value: <ContractRulesStatusBadge status={status} /> },
+            { label: "Quantidade de condições identificadas", value: count },
+          ]}
         />
-      ) : query.data.length === 0 ? (
-        <EmptyState
-          icon={<FileSearch className="size-5" aria-hidden="true" />}
-          title="Nenhum dado identificado"
-          description="Nenhuma informação relevante foi identificada neste contrato."
-        />
-      ) : (
-        <ul className="space-y-3">
-          {query.data.map((rule) => {
-            const validity = formatContractRuleValidity(rule);
-            return (
-              <li key={rule.id} className="space-y-2 rounded-xl border border-border bg-card p-4">
-                <div className="space-y-0.5">
-                  <p className="text-sm font-semibold text-foreground">{contractRuleTitle(rule)}</p>
-                  <p className="text-sm text-muted-foreground">{summarizeContractRule(rule)}</p>
-                  {validity && <p className="text-xs text-muted-foreground">{validity}</p>}
-                </div>
-                {rule.sourceExcerpt.trim() && (
-                  <blockquote className="flex gap-2 rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">
-                    <Quote className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
-                    <span>
-                      <span className="sr-only">Trecho do contrato: </span>
-                      {rule.sourceExcerpt}
-                    </span>
-                  </blockquote>
-                )}
-              </li>
-            );
-          })}
-        </ul>
       )}
     </AppModal>
   );
