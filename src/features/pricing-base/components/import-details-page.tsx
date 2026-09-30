@@ -193,13 +193,16 @@ function ImportDetailsContent({
             { label: "Data do cadastro", value: formatVersionDateTime(version.createdAt) },
             {
               label: "Status",
-              value: (
-                <span className="inline-flex items-center gap-2">
-                  <ImportStatusBadge status={version.importStatus} />
-                  {isCurrent && <span className="text-xs font-medium text-primary">Atual</span>}
-                </span>
-              ),
+              value: <ImportStatusBadge status={version.importStatus} />,
             },
+            ...(isCurrent
+              ? [
+                  {
+                    label: "Situação da versão",
+                    value: <span className="text-xs font-medium text-primary">Atual</span>,
+                  },
+                ]
+              : []),
             {
               label: "Quantidade de arquivos",
               value: version.files.length.toLocaleString("pt-BR"),
@@ -208,6 +211,9 @@ function ImportDetailsContent({
               label: "Registros importados",
               value: version.processedCount?.toLocaleString("pt-BR") ?? "—",
             },
+            ...(errors.length > 0
+              ? [{ label: "Registros com erros", value: errors.length.toLocaleString("pt-BR") }]
+              : []),
             { label: "Cadastrado por", value: version.createdBy },
           ]}
         />
@@ -227,7 +233,7 @@ function ImportDetailsContent({
             </TabsTrigger>
             <TabsTrigger value="codes" className={appTabsTriggerClass}>
               <span className={appTabsLabelClass}>
-                Códigos vigentes
+                Registros vigentes
                 {recordsQuery.isSuccess && ` (${currentCodes.length.toLocaleString("pt-BR")})`}
               </span>
             </TabsTrigger>
@@ -273,7 +279,7 @@ function ImportDetailsContent({
           </TabsContent>
           {errors.length > 0 && (
             <TabsContent value="errors">
-              <ErrorsTab rows={errors} />
+              <ErrorsTab rows={errors} multi={multi} />
             </TabsContent>
           )}
         </Tabs>
@@ -411,7 +417,7 @@ function FilesTab({
             </DataTableBody>
           </DataTableRoot>
         </div>
-        {filtered.length > 10 && (
+        {filtered.length > 0 && (
           <TablePagination id="import-files" {...pagination} className="px-4 pb-4" />
         )}
       </DataTable>
@@ -504,7 +510,7 @@ function CodesTab({
             </DataTableBody>
           </DataTableRoot>
         </div>
-        {filtered.length > 10 && (
+        {filtered.length > 0 && (
           <TablePagination id="import-codes" {...pagination} className="px-4 pb-4" />
         )}
       </DataTable>
@@ -512,7 +518,7 @@ function CodesTab({
   );
 }
 
-function ErrorsTab({ rows: allRows }: { rows: ImportErrorRow[] }) {
+function ErrorsTab({ rows: allRows, multi }: { rows: ImportErrorRow[]; multi: boolean }) {
   const [search, setSearch] = useState("");
   const term = normalize(search);
   const filtered = term
@@ -538,17 +544,23 @@ function ErrorsTab({ rows: allRows }: { rows: ImportErrorRow[] }) {
           <DataTableRoot>
             <DataTableHeader>
               <tr>
+                {multi && <DataTableHead>Arquivo</DataTableHead>}
                 <DataTableHead>Linha</DataTableHead>
                 <DataTableHead>Motivo</DataTableHead>
                 <DataTableHead>Conteúdo da linha</DataTableHead>
               </tr>
             </DataTableHeader>
             <DataTableBody>
-              {rows.length === 0 && <EmptyRow colSpan={3} />}
+              {rows.length === 0 && <EmptyRow colSpan={multi ? 4 : 3} />}
               {rows.map((row) => (
                 <DataTableRow key={`${row.file ?? ""}-${row.line}`}>
+                  {multi && (
+                    <DataTableCell className="max-w-72 break-all align-top text-xs">
+                      {row.file ?? "—"}
+                    </DataTableCell>
+                  )}
                   <DataTableCell className="whitespace-nowrap align-top font-mono text-xs">
-                    {lineLabel(row.line, row.file)}
+                    {multi ? row.line.toLocaleString("pt-BR") : lineLabel(row.line, row.file)}
                   </DataTableCell>
                   <DataTableCell className="align-top">{row.reason}</DataTableCell>
                   <DataTableCell className="max-w-72 break-all align-top font-mono text-xs text-muted-foreground">
@@ -559,7 +571,7 @@ function ErrorsTab({ rows: allRows }: { rows: ImportErrorRow[] }) {
             </DataTableBody>
           </DataTableRoot>
         </div>
-        {filtered.length > 10 && (
+        {filtered.length > 0 && (
           <TablePagination id="import-errors" {...pagination} className="px-4 pb-4" />
         )}
       </DataTable>
