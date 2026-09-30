@@ -60,6 +60,8 @@ import {
   type ContractAmendment,
 } from "../data/contract-amendments-service";
 import { ActionIcon } from "@/components/action-icons";
+import { appTabsLabelClass, appTabsListClass, appTabsTriggerClass } from "@/components/app-tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ContractExtractedDataModal } from "./contract-extracted-data-modal";
 import type { ContractRulesDisplayStatus } from "../data/contract-rules";
 import {
@@ -315,211 +317,217 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
         </dl>
       </SurfaceCard>
 
-      <section className="space-y-4" aria-labelledby="extracted-data-title">
-        <h2
-          id="extracted-data-title"
-          className="font-display text-base font-semibold tracking-tight text-foreground"
+      <Tabs defaultValue="extracted" className="space-y-4">
+        <TabsList className={appTabsListClass}>
+          <TabsTrigger value="extracted" className={appTabsTriggerClass}>
+            <span className={appTabsLabelClass}>Dados extraídos</span>
+          </TabsTrigger>
+          <TabsTrigger value="amendments" className={appTabsTriggerClass}>
+            <span className={appTabsLabelClass}>
+              Aditivos contratuais
+              {amendmentsQuery.data ? ` (${amendments.length.toLocaleString("pt-BR")})` : ""}
+            </span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="extracted" className="space-y-4">
+          {rulesStatus === "available" ? (
+            <ContractRulesList contractId={contract.id} />
+          ) : (
+            <SurfaceCard padding="md">
+              <p className="text-sm text-muted-foreground">
+                Os dados do contrato ficam disponíveis aqui quando a extração estiver concluída.
+              </p>
+            </SurfaceCard>
+          )}
+        </TabsContent>
+
+        <TabsContent
+          value="amendments"
+          forceMount
+          className="space-y-4 data-[state=inactive]:hidden"
         >
-          Dados extraídos
-        </h2>
-        {rulesStatus === "available" ? (
-          <ContractRulesList contractId={contract.id} />
-        ) : (
-          <SurfaceCard padding="md">
-            <p className="text-sm text-muted-foreground">
-              Os dados do contrato ficam disponíveis aqui quando a extração estiver concluída.
-            </p>
-          </SurfaceCard>
-        )}
-      </section>
+          <div className="flex justify-end">{addButton}</div>
 
-      <section className="space-y-4" aria-labelledby="amendments-title">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2
-            id="amendments-title"
-            className="font-display text-base font-semibold tracking-tight text-foreground"
-          >
-            Aditivos contratuais
-          </h2>
-          {addButton}
-        </div>
-
-        {amendmentsQuery.isPending ? (
-          <SurfaceCard padding="none">
-            <TableSkeleton rows={3} columns={5} />
-          </SurfaceCard>
-        ) : amendmentsQuery.isError ? (
-          <SurfaceCard padding="md">
-            <ErrorState
-              title="Não foi possível carregar os aditivos"
-              description="Tente novamente em alguns instantes."
-              onRetry={() => void amendmentsQuery.refetch()}
+          {amendmentsQuery.isPending ? (
+            <SurfaceCard padding="none">
+              <TableSkeleton rows={3} columns={5} />
+            </SurfaceCard>
+          ) : amendmentsQuery.isError ? (
+            <SurfaceCard padding="md">
+              <ErrorState
+                title="Não foi possível carregar os aditivos"
+                description="Tente novamente em alguns instantes."
+                onRetry={() => void amendmentsQuery.refetch()}
+              />
+            </SurfaceCard>
+          ) : amendments.length === 0 ? (
+            <EmptyStateCard
+              icon={<FileText className="size-10" aria-hidden="true" />}
+              title="Nenhum aditivo cadastrado"
+              description="Adicione um aditivo para vinculá-lo a este contrato."
+              action={addButton}
             />
-          </SurfaceCard>
-        ) : amendments.length === 0 ? (
-          <EmptyStateCard
-            icon={<FileText className="size-10" aria-hidden="true" />}
-            title="Nenhum aditivo cadastrado"
-            description="Adicione um aditivo para vinculá-lo a este contrato."
-            action={addButton}
-          />
-        ) : (
-          <>
-            <FilterCard
-              id="amendments-filters"
-              variant="bar"
-              activeCount={activeCount}
-              onClear={clearFilters}
-              clearDisabled={activeCount === 0}
-              barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_22rem_auto] lg:gap-4"
-            >
-              <SearchField
-                id="amendments-search"
-                label="Buscar"
-                fieldClassName="sm:col-span-2 lg:col-span-1"
-                placeholder="Buscar por nome do arquivo"
-                value={search}
-                clearable
-                onChange={(event) => {
-                  setSearch(event.target.value);
-                  setPage(1);
-                }}
-                onClear={() => {
-                  setSearch("");
-                  setPage(1);
-                }}
-              />
-              <fieldset className="min-w-0 space-y-1.5 sm:col-span-2 sm:space-y-2 lg:col-span-1">
-                <legend className="text-xs font-medium leading-snug text-muted-foreground">
-                  Data do cadastro
-                </legend>
-                <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
-                  <span className="shrink-0 text-xs text-muted-foreground">De</span>
-                  <Input
-                    type="date"
-                    aria-label="Data do cadastro de"
-                    className="min-w-0 flex-1"
-                    value={from}
-                    max={to || undefined}
-                    onChange={(event) => {
-                      setFrom(event.target.value);
-                      setPage(1);
-                    }}
-                  />
-                  <span className="shrink-0 text-xs text-muted-foreground">até</span>
-                  <Input
-                    type="date"
-                    aria-label="Data do cadastro até"
-                    className="min-w-0 flex-1"
-                    value={to}
-                    min={from || undefined}
-                    onChange={(event) => {
-                      setTo(event.target.value);
-                      setPage(1);
-                    }}
-                  />
-                </div>
-              </fieldset>
-            </FilterCard>
-
-            {filtered.length === 0 ? (
-              <EmptyStateCard
-                icon={<FileText className="size-10" aria-hidden="true" />}
-                title="Nenhum aditivo encontrado"
-                description="Ajuste a busca ou o período de cadastro para ver outros resultados."
-                action={
-                  <Button type="button" variant="outline" onClick={clearFilters}>
-                    Limpar filtros
-                  </Button>
-                }
-              />
-            ) : (
-              <DataTable>
-                <DataTableDesktop>
-                  <DataTableRoot>
-                    <DataTableHeader>
-                      <tr>
-                        {COLUMNS.map((column) => (
-                          <DataTableHead
-                            key={column}
-                            className={column === "Ações" ? "text-right" : undefined}
-                          >
-                            {column}
-                          </DataTableHead>
-                        ))}
-                      </tr>
-                    </DataTableHeader>
-                    <DataTableBody>
-                      {paginated.map((item) => (
-                        <DataTableRow key={item.id}>
-                          <DataTableCell className="max-w-72 font-medium">
-                            <span className="block truncate" title={item.file.name}>
-                              {item.file.name}
-                            </span>
-                          </DataTableCell>
-                          <DataTableCell>{item.createdBy}</DataTableCell>
-                          <DataTableCell>{formatDateTime(item.createdAt)}</DataTableCell>
-                          <DataTableCell>
-                            <AmendmentStatusBadge status={item.extractionStatus} />
-                          </DataTableCell>
-                          <DataTableCell className="text-right">
-                            <AmendmentActions
-                              amendment={item}
-                              onView={() =>
-                                setPreview(amendmentAsContractFile(item, contract.company))
-                              }
-                            />
-                          </DataTableCell>
-                        </DataTableRow>
-                      ))}
-                    </DataTableBody>
-                  </DataTableRoot>
-                </DataTableDesktop>
-
-                <DataTableCardList divided>
-                  {paginated.map((item) => (
-                    <DataTableCard key={item.id} flat className="space-y-1.5 py-2.5">
-                      <DataTableCardHeader
-                        title={<span className="min-w-0 truncate">{item.file.name}</span>}
-                      />
-                      <DataTableCardFields
-                        className="gap-x-4 gap-y-1"
-                        fields={[
-                          { label: "Cadastrado por", value: item.createdBy },
-                          { label: "Data do cadastro", value: formatDateTime(item.createdAt) },
-                          {
-                            label: "Status da extração",
-                            value: <AmendmentStatusBadge status={item.extractionStatus} />,
-                          },
-                        ]}
-                      />
-                      <DataTableCardActions className="-mt-0.5 justify-end">
-                        <AmendmentActions
-                          amendment={item}
-                          onView={() => setPreview(amendmentAsContractFile(item, contract.company))}
-                        />
-                      </DataTableCardActions>
-                    </DataTableCard>
-                  ))}
-                </DataTableCardList>
-
-                <TablePagination
-                  id="amendments"
-                  totalItems={filtered.length}
-                  page={currentPage}
-                  pageSize={pageSize}
-                  onPageChange={setPage}
-                  onPageSizeChange={(size) => {
-                    setPageSize(size);
+          ) : (
+            <>
+              <FilterCard
+                id="amendments-filters"
+                variant="bar"
+                activeCount={activeCount}
+                onClear={clearFilters}
+                clearDisabled={activeCount === 0}
+                barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_22rem_auto] lg:gap-4"
+              >
+                <SearchField
+                  id="amendments-search"
+                  label="Buscar"
+                  fieldClassName="sm:col-span-2 lg:col-span-1"
+                  placeholder="Buscar por nome do arquivo"
+                  value={search}
+                  clearable
+                  onChange={(event) => {
+                    setSearch(event.target.value);
                     setPage(1);
                   }}
-                  className="px-4 pb-4"
+                  onClear={() => {
+                    setSearch("");
+                    setPage(1);
+                  }}
                 />
-              </DataTable>
-            )}
-          </>
-        )}
-      </section>
+                <fieldset className="min-w-0 space-y-1.5 sm:col-span-2 sm:space-y-2 lg:col-span-1">
+                  <legend className="text-xs font-medium leading-snug text-muted-foreground">
+                    Data do cadastro
+                  </legend>
+                  <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
+                    <span className="shrink-0 text-xs text-muted-foreground">De</span>
+                    <Input
+                      type="date"
+                      aria-label="Data do cadastro de"
+                      className="min-w-0 flex-1"
+                      value={from}
+                      max={to || undefined}
+                      onChange={(event) => {
+                        setFrom(event.target.value);
+                        setPage(1);
+                      }}
+                    />
+                    <span className="shrink-0 text-xs text-muted-foreground">até</span>
+                    <Input
+                      type="date"
+                      aria-label="Data do cadastro até"
+                      className="min-w-0 flex-1"
+                      value={to}
+                      min={from || undefined}
+                      onChange={(event) => {
+                        setTo(event.target.value);
+                        setPage(1);
+                      }}
+                    />
+                  </div>
+                </fieldset>
+              </FilterCard>
+
+              {filtered.length === 0 ? (
+                <EmptyStateCard
+                  icon={<FileText className="size-10" aria-hidden="true" />}
+                  title="Nenhum aditivo encontrado"
+                  description="Ajuste a busca ou o período de cadastro para ver outros resultados."
+                  action={
+                    <Button type="button" variant="outline" onClick={clearFilters}>
+                      Limpar filtros
+                    </Button>
+                  }
+                />
+              ) : (
+                <DataTable>
+                  <DataTableDesktop>
+                    <DataTableRoot>
+                      <DataTableHeader>
+                        <tr>
+                          {COLUMNS.map((column) => (
+                            <DataTableHead
+                              key={column}
+                              className={column === "Ações" ? "text-right" : undefined}
+                            >
+                              {column}
+                            </DataTableHead>
+                          ))}
+                        </tr>
+                      </DataTableHeader>
+                      <DataTableBody>
+                        {paginated.map((item) => (
+                          <DataTableRow key={item.id}>
+                            <DataTableCell className="max-w-72 font-medium">
+                              <span className="block truncate" title={item.file.name}>
+                                {item.file.name}
+                              </span>
+                            </DataTableCell>
+                            <DataTableCell>{item.createdBy}</DataTableCell>
+                            <DataTableCell>{formatDateTime(item.createdAt)}</DataTableCell>
+                            <DataTableCell>
+                              <AmendmentStatusBadge status={item.extractionStatus} />
+                            </DataTableCell>
+                            <DataTableCell className="text-right">
+                              <AmendmentActions
+                                amendment={item}
+                                onView={() =>
+                                  setPreview(amendmentAsContractFile(item, contract.company))
+                                }
+                              />
+                            </DataTableCell>
+                          </DataTableRow>
+                        ))}
+                      </DataTableBody>
+                    </DataTableRoot>
+                  </DataTableDesktop>
+
+                  <DataTableCardList divided>
+                    {paginated.map((item) => (
+                      <DataTableCard key={item.id} flat className="space-y-1.5 py-2.5">
+                        <DataTableCardHeader
+                          title={<span className="min-w-0 truncate">{item.file.name}</span>}
+                        />
+                        <DataTableCardFields
+                          className="gap-x-4 gap-y-1"
+                          fields={[
+                            { label: "Cadastrado por", value: item.createdBy },
+                            { label: "Data do cadastro", value: formatDateTime(item.createdAt) },
+                            {
+                              label: "Status da extração",
+                              value: <AmendmentStatusBadge status={item.extractionStatus} />,
+                            },
+                          ]}
+                        />
+                        <DataTableCardActions className="-mt-0.5 justify-end">
+                          <AmendmentActions
+                            amendment={item}
+                            onView={() =>
+                              setPreview(amendmentAsContractFile(item, contract.company))
+                            }
+                          />
+                        </DataTableCardActions>
+                      </DataTableCard>
+                    ))}
+                  </DataTableCardList>
+
+                  <TablePagination
+                    id="amendments"
+                    totalItems={filtered.length}
+                    page={currentPage}
+                    pageSize={pageSize}
+                    onPageChange={setPage}
+                    onPageSizeChange={(size) => {
+                      setPageSize(size);
+                      setPage(1);
+                    }}
+                    className="px-4 pb-4"
+                  />
+                </DataTable>
+              )}
+            </>
+          )}
+        </TabsContent>
+      </Tabs>
 
       <NewAmendmentModal
         open={modalOpen}
