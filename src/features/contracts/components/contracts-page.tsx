@@ -592,7 +592,11 @@ const EXTRACTION_STATUS_FILTER_OPTIONS = [
   { value: "failed", label: "Falha na extração" },
 ];
 
-function ContractRulesStatusBadge({ status }: { status: ContractRulesDisplayStatus | null }) {
+export function ContractRulesStatusBadge({
+  status,
+}: {
+  status: ContractRulesDisplayStatus | null;
+}) {
   if (status === null) {
     return <span className="text-sm text-muted-foreground">—</span>;
   }
