@@ -169,7 +169,7 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
   });
   const extractionStates = useContractExtractionStates();
   const rulesStatus: ContractRulesDisplayStatus | null =
-    extractionStates[contract.id] ??
+    (extractionStates[contract.id] as ContractRulesDisplayStatus | undefined) ??
     (rulesStatusQuery.data ? (rulesStatusQuery.data[contract.id] ?? "not_extracted") : null);
 
   const [modalOpen, setModalOpen] = useState(false);
