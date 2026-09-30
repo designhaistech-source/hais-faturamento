@@ -60,6 +60,8 @@ import {
   type ContractAmendment,
 } from "../data/contract-amendments-service";
 import { ActionIcon } from "@/components/action-icons";
+import { appTabsLabelClass, appTabsListClass, appTabsTriggerClass } from "@/components/app-tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ContractExtractedDataModal } from "./contract-extracted-data-modal";
 import type { ContractRulesDisplayStatus } from "../data/contract-rules";
 import {
@@ -315,34 +317,37 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
         </dl>
       </SurfaceCard>
 
-      <section className="space-y-4" aria-labelledby="extracted-data-title">
-        <h2
-          id="extracted-data-title"
-          className="font-display text-base font-semibold tracking-tight text-foreground"
-        >
-          Dados extraídos
-        </h2>
-        {rulesStatus === "available" ? (
-          <ContractRulesList contractId={contract.id} />
-        ) : (
-          <SurfaceCard padding="md">
-            <p className="text-sm text-muted-foreground">
-              Os dados do contrato ficam disponíveis aqui quando a extração estiver concluída.
-            </p>
-          </SurfaceCard>
-        )}
-      </section>
+      <Tabs defaultValue="extracted" className="space-y-4">
+        <TabsList className={appTabsListClass}>
+          <TabsTrigger value="extracted" className={appTabsTriggerClass}>
+            <span className={appTabsLabelClass}>Dados extraídos</span>
+          </TabsTrigger>
+          <TabsTrigger value="amendments" className={appTabsTriggerClass}>
+            <span className={appTabsLabelClass}>
+              Aditivos contratuais
+              {amendmentsQuery.data ? ` (${amendments.length.toLocaleString("pt-BR")})` : ""}
+            </span>
+          </TabsTrigger>
+        </TabsList>
 
-      <section className="space-y-4" aria-labelledby="amendments-title">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2
-            id="amendments-title"
-            className="font-display text-base font-semibold tracking-tight text-foreground"
-          >
-            Aditivos contratuais
-          </h2>
-          {addButton}
-        </div>
+        <TabsContent value="extracted" className="space-y-4">
+          {rulesStatus === "available" ? (
+            <ContractRulesList contractId={contract.id} />
+          ) : (
+            <SurfaceCard padding="md">
+              <p className="text-sm text-muted-foreground">
+                Os dados do contrato ficam disponíveis aqui quando a extração estiver concluída.
+              </p>
+            </SurfaceCard>
+          )}
+        </TabsContent>
+
+        <TabsContent
+          value="amendments"
+          forceMount
+          className="space-y-4 data-[state=inactive]:hidden"
+        >
+        <div className="flex justify-end">{addButton}</div>
 
         {amendmentsQuery.isPending ? (
           <SurfaceCard padding="none">
@@ -519,7 +524,8 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
             )}
           </>
         )}
-      </section>
+        </TabsContent>
+      </Tabs>
 
       <NewAmendmentModal
         open={modalOpen}
