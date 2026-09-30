@@ -97,13 +97,13 @@ export function ImportDetailsPage({ versionId }: { versionId: string }) {
           <main className="flex-1 space-y-6 p-6 pb-16">
             <AppBreadcrumb />
             <PageHeader
-              title="Detalhes da importação"
-              description={version?.file.name}
+              title="Detalhes da base de precificação"
+              description={version ? pricingBaseTypeLabel(version.baseType) : undefined}
               actions={
                 <Button asChild variant="outline" className="w-full sm:w-auto">
                   <Link to="/base-precificacao">
                     <ArrowLeft className="size-4" aria-hidden="true" />
-                    Voltar para a base
+                    Voltar para bases de precificação
                   </Link>
                 </Button>
               }
@@ -183,104 +183,117 @@ function ImportDetailsContent({
 
   const errors = version.errorRows;
 
+  const summary: { label: string; value: React.ReactNode }[] = [
+    { label: "Tipo da base", value: pricingBaseTypeLabel(version.baseType) },
+    { label: "Data do cadastro", value: formatVersionDateTime(version.createdAt) },
+    { label: "Status", value: <ImportStatusBadge status={version.importStatus} /> },
+    {
+      label: "Situação da versão",
+      value: isCurrent ? (
+        <span className="text-xs font-medium text-primary">Atual</span>
+      ) : (
+        <span className="text-muted-foreground">—</span>
+      ),
+    },
+    { label: "Quantidade de arquivos", value: version.files.length.toLocaleString("pt-BR") },
+    {
+      label: "Registros importados",
+      value: version.processedCount?.toLocaleString("pt-BR") ?? "—",
+    },
+    ...(errors.length > 0
+      ? [{ label: "Registros com erros", value: errors.length.toLocaleString("pt-BR") }]
+      : []),
+    { label: "Cadastrado por", value: version.createdBy },
+  ];
+
   return (
     <div className="space-y-6">
       <SurfaceCard padding="md">
-        <SummaryList
-          items={[
-            { label: "Tipo da base", value: pricingBaseTypeLabel(version.baseType) },
-            { label: "Data do cadastro", value: formatVersionDateTime(version.createdAt) },
-            {
-              label: "Status",
-              value: <ImportStatusBadge status={version.importStatus} />,
-            },
-            ...(isCurrent
-              ? [
-                  {
-                    label: "Situação da versão",
-                    value: <span className="text-xs font-medium text-primary">Atual</span>,
-                  },
-                ]
-              : []),
-            {
-              label: "Quantidade de arquivos",
-              value: version.files.length.toLocaleString("pt-BR"),
-            },
-            {
-              label: "Registros importados",
-              value: version.processedCount?.toLocaleString("pt-BR") ?? "—",
-            },
-            ...(errors.length > 0
-              ? [{ label: "Registros com erros", value: errors.length.toLocaleString("pt-BR") }]
-              : []),
-            { label: "Cadastrado por", value: version.createdBy },
-          ]}
-        />
+        <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+          {summary.map((item) => (
+            <div key={item.label} className="min-w-0 space-y-0.5">
+              <dt className="text-xs font-medium text-muted-foreground">{item.label}</dt>
+              <dd className="min-w-0 break-words text-sm text-foreground">{item.value}</dd>
+            </div>
+          ))}
+        </dl>
       </SurfaceCard>
 
-      {!browsable ? (
-        <ImportCallout tone="neutral" title="Detalhes indisponíveis">
-          A importação não foi concluída. Consulte o resumo da importação para ver o motivo.
-        </ImportCallout>
-      ) : (
-        <Tabs defaultValue="files" className="space-y-4">
-          <TabsList className={appTabsListClass}>
-            <TabsTrigger value="files" className={appTabsTriggerClass}>
-              <span className={appTabsLabelClass}>
-                Arquivos ({version.files.length.toLocaleString("pt-BR")})
-              </span>
-            </TabsTrigger>
-            <TabsTrigger value="codes" className={appTabsTriggerClass}>
-              <span className={appTabsLabelClass}>
-                Registros vigentes
-                {recordsQuery.isSuccess && ` (${currentCodes.length.toLocaleString("pt-BR")})`}
-              </span>
-            </TabsTrigger>
-            {errors.length > 0 && (
-              <TabsTrigger value="errors" className={appTabsTriggerClass}>
+      <section className="space-y-4" aria-labelledby="base-content-title">
+        <h2
+          id="base-content-title"
+          className="font-display text-base font-semibold tracking-tight text-foreground"
+        >
+          Conteúdo da base
+        </h2>
+        {!browsable ? (
+          <ImportCallout tone="neutral" title="Detalhes indisponíveis">
+            A importação não foi concluída. Consulte o resumo da importação para ver o motivo.
+          </ImportCallout>
+        ) : (
+          <Tabs defaultValue="files" className="space-y-4">
+            <TabsList className={appTabsListClass}>
+              <TabsTrigger value="files" className={appTabsTriggerClass}>
                 <span className={appTabsLabelClass}>
-                  Erros ({errors.length.toLocaleString("pt-BR")})
+                  Arquivos ({version.files.length.toLocaleString("pt-BR")})
                 </span>
               </TabsTrigger>
-            )}
-          </TabsList>
+              <TabsTrigger value="codes" className={appTabsTriggerClass}>
+                <span className={appTabsLabelClass}>
+                  Registros vigentes
+                  {recordsQuery.isSuccess && ` (${currentCodes.length.toLocaleString("pt-BR")})`}
+                </span>
+              </TabsTrigger>
+              {errors.length > 0 && (
+                <TabsTrigger value="errors" className={appTabsTriggerClass}>
+                  <span className={appTabsLabelClass}>
+                    Erros ({errors.length.toLocaleString("pt-BR")})
+                  </span>
+                </TabsTrigger>
+              )}
+            </TabsList>
 
-          <TabsContent value="files" forceMount className="data-[state=inactive]:hidden">
-            <FilesTab
-              version={version}
-              recordsPerFile={recordsQuery.isSuccess ? recordsPerFile : null}
-            />
-          </TabsContent>
-          <TabsContent value="codes" forceMount className="data-[state=inactive]:hidden space-y-3">
-            {recordsQuery.isPending ? (
-              <TableSkeleton rows={5} columns={5} />
-            ) : recordsQuery.isError ? (
-              <ErrorState
-                title="Não foi possível carregar os códigos"
-                description="Tente novamente em alguns instantes."
-                onRetry={() => void recordsQuery.refetch()}
-              />
-            ) : (
-              <CodesTab
+            <TabsContent value="files" forceMount className="data-[state=inactive]:hidden">
+              <FilesTab
                 version={version}
-                records={currentCodes}
-                fields={orderCodeFields(
-                  (recordsQuery.data?.fields ?? []).filter((field) => field !== "ean"),
-                )}
-              />
-            )}
-          </TabsContent>
-          {errors.length > 0 && (
-            <TabsContent value="errors" forceMount className="data-[state=inactive]:hidden">
-              <ErrorsTab
-                rows={errors}
-                multi={multi}
-                fileNames={version.files.map((file) => file.name)}
+                recordsPerFile={recordsQuery.isSuccess ? recordsPerFile : null}
               />
             </TabsContent>
-          )}
-        </Tabs>
-      )}
+            <TabsContent
+              value="codes"
+              forceMount
+              className="data-[state=inactive]:hidden space-y-3"
+            >
+              {recordsQuery.isPending ? (
+                <TableSkeleton rows={5} columns={5} />
+              ) : recordsQuery.isError ? (
+                <ErrorState
+                  title="Não foi possível carregar os códigos"
+                  description="Tente novamente em alguns instantes."
+                  onRetry={() => void recordsQuery.refetch()}
+                />
+              ) : (
+                <CodesTab
+                  version={version}
+                  records={currentCodes}
+                  fields={orderCodeFields(
+                    (recordsQuery.data?.fields ?? []).filter((field) => field !== "ean"),
+                  )}
+                />
+              )}
+            </TabsContent>
+            {errors.length > 0 && (
+              <TabsContent value="errors" forceMount className="data-[state=inactive]:hidden">
+                <ErrorsTab
+                  rows={errors}
+                  multi={multi}
+                  fileNames={version.files.map((file) => file.name)}
+                />
+              </TabsContent>
+            )}
+          </Tabs>
+        )}
+      </section>
     </div>
   );
 }

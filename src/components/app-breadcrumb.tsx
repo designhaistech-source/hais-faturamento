@@ -44,7 +44,7 @@ export function AppBreadcrumb({ className }: { className?: string }) {
   const meta = isAnalysisDetail
     ? { label: normalized.endsWith("/resultado") ? "Resultado da análise" : "Detalhes da análise" }
     : isPricingDetail
-      ? { label: "Detalhes da importação" }
+      ? { label: "Detalhes da base" }
       : isContractDetail
         ? { label: "Detalhes do contrato" }
         : ROUTE_META[normalized];
