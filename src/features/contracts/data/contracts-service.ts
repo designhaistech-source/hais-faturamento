@@ -59,7 +59,7 @@ export async function downloadContractBlob(path: string): Promise<Blob> {
 export async function listContracts(): Promise<Contract[]> {
   const { data, error } = await supabase
     .from("contracts")
-    .select("id, company, cnpj, valid_until, file_name, file_path, file_type")
+    .select("id, company, cnpj, valid_until, file_name, file_path, file_type, created_at")
     .order("created_at", { ascending: false });
   if (error) throw error;
 
@@ -68,6 +68,7 @@ export async function listContracts(): Promise<Contract[]> {
     company: row.company,
     cnpj: row.cnpj ?? "",
     validUntil: row.valid_until ?? "",
+    createdAt: row.created_at,
     file: {
       name: row.file_name,
       path: row.file_path,
@@ -94,7 +95,7 @@ export async function createContract(input: NewContractInput): Promise<Contract>
       file_path: path,
       file_type: input.file.type,
     })
-    .select("id, company, cnpj, valid_until, file_name, file_path, file_type")
+    .select("id, company, cnpj, valid_until, file_name, file_path, file_type, created_at")
     .single();
   if (error || !data) throw error ?? new Error("Não foi possível cadastrar o contrato.");
 
@@ -103,6 +104,7 @@ export async function createContract(input: NewContractInput): Promise<Contract>
     company: data.company,
     cnpj: data.cnpj ?? "",
     validUntil: data.valid_until ?? "",
+    createdAt: data.created_at,
     file: {
       name: data.file_name,
       path: data.file_path,

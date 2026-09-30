@@ -15,6 +15,8 @@ export interface Contract {
   /** yyyy-MM-dd, empty when not informed. */
   validUntil: string;
   file: ContractFile;
+  /** ISO timestamp of when the contract was registered. */
+  createdAt?: string;
 }
 
 /** Data collected in the form before the contract is persisted. */
