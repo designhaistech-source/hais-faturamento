@@ -137,7 +137,7 @@ export function NewPricingVersionModal({
     setFileTouched(true);
     setBaseTypeTouched(true);
     setReplacedTouched(true);
-    if (baseType === "" || !canSubmit) return;
+    if (!canSubmit) return;
     onCreate({
       files: isPartial ? files.slice(0, 1) : files,
       baseType,
