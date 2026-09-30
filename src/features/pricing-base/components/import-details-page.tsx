@@ -466,7 +466,7 @@ function FilesTab({
                     <DataTableCell>
                       <span className="block min-w-40 break-all">{file.name}</span>
                     </DataTableCell>
-                    <DataTableCell className="whitespace-nowrap">
+                    <DataTableCell>
                       {formatVersionDateTime(file.addedAt ?? version.createdAt)}
                     </DataTableCell>
                     <DataTableCell className="text-right font-mono text-xs tabular-nums">
