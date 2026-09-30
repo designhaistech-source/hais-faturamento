@@ -323,7 +323,7 @@ function TabSearch({
       id={id}
       aria-label={placeholder}
       fieldClassName="w-full sm:max-w-[440px]"
-      className="shadow-none"
+      className="shadow-none border-border-strong bg-card"
       placeholder={placeholder}
       value={value}
       clearable
