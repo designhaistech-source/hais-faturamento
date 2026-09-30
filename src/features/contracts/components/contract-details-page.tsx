@@ -57,6 +57,7 @@ import {
   extractAmendment,
   listContractAmendments,
   type AmendmentExtractionStatus,
+  type ContractAmendment,
 } from "../data/contract-amendments-service";
 import { appTabsLabelClass, appTabsListClass, appTabsTriggerClass } from "@/components/app-tabs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -73,7 +74,12 @@ import { NewAmendmentModal } from "./new-amendment-modal";
 
 const COLUMNS = [
   "Arquivo",
-  "Tipo", "Cadastrado por", "Data do cadastro", "Status da extração", "Ações"];
+  "Tipo",
+  "Cadastrado por",
+  "Data do cadastro",
+  "Status da extração",
+  "Ações",
+];
 
 const STATUS_CONFIG = {
   available: { tone: "success", icon: CircleCheck, label: "Concluída" },
@@ -164,7 +170,7 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
     queryKey,
     queryFn: () => listContractAmendments(contract.id),
   });
-  const amendments = amendmentsQuery.data ?? [];
+  const amendments = useMemo(() => amendmentsQuery.data ?? [], [amendmentsQuery.data]);
   const rulesStatusQuery = useQuery({
     queryKey: contractRulesStatusQueryKey,
     queryFn: listContractRulesStatuses,
@@ -334,11 +340,7 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
           )}
         </TabsContent>
 
-        <TabsContent
-          value="files"
-          forceMount
-          className="space-y-4 data-[state=inactive]:hidden"
-        >
+        <TabsContent value="files" forceMount className="space-y-4 data-[state=inactive]:hidden">
           <div className="flex justify-end">{addButton}</div>
 
           {amendmentsQuery.isPending ? (
@@ -521,7 +523,6 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
         }}
         onDownload={(item) => void downloadFile(item.file)}
       />
-
     </div>
   );
 }
