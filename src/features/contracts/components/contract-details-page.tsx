@@ -315,6 +315,24 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
         </dl>
       </SurfaceCard>
 
+      <section className="space-y-4" aria-labelledby="extracted-data-title">
+        <h2
+          id="extracted-data-title"
+          className="font-display text-base font-semibold tracking-tight text-foreground"
+        >
+          Dados extraídos
+        </h2>
+        {rulesStatus === "available" ? (
+          <ContractRulesList contractId={contract.id} />
+        ) : (
+          <SurfaceCard padding="md">
+            <p className="text-sm text-muted-foreground">
+              Os dados do contrato ficam disponíveis aqui quando a extração estiver concluída.
+            </p>
+          </SurfaceCard>
+        )}
+      </section>
+
       <section className="space-y-4" aria-labelledby="amendments-title">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2
@@ -522,6 +540,8 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
       <ContractExtractedDataModal
         contract={rulesOpen ? contract : null}
         open={rulesOpen}
+        status={rulesStatus}
+        showDetailsLink={false}
         onOpenChange={setRulesOpen}
       />
     </div>
