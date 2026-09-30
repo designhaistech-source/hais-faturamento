@@ -463,7 +463,7 @@ function FilesTab({
                 const records = recordsPerFile?.get(file.name);
                 return (
                   <DataTableRow key={file.path}>
-                    <DataTableCell className="break-all">{file.name}</DataTableCell>
+                    <DataTableCell className="min-w-48 break-all">{file.name}</DataTableCell>
                     <DataTableCell className="whitespace-nowrap">
                       {formatVersionDateTime(file.addedAt ?? version.createdAt)}
                     </DataTableCell>

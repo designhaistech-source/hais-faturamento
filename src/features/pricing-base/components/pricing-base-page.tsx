@@ -482,7 +482,7 @@ export function PricingBasePage() {
                                 return (
                                   <Fragment key={version.id}>
                                     <DataTableRow>
-                                      <DataTableCell className="max-w-96">
+                                      <DataTableCell className="max-w-64 xl:max-w-96">
                                         <div className="flex min-w-0 items-center gap-2">
                                           <VersionFileName version={version} />
                                           {currentVersionIds.has(version.id) && <CurrentBadge />}
