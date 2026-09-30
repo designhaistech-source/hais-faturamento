@@ -182,11 +182,6 @@ function ImportDetailsContent({
   }, [records, multi, version.file.name]);
 
   const errors = version.errorRows;
-  const updateCount = version.files.filter((file) => file.kind === "update").length;
-  const lastUpdateName = version.files
-    .filter((file) => file.kind === "update")
-    .sort((a, b) => (a.addedAt ?? "").localeCompare(b.addedAt ?? ""))
-    .at(-1)?.name;
 
   return (
     <div className="space-y-6">
@@ -257,14 +252,6 @@ function ImportDetailsContent({
             />
           </TabsContent>
           <TabsContent value="codes" forceMount className="data-[state=inactive]:hidden space-y-3">
-            {updateCount > 0 && (
-              <p className="text-sm text-muted-foreground">
-                {updateCount === 1
-                  ? "1 atualização"
-                  : `${updateCount.toLocaleString("pt-BR")} atualizações`}
-                {lastUpdateName && ` · Última atualização aplicada: ${lastUpdateName}`}
-              </p>
-            )}
             {recordsQuery.isPending ? (
               <TableSkeleton rows={5} columns={5} />
             ) : recordsQuery.isError ? (
