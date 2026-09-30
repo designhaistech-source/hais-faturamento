@@ -251,7 +251,13 @@ export async function addPricingVersionUpdate(
 
   const files = [
     ...version.files,
-    { name: file.name, path, type: file.type, kind: "update" as const, addedAt: new Date().toISOString() },
+    {
+      name: file.name,
+      path,
+      type: file.type,
+      kind: "update" as const,
+      addedAt: new Date().toISOString(),
+    },
   ];
   const { error } = await supabase
     .from("pricing_versions")

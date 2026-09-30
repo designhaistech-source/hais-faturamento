@@ -200,7 +200,10 @@ function ImportDetailsContent({
                 </span>
               ),
             },
-            { label: "Quantidade de arquivos", value: version.files.length.toLocaleString("pt-BR") },
+            {
+              label: "Quantidade de arquivos",
+              value: version.files.length.toLocaleString("pt-BR"),
+            },
             {
               label: "Registros importados",
               value: version.processedCount?.toLocaleString("pt-BR") ?? "—",
@@ -429,7 +432,13 @@ function CodesTab({
   const term = normalize(search);
   const filtered = term
     ? records.filter((record) =>
-        [record.values.code, record.values.tuss, record.values.tiss, record.values.description, record.content]
+        [
+          record.values.code,
+          record.values.tuss,
+          record.values.tiss,
+          record.values.description,
+          record.content,
+        ]
           .filter(Boolean)
           .some((value) => normalize(value as string).includes(term)),
       )
@@ -456,7 +465,10 @@ function CodesTab({
               <tr>
                 {showRaw && <DataTableHead>Conteúdo da linha</DataTableHead>}
                 {fields.map((field) => (
-                  <DataTableHead key={field} className={field === "price" ? "text-right" : undefined}>
+                  <DataTableHead
+                    key={field}
+                    className={field === "price" ? "text-right" : undefined}
+                  >
                     {importFieldLabel(field, version.baseType)}
                   </DataTableHead>
                 ))}
@@ -475,7 +487,9 @@ function CodesTab({
                   {fields.map((field) => (
                     <DataTableCell
                       key={field}
-                      className={field === "description" ? undefined : "font-mono text-xs tabular-nums"}
+                      className={
+                        field === "description" ? undefined : "font-mono text-xs tabular-nums"
+                      }
                     >
                       <span className={field === "price" ? "block text-right" : undefined}>
                         {record.values[field] || "—"}

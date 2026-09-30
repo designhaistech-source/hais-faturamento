@@ -1,15 +1,15 @@
 import { Fragment, useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zipSync } from "fflate";
 import {
-  ChevronRight,
   Database,
   Download,
   Eye,
   EyeOff,
   FlaskConical,
   FileSearch,
-  Paperclip,
+  Files,
   Plus,
   Trash2,
 } from "lucide-react";
@@ -59,6 +59,7 @@ const STATUS_FILTER_OPTIONS = [
 import { AddPricingBaseModal } from "./add-pricing-base-modal";
 import {
   currentVersionIdsByType,
+  hasBrowsableDetails,
   formatVersionDateTime,
   pricingBaseTypeLabel,
   PRICING_BASE_TYPES,
