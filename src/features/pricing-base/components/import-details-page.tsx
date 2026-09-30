@@ -289,6 +289,7 @@ function ImportDetailsContent({
           )}
         </Tabs>
       )}
+      </section>
     </div>
   );
 }
