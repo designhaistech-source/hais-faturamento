@@ -154,24 +154,26 @@ export function NewPricingVersionModal({
           submit();
         }}
       >
-        {!controlled && (<SelectField
-          id="pricing-version-base-type"
-          label="Tipo da base"
-          required
-          placeholder="Selecione o tipo da base"
-          options={BASE_TYPE_OPTIONS}
-          // line-height 1 do trigger cortava o texto no mobile: usa leading normal.
-          triggerClassName="text-base/normal sm:text-sm/normal [&>span]:line-clamp-none [&>span]:block [&>span]:truncate"
-          value={baseType === "" ? undefined : baseType}
-          error={baseTypeError}
-          onValueChange={(value) => {
-            setBaseTypeTouched(true);
-            const next = value as PricingBaseType;
-            // Tipos de arquivo único mantêm só o primeiro arquivo já escolhido.
-            if (!allowsMultipleFiles(next)) setFiles((previous) => previous.slice(0, 1));
-            setBaseType(next);
-          }}
-        />)}
+        {!controlled && (
+          <SelectField
+            id="pricing-version-base-type"
+            label="Tipo da base"
+            required
+            placeholder="Selecione o tipo da base"
+            options={BASE_TYPE_OPTIONS}
+            // line-height 1 do trigger cortava o texto no mobile: usa leading normal.
+            triggerClassName="text-base/normal sm:text-sm/normal [&>span]:line-clamp-none [&>span]:block [&>span]:truncate"
+            value={baseType === "" ? undefined : baseType}
+            error={baseTypeError}
+            onValueChange={(value) => {
+              setBaseTypeTouched(true);
+              const next = value as PricingBaseType;
+              // Tipos de arquivo único mantêm só o primeiro arquivo já escolhido.
+              if (!allowsMultipleFiles(next)) setFiles((previous) => previous.slice(0, 1));
+              setBaseType(next);
+            }}
+          />
+        )}
 
         {multiple ? (
           <Field

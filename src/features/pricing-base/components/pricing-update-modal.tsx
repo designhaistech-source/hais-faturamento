@@ -141,20 +141,22 @@ export function PricingUpdateModal({
           submit();
         }}
       >
-        {!controlled && (<SelectField
-          id="pricing-update-base-type"
-          label="Tipo da base"
-          required
-          placeholder="Selecione o tipo da base"
-          options={options}
-          triggerClassName="text-base/normal sm:text-sm/normal [&>span]:line-clamp-none [&>span]:block [&>span]:truncate"
-          value={baseType === "" ? undefined : baseType}
-          error={baseTypeError}
-          onValueChange={(value) => {
-            setBaseTypeTouched(true);
-            setBaseType(value as PricingBaseType);
-          }}
-        />)}
+        {!controlled && (
+          <SelectField
+            id="pricing-update-base-type"
+            label="Tipo da base"
+            required
+            placeholder="Selecione o tipo da base"
+            options={options}
+            triggerClassName="text-base/normal sm:text-sm/normal [&>span]:line-clamp-none [&>span]:block [&>span]:truncate"
+            value={baseType === "" ? undefined : baseType}
+            error={baseTypeError}
+            onValueChange={(value) => {
+              setBaseTypeTouched(true);
+              setBaseType(value as PricingBaseType);
+            }}
+          />
+        )}
 
         <Field
           id="pricing-update-file"
