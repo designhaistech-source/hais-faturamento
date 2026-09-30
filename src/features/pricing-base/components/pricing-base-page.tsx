@@ -639,6 +639,9 @@ export function PricingBasePage() {
 
       <ImportSummaryModal
         version={detailsVersion}
+        hasCurrentVersion={
+          detailsVersion !== null && currentVersionsByType.has(detailsVersion.baseType)
+        }
         onOpenChange={(open) => {
           if (!open) setDetailsVersion(null);
         }}

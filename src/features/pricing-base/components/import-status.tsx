@@ -110,10 +110,16 @@ export function SummaryList({ items }: { items: Array<{ label: string; value: Re
 interface ImportSummaryModalProps {
   version: PricingVersion | null;
   onOpenChange: (open: boolean) => void;
+  /** Whether the version's base type already has a current version. */
+  hasCurrentVersion: boolean;
 }
 
 /** Visão resumida da importação; o detalhamento completo fica na página dedicada. */
-export function ImportSummaryModal({ version, onOpenChange }: ImportSummaryModalProps) {
+export function ImportSummaryModal({
+  version,
+  onOpenChange,
+  hasCurrentVersion,
+}: ImportSummaryModalProps) {
   const browsable = version !== null && hasBrowsableDetails(version);
   return (
     <AppModal
@@ -144,12 +150,18 @@ export function ImportSummaryModal({ version, onOpenChange }: ImportSummaryModal
         </>
       }
     >
-      {version && <ImportSummaryBody version={version} />}
+      {version && <ImportSummaryBody version={version} hasCurrentVersion={hasCurrentVersion} />}
     </AppModal>
   );
 }
 
-function ImportSummaryBody({ version }: { version: PricingVersion }) {
+function ImportSummaryBody({
+  version,
+  hasCurrentVersion,
+}: {
+  version: PricingVersion;
+  hasCurrentVersion: boolean;
+}) {
   if (version.importStatus === null) {
     return (
       <Alert>
@@ -203,7 +215,9 @@ function ImportSummaryBody({ version }: { version: PricingVersion }) {
       )}
       {status === "COMPLETED_WITH_ERRORS" && (
         <ImportCallout tone="warning" title="Base processada com erros">
-          Por isso, esta versão não substituiu a versão atual de{" "}
+          {hasCurrentVersion
+            ? "Por isso, esta versão não substituiu a versão atual de "
+            : "Por isso, esta versão não foi definida como a versão atual de "}
           {pricingBaseTypeLabel(version.baseType)}.
         </ImportCallout>
       )}
