@@ -164,8 +164,11 @@ function ImportSummaryBody({ version }: { version: PricingVersion }) {
 
   const status = version.importStatus;
   const updatedAt = lastUpdateAt(version);
+  // Outside COMPLETED the callout already communicates the status, so the badge would be redundant.
   const items: Array<{ label: string; value: ReactNode }> = [
-    { label: "Status", value: <ImportStatusBadge status={status} /> },
+    ...(status === "COMPLETED"
+      ? [{ label: "Status", value: <ImportStatusBadge status={status} /> }]
+      : []),
     { label: "Tipo da base", value: pricingBaseTypeLabel(version.baseType) },
     { label: "Quantidade de arquivos", value: count(version.files.length) },
   ];
