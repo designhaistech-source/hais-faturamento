@@ -61,7 +61,8 @@ export function NewPricingVersionModal({
   const replacedFile = isPartial
     ? currentSimproVersion?.files.find((item) => item.path === replacedPath)
     : undefined;
-  const canSubmit = files.length > 0 && baseType !== "" && (!isPartial || replacedFile !== undefined);
+  const canSubmit =
+    files.length > 0 && baseType !== "" && (!isPartial || replacedFile !== undefined);
   const replacedError =
     isPartial && replacedTouched && !replacedFile ? "Selecione o arquivo a atualizar." : undefined;
   const fileError =
@@ -224,9 +225,15 @@ export function NewPricingVersionModal({
         )}
 
         {isPartial && currentSimproVersion && (
-          <fieldset className="min-w-0 space-y-2" aria-describedby={replacedError ? "pricing-version-replaced-error" : undefined}>
+          <fieldset
+            className="min-w-0 space-y-2"
+            aria-describedby={replacedError ? "pricing-version-replaced-error" : undefined}
+          >
             <legend className="mb-2 text-sm font-medium text-foreground">
-              Arquivo a atualizar <span className="text-destructive" aria-hidden="true">*</span>
+              Arquivo a atualizar{" "}
+              <span className="text-destructive" aria-hidden="true">
+                *
+              </span>
               <span className="sr-only"> (obrigatório)</span>
             </legend>
             <RadioGroup
@@ -250,7 +257,11 @@ export function NewPricingVersionModal({
               })}
             </RadioGroup>
             {replacedError && (
-              <p id="pricing-version-replaced-error" role="alert" className="text-xs text-destructive">
+              <p
+                id="pricing-version-replaced-error"
+                role="alert"
+                className="text-xs text-destructive"
+              >
                 {replacedError}
               </p>
             )}
@@ -356,7 +367,7 @@ export function NewPricingVersionModal({
         ) : (
           <Field
             id="pricing-version-file"
-            label="Arquivo CSV ou TXT"
+            label={isPartial ? "Novo arquivo" : "Arquivo CSV ou TXT"}
             required
             error={fileError}
             hint="CSV ou TXT • Máx. 10 MB"
@@ -462,7 +473,22 @@ export function NewPricingVersionModal({
           </Field>
         )}
 
-        {replacesCurrent && (
+        {isPartial && replacedFile && file && (
+          <div
+            role="status"
+            className="flex items-start gap-3 rounded-xl border border-info/30 bg-info-muted px-4 py-3"
+          >
+            <Info className="mt-0.5 size-4 shrink-0 text-info-strong" aria-hidden="true" />
+            <div className="min-w-0 space-y-0.5">
+              <p className="text-sm font-medium text-foreground">Atualização da SIMPRO</p>
+              <p className="text-xs break-all text-muted-foreground">
+                {`O arquivo ${replacedFile.name} será substituído pelo novo arquivo. Os demais arquivos da versão atual serão mantidos na nova versão.`}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {replacesCurrent && !isPartial && (
           <div className="flex items-start gap-3 rounded-xl border border-info/30 bg-info-muted px-4 py-3">
             <Info className="mt-0.5 size-4 shrink-0 text-info-strong" aria-hidden="true" />
             <div className="min-w-0 space-y-0.5">

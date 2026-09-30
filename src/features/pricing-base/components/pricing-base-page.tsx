@@ -689,7 +689,8 @@ export function PricingBasePage() {
         existingBaseTypes={existingBaseTypes}
         currentSimproVersion={storedVersions.find(
           (version) =>
-            version.baseType === "simpro" && currentVersionIdsByType(storedVersions).has(version.id),
+            version.baseType === "simpro" &&
+            currentVersionIdsByType(storedVersions).has(version.id),
         )}
         onCreate={startBaseProcessing}
       />
