@@ -287,7 +287,11 @@ function ImportDetailsContent({
           </TabsContent>
           {errors.length > 0 && (
             <TabsContent value="errors" forceMount className="data-[state=inactive]:hidden">
-              <ErrorsTab rows={errors} multi={multi} fileNames={version.files.map((file) => file.name)} />
+              <ErrorsTab
+                rows={errors}
+                multi={multi}
+                fileNames={version.files.map((file) => file.name)}
+              />
             </TabsContent>
           )}
         </Tabs>
