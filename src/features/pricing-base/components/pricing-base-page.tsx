@@ -57,6 +57,13 @@ const STATUS_FILTER_OPTIONS = [
   ...IMPORT_STATUSES.map((status) => ({ value: status, label: IMPORT_STATUS_LABEL[status] })),
 ];
 import { NewPricingVersionModal } from "./new-pricing-version-modal";
+import { PricingUpdateModal } from "./pricing-update-modal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   currentVersionIdsByType,
   formatVersionDateTime,
@@ -68,6 +75,7 @@ import {
   type PricingVersionFile,
 } from "../data/pricing-versions";
 import {
+  addPricingVersionUpdate,
   createPricingVersion,
   createPricingVersionFileUrl,
   deleteAllPricingVersions,
@@ -126,6 +134,7 @@ async function downloadVersionFile(version: PricingVersion) {
 
 export function PricingBasePage() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [updateOpen, setUpdateOpen] = useState(false);
   const [detailsVersion, setDetailsVersion] = useState<PricingVersion | null>(null);
   const queryClient = useQueryClient();
 
@@ -145,6 +154,16 @@ export function PricingBasePage() {
     () => Array.from(new Set(storedVersions.map((version) => version.baseType))),
     [storedVersions],
   );
+
+  /** Versão "Atual" de cada tipo, usada pelo fluxo de atualização incremental. */
+  const currentVersionsByType = useMemo(() => {
+    const ids = currentVersionIdsByType(storedVersions);
+    const map = new Map<PricingBaseType, PricingVersion>();
+    for (const version of storedVersions) {
+      if (ids.has(version.id)) map.set(version.baseType, version);
+    }
+    return map;
+  }, [storedVersions]);
 
   const [search, setSearch] = useState("");
   const [baseTypeFilter, setBaseTypeFilter] = useState<"all" | PricingBaseType>("all");
@@ -272,6 +291,37 @@ export function PricingBasePage() {
     });
   }
 
+  function startBaseUpdate(version: PricingVersion, file: File) {
+    backgroundTask.start({
+      kind: "pricing-base",
+      fileName: file.name,
+      processing: {
+        title: "Processando atualização da base",
+        description: "Processando os dados da atualização...",
+      },
+      failure: {
+        title: "Não foi possível processar a atualização",
+        description: "Não foi possível processar o arquivo.",
+      },
+      retryable: true,
+      run: async () => {
+        const status = await addPricingVersionUpdate(version, file);
+        await queryClient.invalidateQueries({ queryKey: pricingVersionsQueryKey });
+        if (status !== "COMPLETED") {
+          return {
+            tone: "danger",
+            title: "Atualização não aplicada",
+            description: `O arquivo não foi adicionado à versão atual da ${pricingBaseTypeLabel(version.baseType)} porque a importação não foi concluída.`,
+          };
+        }
+        return {
+          title: "Atualização adicionada",
+          description: `O arquivo foi adicionado à versão atual da ${pricingBaseTypeLabel(version.baseType)}.`,
+        };
+      },
+    });
+  }
+
   const clearMutation = useMutation({
     mutationFn: deleteAllPricingVersions,
     onSuccess: async () => {
@@ -296,14 +346,34 @@ export function PricingBasePage() {
               title="Base de precificação"
               description="Gerencie as bases de valores utilizadas na análise do faturamento."
               actions={
-                <Button
-                  type="button"
-                  className="w-full sm:w-auto"
-                  onClick={() => setModalOpen(true)}
-                >
-                  <Plus className="size-4" aria-hidden="true" />
-                  Nova versão
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button type="button" className="w-full sm:w-auto">
+                      <Plus className="size-4" aria-hidden="true" />
+                      Adicionar
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-72">
+                    <DropdownMenuItem
+                      className="flex-col items-start gap-0.5"
+                      onSelect={() => setModalOpen(true)}
+                    >
+                      <span className="text-sm font-medium">Nova versão</span>
+                      <span className="text-xs text-muted-foreground">
+                        Cadastre uma nova versão de uma base de precificação.
+                      </span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="flex-col items-start gap-0.5"
+                      onSelect={() => setUpdateOpen(true)}
+                    >
+                      <span className="text-sm font-medium">Atualização</span>
+                      <span className="text-xs text-muted-foreground">
+                        Adicione um arquivo à versão atual de uma base de precificação.
+                      </span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               }
             />
 
@@ -687,12 +757,14 @@ export function PricingBasePage() {
         open={modalOpen}
         onOpenChange={setModalOpen}
         existingBaseTypes={existingBaseTypes}
-        currentSimproVersion={storedVersions.find(
-          (version) =>
-            version.baseType === "simpro" &&
-            currentVersionIdsByType(storedVersions).has(version.id),
-        )}
         onCreate={startBaseProcessing}
+      />
+
+      <PricingUpdateModal
+        open={updateOpen}
+        onOpenChange={setUpdateOpen}
+        currentVersions={currentVersionsByType}
+        onSubmit={startBaseUpdate}
       />
 
       <ImportDetailsModal

@@ -182,7 +182,10 @@ export function PricingUpdateModal({
                       className="size-4 shrink-0 text-muted-foreground"
                       aria-hidden="true"
                     />
-                    <span className="min-w-0 flex-1 truncate text-sm text-foreground" title={file.name}>
+                    <span
+                      className="min-w-0 flex-1 truncate text-sm text-foreground"
+                      title={file.name}
+                    >
                       {file.name}
                     </span>
                     <div className="flex shrink-0 items-center gap-2">

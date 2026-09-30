@@ -236,7 +236,8 @@ export async function addPricingVersionUpdate(
 
   const path = `${crypto.randomUUID()}-${sanitizeFileName(file.name)}`;
   const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file, {
-    contentType: file.type || (file.name.toLowerCase().endsWith(".txt") ? "text/plain" : "text/csv"),
+    contentType:
+      file.type || (file.name.toLowerCase().endsWith(".txt") ? "text/plain" : "text/csv"),
   });
   if (uploadError) throw uploadError;
 
