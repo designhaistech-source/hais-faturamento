@@ -228,10 +228,8 @@ export function OperatorsPage() {
             </fieldset>
           </FilterCard>
 
-          <section className="space-y-4" aria-labelledby="operators-title">
-            <h2 id="operators-title" className="font-display text-lg font-semibold text-foreground">
-              Operadoras
-            </h2>
+          <section className="space-y-4" aria-label="Lista de operadoras">
+
             {query.isPending ? (
               <SurfaceCard padding="none">
                 <TableSkeleton rows={5} columns={4} />
