@@ -65,3 +65,18 @@ export async function listOperators(): Promise<Operator[]> {
 export async function getOperator(id: string): Promise<Operator | null> {
   return SAMPLE_OPERATORS.find((operator) => operator.id === id) ?? null;
 }
+
+/**
+ * Contrato que sustenta a página da operadora: o vínculo de exemplo ou, quando não há,
+ * o contrato mais recente cadastrado com o nome da operadora.
+ */
+export function resolveOperatorContractId(
+  operator: Operator,
+  contracts: ReadonlyArray<{ id: string; company: string; createdAt?: string }>,
+): string | null {
+  if (operator.contractId) return operator.contractId;
+  const matches = contracts
+    .filter((contract) => contract.company === operator.name)
+    .sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
+  return matches[0]?.id ?? null;
+}
