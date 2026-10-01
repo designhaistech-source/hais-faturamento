@@ -63,7 +63,7 @@ export function contractRuleHeadline(rule: ContractRule): string {
     .join(" · ");
 }
 
-export function contractRuleSituationLabel(rule: ContractRule): string {
+export function contractRuleSituationLabel(rule: Pick<ContractRule, "reviewed">): string {
   return rule.reviewed ? "Revisada" : "Pendente de revisão";
 }
 

@@ -33,8 +33,11 @@ const ROUTE_META: Record<string, RouteMeta> = {
 export function AppBreadcrumb({
   className,
   currentLabel,
+  parent,
 }: {
   className?: string;
+  /** Nível intermediário da relação contratual (ex.: página da operadora). */
+  parent?: { label: string; contractId: string };
   /** Substitui o rótulo do último nível (ex.: nome da operadora). */
   currentLabel?: string;
 }) {
@@ -53,7 +56,11 @@ export function AppBreadcrumb({
     : isPricingDetail
       ? { label: "Detalhes da base" }
       : isContractDetail
-        ? { label: "Detalhes do contrato" }
+        ? {
+            label: normalized.includes("/extracao/")
+              ? "Detalhes da extração"
+              : "Detalhes do contrato",
+          }
         : ROUTE_META[normalized];
   const meta = routeMeta && currentLabel ? { label: currentLabel } : routeMeta;
 
@@ -110,6 +117,22 @@ export function AppBreadcrumb({
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="shrink-0" />
+            {parent && (
+              <>
+                <BreadcrumbItem className="min-w-0">
+                  <BreadcrumbLink asChild>
+                    <Link
+                      to="/contratos/$contractId"
+                      params={{ contractId: parent.contractId }}
+                      className="truncate transition-colors hover:text-foreground"
+                    >
+                      {parent.label}
+                    </Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="shrink-0" />
+              </>
+            )}
           </>
         )}
         <BreadcrumbItem className="min-w-0 flex-1">

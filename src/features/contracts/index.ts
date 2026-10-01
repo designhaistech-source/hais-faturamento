@@ -26,3 +26,4 @@ export {
   listContractAmendments,
 } from "./data/contract-amendments-service";
 export { ContractFileDropzone, validateContractFile } from "./components/contract-file-dropzone";
+export { ExtractionDetailsPage } from "./components/extraction-details-page";

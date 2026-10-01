@@ -10,7 +10,7 @@ export function RuleSituationBadge({ rule }: { rule: Pick<ContractRule, "reviewe
     <StatusBadge
       tone={rule.reviewed ? "success" : "warning"}
       icon={rule.reviewed ? CircleCheck : Clock}
-      label={contractRuleSituationLabel(rule as ContractRule)}
+      label={contractRuleSituationLabel(rule)}
     />
   );
 }
