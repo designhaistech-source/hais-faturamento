@@ -1,11 +1,15 @@
 import { useState } from "react";
+import { FileText } from "lucide-react";
 
-import { SelectField } from "@/components/form-field";
+import { AppModal } from "@/components/app-modal";
+import { Field, SelectField } from "@/components/form-field";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
-  NewAmendmentModal,
-  NewContractModal,
+  ContractFileDropzone,
   useCreateAmendment,
   useCreateContract,
+  validateContractFile,
 } from "@/features/contracts";
 import type { Operator } from "../data/operators";
 
@@ -15,9 +19,6 @@ const DOCUMENT_TYPE_OPTIONS = [
   { value: "contract", label: "Contrato" },
   { value: "amendment", label: "Aditivo" },
 ];
-
-const TITLE = "Adicionar documento";
-const DESCRIPTION = "Selecione o tipo de documento e a operadora.";
 
 interface AddDocumentModalProps {
   open: boolean;
@@ -30,6 +31,9 @@ interface AddDocumentModalProps {
 export function AddDocumentModal({ open, onOpenChange, operators }: AddDocumentModalProps) {
   const [type, setType] = useState<DocumentType | "">("");
   const [operatorId, setOperatorId] = useState("");
+  const [validUntil, setValidUntil] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | undefined>();
   const createContract = useCreateContract();
   const createAmendment = useCreateAmendment();
 
@@ -37,76 +41,110 @@ export function AddDocumentModal({ open, onOpenChange, operators }: AddDocumentM
     type === "contract" ? !operator.contractId : type === "amendment" && !!operator.contractId,
   );
   const operator = available.find((item) => item.id === operatorId);
+  const pending = createContract.isPending || createAmendment.isPending;
+  const canSubmit = Boolean(type && operator && file) && !pending;
 
-  function handleOpenChange(next: boolean) {
-    if (!next) {
-      setType("");
-      setOperatorId("");
-    }
-    onOpenChange(next);
+  function selectFile(selected: File | null) {
+    const error = selected ? validateContractFile(selected) : null;
+    setFileError(error ?? undefined);
+    setFile(error ? null : selected);
   }
 
-  const leading = (
-    <div className="grid gap-4 sm:grid-cols-2">
-      <SelectField
-        id="document-type"
-        label="Tipo de documento"
-        required
-        placeholder="Selecione"
-        options={DOCUMENT_TYPE_OPTIONS}
-        value={type}
-        onValueChange={(value) => {
-          setType(value as DocumentType);
-          setOperatorId("");
-        }}
-      />
-      <SelectField
-        // Remonta ao trocar o tipo para limpar a operadora exibida.
-        key={type}
-        id="document-operator"
-        label="Operadora"
-        required
-        placeholder={type ? "Selecione" : "Selecione o tipo primeiro"}
-        disabled={!type || available.length === 0}
-        options={available.map((item) => ({ value: item.id, label: item.name }))}
-        value={operatorId}
-        onValueChange={setOperatorId}
-      />
-    </div>
-  );
+  function close() {
+    setType("");
+    setOperatorId("");
+    setValidUntil("");
+    setFile(null);
+    setFileError(undefined);
+    onOpenChange(false);
+  }
 
-  if (type === "amendment") {
-    return (
-      <NewAmendmentModal
-        open={open}
-        onOpenChange={handleOpenChange}
-        title={TITLE}
-        description={DESCRIPTION}
-        leading={leading}
-        ready={!!operator?.contractId}
-        pending={createAmendment.isPending}
-        onCreate={(file) => {
-          if (!operator?.contractId) return;
-          createAmendment.mutate({
-            contract: { id: operator.contractId, company: operator.name },
-            file,
-          });
-        }}
-      />
-    );
+  function submit() {
+    if (!canSubmit || !operator || !file) return;
+    if (type === "contract") {
+      createContract.mutate({ company: operator.name, cnpj: "", validUntil, file });
+    } else if (operator.contractId) {
+      createAmendment.mutate({
+        contract: { id: operator.contractId, company: operator.name },
+        file,
+      });
+    }
+    close();
   }
 
   return (
-    <NewContractModal
+    <AppModal
       open={open}
-      onOpenChange={handleOpenChange}
-      title={TITLE}
-      description={DESCRIPTION}
-      submitLabel="Adicionar"
-      leading={leading}
-      ready={type === "contract" && !!operator}
-      operatorName={operator?.name ?? ""}
-      onCreate={(input) => createContract.mutate(input)}
-    />
+      onOpenChange={(next) => (next ? onOpenChange(true) : close())}
+      title="Adicionar documento"
+      description="Cadastre um contrato ou aditivo vinculado a uma operadora."
+      icon={<FileText className="size-5" aria-hidden="true" />}
+      footer={
+        <>
+          <Button type="button" variant="outline" size="sm" onClick={close}>
+            Cancelar
+          </Button>
+          <Button type="button" size="sm" disabled={!canSubmit} onClick={submit}>
+            Adicionar
+          </Button>
+        </>
+      }
+    >
+      <form
+        className="space-y-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          submit();
+        }}
+      >
+        <div className="grid gap-4 sm:grid-cols-2">
+          <SelectField
+            id="document-type"
+            label="Tipo de documento"
+            required
+            placeholder="Selecione"
+            options={DOCUMENT_TYPE_OPTIONS}
+            value={type}
+            onValueChange={(value) => {
+              setType(value as DocumentType);
+              setOperatorId("");
+            }}
+          />
+          <SelectField
+            // Remonta ao trocar o tipo para limpar a operadora exibida.
+            key={type}
+            id="document-operator"
+            label="Operadora"
+            required
+            placeholder={type ? "Selecione" : "Selecione o tipo primeiro"}
+            disabled={!type || available.length === 0}
+            options={available.map((item) => ({ value: item.id, label: item.name }))}
+            value={operatorId}
+            onValueChange={setOperatorId}
+          />
+        </div>
+
+        {type === "contract" && (
+          <Field id="document-valid-until" label="Data de validade do contrato">
+            <Input
+              type="date"
+              value={validUntil}
+              onChange={(event) => setValidUntil(event.target.value)}
+            />
+          </Field>
+        )}
+
+        <Field
+          id="document-file"
+          label="Arquivo"
+          required
+          error={fileError}
+          hint="PDF, DOC ou DOCX · Máx. 10 MB"
+          injectChildProps={false}
+        >
+          <ContractFileDropzone inputId="document-file" file={file} onSelect={selectFile} />
+        </Field>
+      </form>
+    </AppModal>
   );
 }
