@@ -421,7 +421,7 @@ function ExtractionContent({
                           onClick={() => selectRule(rule)}
                           className={
                             rule.id === selectedId
-                              ? "cursor-pointer bg-primary/10 shadow-[inset_3px_0_0_var(--primary)] hover:bg-primary/10"
+                              ? "cursor-pointer bg-primary/10 hover:bg-primary/10"
                               : "cursor-pointer"
                           }
                         >
@@ -505,7 +505,10 @@ function ExtractionContent({
                 className="min-w-0 space-y-3 lg:sticky lg:top-6 lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <h3 className="truncate text-sm font-semibold text-foreground" title={previewFile.file.name}>
+                  <h3
+                    className="truncate text-sm font-semibold text-foreground"
+                    title={previewFile.file.name}
+                  >
                     {previewFile.file.name}
                   </h3>
                   <Button type="button" variant="ghost" size="sm" onClick={() => setPreview(false)}>
