@@ -27,7 +27,9 @@ export function OperatorExtractionPage({
   });
   const contractsQuery = useQuery({ queryKey: contractsQueryKey, queryFn: listContracts });
   const operator = operatorQuery.data;
-  const contractId = operator ? resolveOperatorContractId(operator, contractsQuery.data ?? []) : null;
+  const contractId = operator
+    ? resolveOperatorContractId(operator, contractsQuery.data ?? [])
+    : null;
 
   if (operator && contractId) {
     return (
