@@ -59,7 +59,8 @@ export function OperatorsPage() {
 
   const navigate = useNavigate();
   const openOperator = (operator: Operator) => {
-    if (operator.contractId) {
+    // Sem contrato, a página da operadora oferece o cadastro; com contrato só de exemplo, ainda não há página.
+    if (operator.contractId || !operator.hasContract) {
       void navigate({ to: "/contratos/$contractId", params: { contractId: operator.id } });
       return;
     }
