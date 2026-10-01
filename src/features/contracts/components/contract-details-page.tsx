@@ -231,6 +231,10 @@ function ContractDetailsContent({
             fileName: contract.file.name,
             status: <ContractRulesStatusBadge status={rulesStatus} />,
             available: rulesStatus === "available",
+            onViewDocument: () => {
+              setExtracted(null);
+              setPreview(contract);
+            },
           }),
       },
       ...amendments.map<FileRow>((item) => ({
@@ -250,6 +254,10 @@ function ContractDetailsContent({
             fileName: item.file.name,
             status: <AmendmentStatusBadge status={item.extractionStatus} />,
             available: item.extractionStatus === "available",
+            onViewDocument: () => {
+              setExtracted(null);
+              setPreview(amendmentAsContractFile(item, contract.company));
+            },
           }),
       })),
     ],
