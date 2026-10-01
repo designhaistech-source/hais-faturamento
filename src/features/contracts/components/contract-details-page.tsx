@@ -253,7 +253,9 @@ function ContractDetailsContent({
     [contract, amendments, rulesStatus],
   );
 
-  const activeCount = [search.trim() !== "", statusFilter !== "all", from !== "", to !== ""].filter(Boolean).length;
+  const activeCount = [search.trim() !== "", statusFilter !== "all", from !== "", to !== ""].filter(
+    Boolean,
+  ).length;
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();

@@ -33,9 +33,15 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { formatIsoToBr } from "@/lib/date";
 
 import { contractsQueryKey, listContracts } from "../data/contracts-service";
-import { contractAmendmentsQueryKey, listContractAmendments } from "../data/contract-amendments-service";
+import {
+  contractAmendmentsQueryKey,
+  listContractAmendments,
+} from "../data/contract-amendments-service";
 import type { ContractRulesDisplayStatus } from "../data/contract-rules";
-import { contractRulesStatusQueryKey, listContractRulesStatuses } from "../data/contract-rules-service";
+import {
+  contractRulesStatusQueryKey,
+  listContractRulesStatuses,
+} from "../data/contract-rules-service";
 import {
   sampleExtractedRules,
   type ExtractedRule,
@@ -209,7 +215,10 @@ function FileExtractedDataContent({ fileId, file }: { fileId: string; file: File
       </SurfaceCard>
 
       <section className="space-y-4" aria-labelledby="extracted-rules-title">
-        <h2 id="extracted-rules-title" className="font-display text-lg font-semibold text-foreground">
+        <h2
+          id="extracted-rules-title"
+          className="font-display text-lg font-semibold text-foreground"
+        >
           Regras extraídas ({rules.length.toLocaleString("pt-BR")})
         </h2>
 
@@ -238,7 +247,9 @@ function FileExtractedDataContent({ fileId, file }: { fileId: string; file: File
                 <DataTableBody>
                   {paginated.map((rule) => (
                     <DataTableRow key={rule.id}>
-                      <DataTableCell className="font-medium text-foreground">{rule.type}</DataTableCell>
+                      <DataTableCell className="font-medium text-foreground">
+                        {rule.type}
+                      </DataTableCell>
                       <DataTableCell>{rule.target}</DataTableCell>
                       <DataTableCell>{rule.condition}</DataTableCell>
                       <DataTableCell>{rule.effect}</DataTableCell>
