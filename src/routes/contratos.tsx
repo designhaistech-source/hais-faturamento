@@ -9,13 +9,13 @@ interface ContractsSearch {
 export const Route = createFileRoute("/contratos")({
   head: () => ({
     meta: [
-      { title: "Operadoras e contratos | HaisFaturamento" },
+      { title: "Contratos com operadoras | HaisFaturamento" },
       {
         name: "description",
         content:
           "Consulte as operadoras de saúde e a situação dos contratos do hospital com cada uma no HaisFaturamento.",
       },
-      { property: "og:title", content: "Operadoras e contratos | HaisFaturamento" },
+      { property: "og:title", content: "Contratos com operadoras | HaisFaturamento" },
       {
         property: "og:description",
         content: "Operadoras de saúde e contratos do hospital no HaisFaturamento.",
