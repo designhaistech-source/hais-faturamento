@@ -215,6 +215,7 @@ export type Database = {
       contract_rules: {
         Row: {
           adjustment_percent: number
+          amendment_id: string | null
           base_type: string
           category: string
           codes: string
@@ -230,6 +231,7 @@ export type Database = {
         }
         Insert: {
           adjustment_percent?: number
+          amendment_id?: string | null
           base_type?: string
           category?: string
           codes?: string
@@ -245,6 +247,7 @@ export type Database = {
         }
         Update: {
           adjustment_percent?: number
+          amendment_id?: string | null
           base_type?: string
           category?: string
           codes?: string
@@ -259,6 +262,13 @@ export type Database = {
           valid_to?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "contract_rules_amendment_id_fkey"
+            columns: ["amendment_id"]
+            isOneToOne: false
+            referencedRelation: "contract_amendments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "contract_rules_contract_id_fkey"
             columns: ["contract_id"]

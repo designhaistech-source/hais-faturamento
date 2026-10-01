@@ -134,6 +134,13 @@
       "when": 1790796490557,
       "tag": "0018_create_contract_amendments",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790866945936,
+      "tag": "0019_contract_rules_amendment_id",
+      "breakpoints": true
     }
   ]
 }

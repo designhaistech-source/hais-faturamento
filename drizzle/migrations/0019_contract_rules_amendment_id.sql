@@ -1,0 +1,2 @@
+ALTER TABLE public.contract_rules ADD COLUMN amendment_id uuid REFERENCES public.contract_amendments(id) ON DELETE CASCADE;
+CREATE INDEX contract_rules_amendment_id_idx ON public.contract_rules(amendment_id);
