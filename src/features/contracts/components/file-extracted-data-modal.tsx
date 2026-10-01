@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Eye, FileSearch } from "lucide-react";
+import { FileSearch } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
@@ -36,11 +36,6 @@ export interface ExtractedFileTarget {
 
 const NOT_IDENTIFIED = "Não identificado";
 
-function brDate(iso: string): string {
-  const [y, m, d] = iso.split("-");
-  return y && m && d ? `${d}/${m}/${y}` : NOT_IDENTIFIED;
-}
-
 function Field({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="min-w-0 space-y-0.5">
@@ -50,35 +45,80 @@ function Field({ label, value }: { label: string; value: ReactNode }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="space-y-2 border-t border-border pt-3 first:border-t-0 first:pt-0">
-      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {title}
-      </h4>
-      <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">{children}</dl>
-    </section>
-  );
+function brl(value: number): string {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-function effectOf(rule: ContractRule): string[] {
-  const items: string[] = [];
-  if (rule.adjustmentPercent !== 0) {
-    const sign = rule.adjustmentPercent > 0 ? "Acréscimo" : "Desconto";
-    items.push(`${sign} de ${Math.abs(rule.adjustmentPercent).toLocaleString("pt-BR")}%`);
+function percentLabel(value: number): string {
+  return `${Math.abs(value).toLocaleString("pt-BR")}%`;
+}
+
+/** Campos principais conforme o tipo da regra; só o que a extração guarda. */
+function ruleFields(rule: ContractRule): { label: string; value: ReactNode }[] {
+  const codes = parseRuleCodes(rule.codes);
+  const fields: { label: string; value: ReactNode }[] = [];
+  if (codes.length > 0) {
+    fields.push({ label: "Código", value: <span className="font-mono">{codes.join(", ")}</span> });
   }
-  if (rule.factor !== 1) items.push(`Fator ${rule.factor.toLocaleString("pt-BR")}`);
+  if (rule.baseType !== "none") {
+    fields.push({ label: "Tabela", value: contractRuleBaseLabel(rule.baseType) });
+  }
   if (rule.negotiatedValue !== null) {
+    fields.push({ label: "Valor", value: brl(rule.negotiatedValue) });
+  }
+  if (rule.adjustmentPercent !== 0) {
+    fields.push({
+      label: rule.adjustmentPercent > 0 ? "Acréscimo" : "Desconto",
+      value: percentLabel(rule.adjustmentPercent),
+    });
+  }
+  if (rule.factor !== 1)
+    fields.push({ label: "Fator", value: rule.factor.toLocaleString("pt-BR") });
+  return fields;
+}
+
+function ruleConditions(rule: ContractRule): string[] {
+  const items: string[] = [];
+  const codes = parseRuleCodes(rule.codes);
+  if (codes.length > 0) {
     items.push(
-      `Valor negociado ${rule.negotiatedValue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`,
+      `Aplica-se somente ${codes.length === 1 ? "ao código" : "aos códigos"} ${codes.join(", ")}.`,
     );
+  } else if (rule.category.trim()) {
+    items.push(`Aplica-se a todos os itens da categoria ${rule.category.trim()}.`);
+  }
+  const validity = formatContractRuleValidity(rule);
+  if (validity) items.push(`Válida para atendimentos no período ${validity}.`);
+  return items;
+}
+
+function requiredData(rule: ContractRule): string[] {
+  const items: string[] = [];
+  if (parseRuleCodes(rule.codes).length > 0) items.push("Código do item faturado");
+  else if (rule.category.trim()) items.push("Categoria do item faturado");
+  if (rule.baseType !== "none" && rule.baseType !== "contract") {
+    items.push(`Preço de referência na versão atual da ${contractRuleBaseLabel(rule.baseType)}`);
+  }
+  items.push("Valor cobrado no faturamento");
+  if (rule.validFrom || rule.validTo) items.push("Data do atendimento");
+  return items;
+}
+
+function rulePending(rule: ContractRule): string[] {
+  const items: string[] = [];
+  if (rule.baseType === "none") items.push("Tabela de referência não identificada no contrato.");
+  if (rule.baseType === "contract" && rule.negotiatedValue === null) {
+    items.push("Valor negociado não identificado no contrato.");
+  }
+  if (!rule.category.trim() && parseRuleCodes(rule.codes).length === 0) {
+    items.push("Categoria ou código dos itens abrangidos não identificado.");
   }
   return items;
 }
 
-function SimpleSection({ title, children }: { title: string; children: ReactNode }) {
+function DetailSection({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="space-y-2 border-t border-border pt-3">
+    <section className="space-y-2 border-t border-border pt-3 first:border-t-0 first:pt-0">
       <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {title}
       </h4>
@@ -87,106 +127,42 @@ function SimpleSection({ title, children }: { title: string; children: ReactNode
   );
 }
 
-/**
- * Mostra só os campos que a extração atual guarda. Seções sem nenhum dado
- * guardado (Aplicabilidade, Dados necessários) aparecem como "Não identificado".
- */
-function RuleDetails({
-  rule,
-  fileName,
-  onViewDocument,
-}: {
-  rule: ContractRule;
-  fileName: string;
-  onViewDocument?: () => void;
-}) {
-  const codes = parseRuleCodes(rule.codes);
-  const effect = effectOf(rule);
+function BulletList({ items, empty }: { items: string[]; empty: string }) {
+  if (items.length === 0) return <p className="text-sm text-muted-foreground">{empty}</p>;
+  return (
+    <ul className="list-disc space-y-1 pl-5 text-sm text-foreground">
+      {items.map((item) => (
+        <li key={item}>{item}</li>
+      ))}
+    </ul>
+  );
+}
+
+/** Detalhes derivados apenas dos campos que a extração guarda hoje. */
+function RuleDetails({ rule }: { rule: ContractRule }) {
+  const fields = ruleFields(rule);
   return (
     <div className="space-y-4">
-      <section className="space-y-2">
-        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Condição e efeito
-        </h4>
-        <p className="font-display text-base font-semibold text-foreground">
-          {effect[0] ?? NOT_IDENTIFIED}
-        </p>
-        <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-3">
-          {rule.adjustmentPercent !== 0 && (
-            <Field
-              label={rule.adjustmentPercent > 0 ? "Acréscimo" : "Desconto"}
-              value={`${Math.abs(rule.adjustmentPercent).toLocaleString("pt-BR")}%`}
-            />
-          )}
-          {rule.factor !== 1 && <Field label="Fator" value={rule.factor.toLocaleString("pt-BR")} />}
-          {rule.negotiatedValue !== null && (
-            <Field
-              label="Valor"
-              value={rule.negotiatedValue.toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              })}
-            />
-          )}
-        </dl>
-      </section>
-      <SimpleSection title="Aplicabilidade">
-        <p className="text-sm text-foreground">{NOT_IDENTIFIED}</p>
-      </SimpleSection>
-      <Section title="Vigência">
-        <Field
-          label="Início da eficácia"
-          value={rule.validFrom ? brDate(rule.validFrom) : NOT_IDENTIFIED}
-        />
-        <Field
-          label="Fim da eficácia"
-          value={rule.validTo ? brDate(rule.validTo) : NOT_IDENTIFIED}
-        />
-      </Section>
-      <Section title="Itens abrangidos">
-        <Field
-          label="Código"
-          value={
-            codes.length > 0 ? (
-              <span className="font-mono">{codes.join(", ")}</span>
-            ) : (
-              NOT_IDENTIFIED
-            )
-          }
-        />
-        <Field
-          label="Tabela/sistema"
-          value={rule.baseType === "none" ? NOT_IDENTIFIED : contractRuleBaseLabel(rule.baseType)}
-        />
-        <Field label="Categoria" value={rule.category.trim() || NOT_IDENTIFIED} />
-      </Section>
-      <SimpleSection title="Dados necessários para verificação">
-        <p className="text-sm text-foreground">{NOT_IDENTIFIED}</p>
-      </SimpleSection>
-      <SimpleSection title="Evidências">
-        <dl className="grid grid-cols-1 gap-y-2">
-          <Field label="Documento" value={fileName} />
-          <Field
-            label="Trecho"
-            value={
-              rule.sourceExcerpt.trim() ? (
-                <span className="text-muted-foreground">“{rule.sourceExcerpt.trim()}”</span>
-              ) : (
-                NOT_IDENTIFIED
-              )
-            }
-          />
-        </dl>
-        {onViewDocument && (
-          <Button type="button" variant="outline" size="sm" onClick={onViewDocument}>
-            <Eye className="size-4" aria-hidden="true" />
-            Ver trecho no documento
-          </Button>
+      <DetailSection title="Regra">
+        {fields.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{NOT_IDENTIFIED}</p>
+        ) : (
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-3">
+            {fields.map((field) => (
+              <Field key={field.label} label={field.label} value={field.value} />
+            ))}
+          </dl>
         )}
-      </SimpleSection>
-      <Section title="Situação da regra">
-        <Field label="Revisão" value={rule.reviewed ? "Revisada" : "Pendente de revisão"} />
-      </Section>
+      </DetailSection>
+      <DetailSection title="Condições">
+        <BulletList items={ruleConditions(rule)} empty="Nenhuma condição identificada." />
+      </DetailSection>
+      <DetailSection title="Dados necessários para verificação">
+        <BulletList items={requiredData(rule)} empty={NOT_IDENTIFIED} />
+      </DetailSection>
+      <DetailSection title="Pendências">
+        <BulletList items={rulePending(rule)} empty="Nenhuma pendência identificada." />
+      </DetailSection>
     </div>
   );
 }
@@ -230,7 +206,7 @@ export function FileExtractedDataModal({
         <div className="space-y-5">
           <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
             <Field label="Status da extração" value={target.status} />
-            <Field label="Quantidade de regras identificadas" value={count} />
+            <Field label="Regras identificadas" value={count} />
           </dl>
 
           <section className="space-y-2">
@@ -270,17 +246,15 @@ export function FileExtractedDataModal({
                           <span className="block text-sm font-normal text-muted-foreground">
                             {summarizeContractRule(rule) || NOT_IDENTIFIED}
                           </span>
-                          <span className="block text-xs font-normal text-muted-foreground">
-                            Vigência: {validity || NOT_IDENTIFIED}
-                          </span>
+                          {validity && (
+                            <span className="block text-xs font-normal text-muted-foreground">
+                              Vigência: {validity}
+                            </span>
+                          )}
                         </span>
                       </AccordionTrigger>
                       <AccordionContent className="pb-4">
-                        <RuleDetails
-                          rule={rule}
-                          fileName={target.fileName}
-                          onViewDocument={target.onViewDocument}
-                        />
+                        <RuleDetails rule={rule} />
                       </AccordionContent>
                     </AccordionItem>
                   );
