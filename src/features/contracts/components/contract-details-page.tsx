@@ -55,8 +55,6 @@ import {
   listContractAmendments,
   type AmendmentExtractionStatus,
 } from "../data/contract-amendments-service";
-import { appTabsLabelClass, appTabsListClass, appTabsTriggerClass } from "@/components/app-tabs";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ContractRulesDisplayStatus } from "../data/contract-rules";
 import {
   contractRulesStatusQueryKey,
@@ -65,7 +63,8 @@ import {
 import { useContractExtractionStates } from "../data/contract-extraction";
 import { ContractPreviewModal } from "./contract-preview-modal";
 import { ContractRulesStatusBadge } from "./contract-rules-status-badge";
-import { ContractRulesList } from "./contract-rules-list";
+import { FileExtractedDataModal, type ExtractedFileTarget } from "./file-extracted-data-modal";
+import { ActionIcon } from "@/components/action-icons";
 import { NewAmendmentModal } from "./new-amendment-modal";
 import { useCreateAmendment } from "../data/use-contract-registration";
 
@@ -205,6 +204,7 @@ function ContractDetailsContent({
 
   const [modalOpen, setModalOpen] = useState(false);
   const [preview, setPreview] = useState<Contract | null>(null);
+  const [extracted, setExtracted] = useState<ExtractedFileTarget | null>(null);
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -224,6 +224,14 @@ function ContractDetailsContent({
         statusKey: rulesStatus,
         file: contract.file,
         onView: () => setPreview(contract),
+        onExtracted: () =>
+          setExtracted({
+            contractId: contract.id,
+            amendmentId: null,
+            fileName: contract.file.name,
+            status: <ContractRulesStatusBadge status={rulesStatus} />,
+            available: rulesStatus === "available",
+          }),
       },
       ...amendments.map<FileRow>((item) => ({
         id: item.id,
@@ -235,12 +243,22 @@ function ContractDetailsContent({
         statusKey: item.extractionStatus,
         file: item.file,
         onView: () => setPreview(amendmentAsContractFile(item, contract.company)),
+        onExtracted: () =>
+          setExtracted({
+            contractId: contract.id,
+            amendmentId: item.id,
+            fileName: item.file.name,
+            status: <AmendmentStatusBadge status={item.extractionStatus} />,
+            available: item.extractionStatus === "available",
+          }),
       })),
     ],
     [contract, amendments, rulesStatus],
   );
 
-  const activeCount = [search.trim() !== "", statusFilter !== "all", from !== "", to !== ""].filter(Boolean).length;
+  const activeCount = [search.trim() !== "", statusFilter !== "all", from !== "", to !== ""].filter(
+    Boolean,
+  ).length;
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -319,209 +337,188 @@ function ContractDetailsContent({
         </dl>
       </SurfaceCard>
 
-      <Tabs defaultValue="files" className="space-y-4">
-        <TabsList className={appTabsListClass}>
-          <TabsTrigger value="files" className={appTabsTriggerClass}>
-            <span className={appTabsLabelClass}>
-              Arquivos
-              {amendmentsQuery.data ? ` (${files.length.toLocaleString("pt-BR")})` : ""}
-            </span>
-          </TabsTrigger>
-          <TabsTrigger value="extracted" className={appTabsTriggerClass}>
-            <span className={appTabsLabelClass}>Dados extraídos</span>
-          </TabsTrigger>
-        </TabsList>
+      <section aria-labelledby="contract-files-title" className="space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h2 id="contract-files-title" className="text-lg font-semibold text-foreground">
+            Arquivos do contrato
+          </h2>
+          {addButton}
+        </div>
 
-        <TabsContent value="extracted" className="space-y-4">
-          {rulesStatus === "available" ? (
-            <ContractRulesList contractId={contract.id} />
-          ) : (
-            <SurfaceCard padding="md">
-              <p className="text-sm text-muted-foreground">
-                Os dados do contrato ficam disponíveis aqui quando a extração estiver concluída.
-              </p>
-            </SurfaceCard>
-          )}
-        </TabsContent>
-
-        <TabsContent value="files" forceMount className="space-y-4 data-[state=inactive]:hidden">
-          <div className="flex justify-end">{addButton}</div>
-
-          {amendmentsQuery.isPending ? (
-            <SurfaceCard padding="none">
-              <TableSkeleton rows={3} columns={6} />
-            </SurfaceCard>
-          ) : amendmentsQuery.isError ? (
-            <SurfaceCard padding="md">
-              <ErrorState
-                title="Não foi possível carregar os aditivos"
-                description="Tente novamente em alguns instantes."
-                onRetry={() => void amendmentsQuery.refetch()}
+        {amendmentsQuery.isPending ? (
+          <SurfaceCard padding="none">
+            <TableSkeleton rows={3} columns={6} />
+          </SurfaceCard>
+        ) : amendmentsQuery.isError ? (
+          <SurfaceCard padding="md">
+            <ErrorState
+              title="Não foi possível carregar os aditivos"
+              description="Tente novamente em alguns instantes."
+              onRetry={() => void amendmentsQuery.refetch()}
+            />
+          </SurfaceCard>
+        ) : (
+          <>
+            <FilterCard
+              id="amendments-filters"
+              variant="bar"
+              activeCount={activeCount}
+              onClear={clearFilters}
+              clearDisabled={activeCount === 0}
+              barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_12rem_22rem_auto] lg:gap-4"
+            >
+              <SearchField
+                id="amendments-search"
+                label="Buscar"
+                fieldClassName="sm:col-span-2 lg:col-span-1"
+                placeholder="Buscar por nome do arquivo"
+                value={search}
+                clearable
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setPage(1);
+                }}
+                onClear={() => {
+                  setSearch("");
+                  setPage(1);
+                }}
               />
-            </SurfaceCard>
-          ) : (
-            <>
-              <FilterCard
-                id="amendments-filters"
-                variant="bar"
-                activeCount={activeCount}
-                onClear={clearFilters}
-                clearDisabled={activeCount === 0}
-                barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_12rem_22rem_auto] lg:gap-4"
-              >
-                <SearchField
-                  id="amendments-search"
-                  label="Buscar"
-                  fieldClassName="sm:col-span-2 lg:col-span-1"
-                  placeholder="Buscar por nome do arquivo"
-                  value={search}
-                  clearable
-                  onChange={(event) => {
-                    setSearch(event.target.value);
-                    setPage(1);
-                  }}
-                  onClear={() => {
-                    setSearch("");
-                    setPage(1);
-                  }}
-                />
-                <SelectField
-                  id="amendments-extraction-status"
-                  label="Status da extração"
-                  className="sm:col-span-2 lg:col-span-1"
-                  value={statusFilter}
-                  options={EXTRACTION_STATUS_FILTER_OPTIONS}
-                  onValueChange={(value) => {
-                    setStatusFilter(value as ContractRulesDisplayStatus | "all");
-                    setPage(1);
-                  }}
-                />
-                <fieldset className="min-w-0 space-y-1.5 sm:col-span-2 sm:space-y-2 lg:col-span-1">
-                  <legend className="text-xs font-medium leading-snug text-muted-foreground">
-                    Data do cadastro
-                  </legend>
-                  <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
-                    <span className="shrink-0 text-xs text-muted-foreground">De</span>
-                    <Input
-                      type="date"
-                      aria-label="Data do cadastro de"
-                      className="min-w-0 flex-1"
-                      value={from}
-                      max={to || undefined}
-                      onChange={(event) => {
-                        setFrom(event.target.value);
-                        setPage(1);
-                      }}
-                    />
-                    <span className="shrink-0 text-xs text-muted-foreground">até</span>
-                    <Input
-                      type="date"
-                      aria-label="Data do cadastro até"
-                      className="min-w-0 flex-1"
-                      value={to}
-                      min={from || undefined}
-                      onChange={(event) => {
-                        setTo(event.target.value);
-                        setPage(1);
-                      }}
-                    />
-                  </div>
-                </fieldset>
-              </FilterCard>
-
-              {filtered.length === 0 ? (
-                <EmptyStateCard
-                  icon={<FileText className="size-10" aria-hidden="true" />}
-                  title="Nenhum arquivo encontrado"
-                  description="Ajuste a busca ou o período de cadastro para ver outros resultados."
-                  action={
-                    <Button type="button" variant="outline" onClick={clearFilters}>
-                      Limpar filtros
-                    </Button>
-                  }
-                />
-              ) : (
-                <DataTable>
-                  <DataTableDesktop>
-                    <DataTableRoot>
-                      <DataTableHeader>
-                        <tr>
-                          {COLUMNS.map((column) => (
-                            <DataTableHead
-                              key={column}
-                              className={column === "Ações" ? "text-right" : undefined}
-                            >
-                              {column}
-                            </DataTableHead>
-                          ))}
-                        </tr>
-                      </DataTableHeader>
-                      <DataTableBody>
-                        {paginated.map((item) => (
-                          <DataTableRow key={item.id}>
-                            <DataTableCell className="max-w-72 font-medium">
-                              <span className="block truncate" title={item.name}>
-                                {item.name}
-                              </span>
-                            </DataTableCell>
-                            <DataTableCell>{item.kind}</DataTableCell>
-                            <DataTableCell>{item.createdBy}</DataTableCell>
-                            <DataTableCell>
-                              {item.createdAt ? formatDateTime(item.createdAt) : "—"}
-                            </DataTableCell>
-                            <DataTableCell>{item.status}</DataTableCell>
-                            <DataTableCell className="text-right">
-                              <FileActions row={item} />
-                            </DataTableCell>
-                          </DataTableRow>
-                        ))}
-                      </DataTableBody>
-                    </DataTableRoot>
-                  </DataTableDesktop>
-
-                  <DataTableCardList divided>
-                    {paginated.map((item) => (
-                      <DataTableCard key={item.id} flat className="space-y-1.5 py-2.5">
-                        <DataTableCardHeader
-                          title={<span className="min-w-0 truncate">{item.name}</span>}
-                        />
-                        <DataTableCardFields
-                          className="gap-x-4 gap-y-1"
-                          fields={[
-                            { label: "Tipo", value: item.kind },
-                            { label: "Cadastrado por", value: item.createdBy },
-                            {
-                              label: "Data do cadastro",
-                              value: item.createdAt ? formatDateTime(item.createdAt) : "—",
-                            },
-                            { label: "Status da extração", value: item.status },
-                          ]}
-                        />
-                        <DataTableCardActions className="-mt-0.5 justify-end">
-                          <FileActions row={item} />
-                        </DataTableCardActions>
-                      </DataTableCard>
-                    ))}
-                  </DataTableCardList>
-
-                  <TablePagination
-                    id="contract-files"
-                    totalItems={filtered.length}
-                    page={currentPage}
-                    pageSize={pageSize}
-                    onPageChange={setPage}
-                    onPageSizeChange={(size) => {
-                      setPageSize(size);
+              <SelectField
+                id="amendments-extraction-status"
+                label="Status da extração"
+                className="sm:col-span-2 lg:col-span-1"
+                value={statusFilter}
+                options={EXTRACTION_STATUS_FILTER_OPTIONS}
+                onValueChange={(value) => {
+                  setStatusFilter(value as ContractRulesDisplayStatus | "all");
+                  setPage(1);
+                }}
+              />
+              <fieldset className="min-w-0 space-y-1.5 sm:col-span-2 sm:space-y-2 lg:col-span-1">
+                <legend className="text-xs font-medium leading-snug text-muted-foreground">
+                  Data do cadastro
+                </legend>
+                <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
+                  <span className="shrink-0 text-xs text-muted-foreground">De</span>
+                  <Input
+                    type="date"
+                    aria-label="Data do cadastro de"
+                    className="min-w-0 flex-1"
+                    value={from}
+                    max={to || undefined}
+                    onChange={(event) => {
+                      setFrom(event.target.value);
                       setPage(1);
                     }}
-                    className="px-4 pb-4"
                   />
-                </DataTable>
-              )}
-            </>
-          )}
-        </TabsContent>
-      </Tabs>
+                  <span className="shrink-0 text-xs text-muted-foreground">até</span>
+                  <Input
+                    type="date"
+                    aria-label="Data do cadastro até"
+                    className="min-w-0 flex-1"
+                    value={to}
+                    min={from || undefined}
+                    onChange={(event) => {
+                      setTo(event.target.value);
+                      setPage(1);
+                    }}
+                  />
+                </div>
+              </fieldset>
+            </FilterCard>
+
+            {filtered.length === 0 ? (
+              <EmptyStateCard
+                icon={<FileText className="size-10" aria-hidden="true" />}
+                title="Nenhum arquivo encontrado"
+                description="Ajuste a busca ou o período de cadastro para ver outros resultados."
+                action={
+                  <Button type="button" variant="outline" onClick={clearFilters}>
+                    Limpar filtros
+                  </Button>
+                }
+              />
+            ) : (
+              <DataTable>
+                <DataTableDesktop>
+                  <DataTableRoot>
+                    <DataTableHeader>
+                      <tr>
+                        {COLUMNS.map((column) => (
+                          <DataTableHead
+                            key={column}
+                            className={column === "Ações" ? "text-right" : undefined}
+                          >
+                            {column}
+                          </DataTableHead>
+                        ))}
+                      </tr>
+                    </DataTableHeader>
+                    <DataTableBody>
+                      {paginated.map((item) => (
+                        <DataTableRow key={item.id}>
+                          <DataTableCell className="max-w-72 font-medium">
+                            <span className="block truncate" title={item.name}>
+                              {item.name}
+                            </span>
+                          </DataTableCell>
+                          <DataTableCell>{item.kind}</DataTableCell>
+                          <DataTableCell>{item.createdBy}</DataTableCell>
+                          <DataTableCell>
+                            {item.createdAt ? formatDateTime(item.createdAt) : "—"}
+                          </DataTableCell>
+                          <DataTableCell>{item.status}</DataTableCell>
+                          <DataTableCell className="text-right">
+                            <FileActions row={item} />
+                          </DataTableCell>
+                        </DataTableRow>
+                      ))}
+                    </DataTableBody>
+                  </DataTableRoot>
+                </DataTableDesktop>
+
+                <DataTableCardList divided>
+                  {paginated.map((item) => (
+                    <DataTableCard key={item.id} flat className="space-y-1.5 py-2.5">
+                      <DataTableCardHeader
+                        title={<span className="min-w-0 truncate">{item.name}</span>}
+                      />
+                      <DataTableCardFields
+                        className="gap-x-4 gap-y-1"
+                        fields={[
+                          { label: "Tipo", value: item.kind },
+                          { label: "Cadastrado por", value: item.createdBy },
+                          {
+                            label: "Data do cadastro",
+                            value: item.createdAt ? formatDateTime(item.createdAt) : "—",
+                          },
+                          { label: "Status da extração", value: item.status },
+                        ]}
+                      />
+                      <DataTableCardActions className="-mt-0.5 justify-end">
+                        <FileActions row={item} />
+                      </DataTableCardActions>
+                    </DataTableCard>
+                  ))}
+                </DataTableCardList>
+
+                <TablePagination
+                  id="contract-files"
+                  totalItems={filtered.length}
+                  page={currentPage}
+                  pageSize={pageSize}
+                  onPageChange={setPage}
+                  onPageSizeChange={(size) => {
+                    setPageSize(size);
+                    setPage(1);
+                  }}
+                  className="px-4 pb-4"
+                />
+              </DataTable>
+            )}
+          </>
+        )}
+      </section>
 
       <NewAmendmentModal
         open={modalOpen}
@@ -530,6 +527,10 @@ function ContractDetailsContent({
         onCreate={(file) => createMutation.mutate({ contract, file })}
       />
 
+      <FileExtractedDataModal
+        target={extracted}
+        onOpenChange={(open) => !open && setExtracted(null)}
+      />
       <ContractPreviewModal
         contract={preview}
         open={preview !== null}
@@ -557,12 +558,27 @@ interface FileRow {
   statusKey: ContractRulesDisplayStatus | null;
   file: { path: string; name: string };
   onView: () => void;
+  onExtracted: () => void;
 }
 
 function FileActions({ row }: { row: FileRow }) {
   const noun = row.kind === "Aditivo" ? "aditivo" : "contrato";
   return (
     <div className="inline-flex items-center gap-1">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={`Ver dados extraídos de ${row.name}`}
+            onClick={row.onExtracted}
+          >
+            <ActionIcon.inspectProcessing className="size-4" aria-hidden="true" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Ver dados extraídos</TooltipContent>
+      </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

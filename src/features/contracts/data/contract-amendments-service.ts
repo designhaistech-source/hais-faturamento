@@ -3,6 +3,8 @@ import { extractContractRules } from "@/lib/contract-rules.functions";
 
 import type { Contract } from "./contracts";
 import { readContractText } from "./contract-text";
+import { toContractRuleDrafts } from "./contract-extraction";
+import { saveContractRules } from "./contract-rules-service";
 
 const BUCKET = "contracts";
 
@@ -127,7 +129,7 @@ export function amendmentAsContractFile(amendment: ContractAmendment, company: s
 
 /**
  * Lê o texto do aditivo e executa a mesma extração usada nos contratos.
- * O resultado só define o status da extração do aditivo.
+ * As regras ficam guardadas vinculadas ao próprio aditivo.
  */
 export async function extractAmendment(
   amendment: ContractAmendment,
@@ -137,6 +139,13 @@ export async function extractAmendment(
     const text = await readContractText(amendmentAsContractFile(amendment, company));
     if (text.length < 40) throw new Error("Não foi possível ler o texto do aditivo.");
     const rules = await extractContractRules({ data: { contractText: text } });
+    const drafts = toContractRuleDrafts(rules);
+    if (drafts.length > 0) {
+      await saveContractRules(amendment.contractId, drafts, {
+        reviewed: false,
+        amendmentId: amendment.id,
+      });
+    }
     const status: AmendmentExtractionStatus = rules.length > 0 ? "available" : "not_identified";
     await setStatus(amendment.id, status);
     return status;

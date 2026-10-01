@@ -8,14 +8,18 @@ import {
   type ContractRulesStatus,
 } from "./contract-rules";
 
-export const contractRulesQueryKey = (contractId: string) =>
-  ["contract-rules", contractId] as const;
+/** `amendmentId` nulo identifica as regras do contrato original. */
+export const contractRulesQueryKey = (contractId: string, amendmentId: string | null = null) =>
+  ["contract-rules", contractId, amendmentId] as const;
 
 export const contractRulesStatusQueryKey = ["contract-rules-status"] as const;
 
 /** Situação das regras de todos os contratos, para a listagem de Contratos. */
 export async function listContractRulesStatuses(): Promise<Record<string, ContractRulesStatus>> {
-  const { data, error } = await supabase.from("contract_rules").select("contract_id, reviewed");
+  const { data, error } = await supabase
+    .from("contract_rules")
+    .select("contract_id, reviewed")
+    .is("amendment_id", null);
   if (error) throw error;
 
   const grouped = new Map<string, { reviewed: boolean }[]>();
@@ -37,14 +41,20 @@ function toNumber(value: unknown, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-export async function listContractRules(contractId: string): Promise<ContractRule[]> {
-  const { data, error } = await supabase
+export async function listContractRules(
+  contractId: string,
+  amendmentId: string | null = null,
+): Promise<ContractRule[]> {
+  const base = supabase
     .from("contract_rules")
     .select(
       "id, contract_id, category, base_type, codes, factor, adjustment_percent, negotiated_value, valid_from, valid_to, source_excerpt, reviewed",
     )
     .eq("contract_id", contractId)
     .order("created_at", { ascending: true });
+  const { data, error } = await (amendmentId
+    ? base.eq("amendment_id", amendmentId)
+    : base.is("amendment_id", null));
   if (error) throw error;
 
   return (data ?? []).map((row) => ({
@@ -70,13 +80,14 @@ export async function listContractRules(contractId: string): Promise<ContractRul
 export async function saveContractRules(
   contractId: string,
   rules: ContractRuleDraft[],
-  options: { reviewed?: boolean } = {},
+  options: { reviewed?: boolean; amendmentId?: string | null } = {},
 ): Promise<void> {
   const reviewed = options.reviewed ?? true;
-  const { error: deleteError } = await supabase
-    .from("contract_rules")
-    .delete()
-    .eq("contract_id", contractId);
+  const amendmentId = options.amendmentId ?? null;
+  const scope = supabase.from("contract_rules").delete().eq("contract_id", contractId);
+  const { error: deleteError } = await (amendmentId
+    ? scope.eq("amendment_id", amendmentId)
+    : scope.is("amendment_id", null));
   if (deleteError) throw deleteError;
 
   if (rules.length === 0) return;
@@ -84,6 +95,7 @@ export async function saveContractRules(
   const { error } = await supabase.from("contract_rules").insert(
     rules.map((rule) => ({
       contract_id: contractId,
+      amendment_id: amendmentId,
       category: rule.category,
       base_type: rule.baseType,
       codes: rule.codes,
