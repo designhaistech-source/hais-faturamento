@@ -191,115 +191,116 @@ export function NewContractModal({
         )}
 
         {ready && (
-        <Field
-          id="contract-file"
-          label="Contrato"
-          required
-          error={fileError}
-          hint="PDF, DOC ou DOCX • Máx. 10 MB"
-          injectChildProps={false}
-        >
-          <div
-            className="min-w-0"
-            onDragEnter={(event) => {
-              event.preventDefault();
-              setDragActive(true);
-            }}
-            onDragOver={(event) => {
-              event.preventDefault();
-              setDragActive(true);
-            }}
-            onDragLeave={(event) => {
-              // Ignora a saída para elementos filhos da própria drop zone.
-              if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
-              setDragActive(false);
-            }}
-            onDrop={(event) => {
-              event.preventDefault();
-              setDragActive(false);
-              const dropped = event.dataTransfer.files?.[0];
-              if (!dropped) return;
-              handleSelectedFile(dropped);
-              if (inputRef.current) inputRef.current.value = "";
-            }}
+          <Field
+            id="contract-file"
+            label="Contrato"
+            required
+            error={fileError}
+            hint="PDF, DOC ou DOCX • Máx. 10 MB"
+            injectChildProps={false}
           >
-            <input
-              ref={inputRef}
-              id="contract-file"
-              type="file"
-              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-              className="sr-only"
-              onChange={(event) => {
-                handleSelectedFile(event.target.files?.[0] ?? null);
+            <div
+              className="min-w-0"
+              onDragEnter={(event) => {
+                event.preventDefault();
+                setDragActive(true);
               }}
-            />
+              onDragOver={(event) => {
+                event.preventDefault();
+                setDragActive(true);
+              }}
+              onDragLeave={(event) => {
+                // Ignora a saída para elementos filhos da própria drop zone.
+                if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+                setDragActive(false);
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                setDragActive(false);
+                const dropped = event.dataTransfer.files?.[0];
+                if (!dropped) return;
+                handleSelectedFile(dropped);
+                if (inputRef.current) inputRef.current.value = "";
+              }}
+            >
+              <input
+                ref={inputRef}
+                id="contract-file"
+                type="file"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                className="sr-only"
+                onChange={(event) => {
+                  handleSelectedFile(event.target.files?.[0] ?? null);
+                }}
+              />
 
-            {file ? (
-              <div
-                className={cn(
-                  "flex min-w-0 flex-wrap items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-3 transition-colors",
-                  dragActive && "border-primary bg-primary-muted",
-                )}
-              >
-                <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                <TooltipProvider delayDuration={150}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span
-                        tabIndex={0}
-                        className="min-w-0 flex-1 truncate rounded-sm text-sm text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                      >
-                        {file.name}
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-80 break-all">{file.name}</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <div className="flex shrink-0 items-center gap-2">
+              {file ? (
+                <div
+                  className={cn(
+                    "flex min-w-0 flex-wrap items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-3 transition-colors",
+                    dragActive && "border-primary bg-primary-muted",
+                  )}
+                >
+                  <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <TooltipProvider delayDuration={150}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span
+                          tabIndex={0}
+                          className="min-w-0 flex-1 truncate rounded-sm text-sm text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                        >
+                          {file.name}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-80 break-all">{file.name}</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => inputRef.current?.click()}
+                    >
+                      Substituir
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => {
+                        handleSelectedFile(null);
+                        if (inputRef.current) inputRef.current.value = "";
+                      }}
+                    >
+                      <Trash2 className="size-4" aria-hidden="true" />
+                      Remover
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className={cn(
+                    "flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-6 text-center transition-colors",
+                    dragActive && "border-primary bg-primary-muted",
+                  )}
+                >
+                  <Upload className="size-5 text-muted-foreground" aria-hidden="true" />
+                  <p className="text-sm text-muted-foreground">Arraste e solte o arquivo aqui</p>
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     onClick={() => inputRef.current?.click()}
                   >
-                    Substituir
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => {
-                      handleSelectedFile(null);
-                      if (inputRef.current) inputRef.current.value = "";
-                    }}
-                  >
-                    <Trash2 className="size-4" aria-hidden="true" />
-                    Remover
+                    Selecionar arquivo
                   </Button>
                 </div>
-              </div>
-            ) : (
-              <div
-                className={cn(
-                  "flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-6 text-center transition-colors",
-                  dragActive && "border-primary bg-primary-muted",
-                )}
-              >
-                <Upload className="size-5 text-muted-foreground" aria-hidden="true" />
-                <p className="text-sm text-muted-foreground">Arraste e solte o arquivo aqui</p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => inputRef.current?.click()}
-                >
-                  Selecionar arquivo
-                </Button>
-              </div>
-            )}
-          </div>
-        </Field>
+              )}
+            </div>
+          </Field>
+        )}
       </form>
     </AppModal>
   );
