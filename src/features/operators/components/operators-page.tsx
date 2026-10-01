@@ -122,7 +122,7 @@ export function OperatorsPage() {
                 onClick={() => setAddOpen(true)}
               >
                 <Plus className="size-4" aria-hidden="true" />
-                Adicionar contrato
+                Cadastrar contrato
               </Button>
             }
           />
