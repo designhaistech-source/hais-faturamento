@@ -64,8 +64,8 @@ export function AddContractModal({ open, onOpenChange, operators }: AddContractM
     <AppModal
       open={open}
       onOpenChange={(next) => (next ? onOpenChange(true) : close())}
-      title="Adicionar contrato"
-      description="Adicione um contrato vinculado a uma operadora."
+      title="Cadastrar contrato"
+      description="Cadastre um contrato vinculado a uma operadora."
       icon={<FileText className="size-5" aria-hidden="true" />}
       footer={
         <>
@@ -73,7 +73,7 @@ export function AddContractModal({ open, onOpenChange, operators }: AddContractM
             Cancelar
           </Button>
           <Button type="button" size="sm" disabled={!canSubmit} onClick={submit}>
-            Adicionar
+            Cadastrar
           </Button>
         </>
       }
