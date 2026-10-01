@@ -271,7 +271,7 @@ function FileExtractedDataContent({ fileId, file }: { fileId: string; file: File
                 <DataTableCard key={rule.id} flat className="space-y-1.5 py-2.5">
                   <DataTableCardHeader
                     title={rule.type}
-                    badge={<RuleStatusBadge status={rule.status} />}
+                    trailing={<RuleStatusBadge status={rule.status} />}
                   />
                   <DataTableCardFields
                     className="gap-x-4 gap-y-1"
