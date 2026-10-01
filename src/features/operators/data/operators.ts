@@ -18,17 +18,17 @@ const SAMPLE_OPERATORS: Operator[] = [
   {
     id: "amil",
     name: "Amil",
-    hasContract: true,
-    validUntil: "2026-12-31",
-    amendmentsCount: 2,
+    hasContract: false,
+    validUntil: "",
+    amendmentsCount: null,
     contractId: null,
   },
   {
     id: "caurn",
     name: "CAURN",
-    hasContract: true,
-    validUntil: "2027-06-30",
-    amendmentsCount: 1,
+    hasContract: false,
+    validUntil: "",
+    amendmentsCount: null,
     contractId: null,
   },
   {

@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, CircleCheck, CircleDashed } from "lucide-react";
-import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -81,14 +80,8 @@ export function OperatorsPage() {
   const visible = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const navigate = useNavigate();
-  const openOperator = (operator: Operator) => {
-    // Sem contrato, a página da operadora oferece o cadastro; com contrato só de exemplo, ainda não há página.
-    if (operator.contractId || !operator.hasContract) {
-      void navigate({ to: "/contratos/$contractId", params: { contractId: operator.id } });
-      return;
-    }
-    toast.info(`A página da operadora ${operator.name} ainda não está disponível.`);
-  };
+  const openOperator = (operator: Operator) =>
+    void navigate({ to: "/contratos/$contractId", params: { contractId: operator.id } });
 
   return (
     <div className="flex min-h-screen bg-background">
