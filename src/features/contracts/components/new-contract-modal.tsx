@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { FileText, Paperclip, Trash2, Upload } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
@@ -18,6 +18,13 @@ interface NewContractModalProps {
   onCreate: (contract: NewContractInput) => void;
   /** Cadastro a partir da página da operadora: nome fixo e campos de prestador ocultos. */
   operatorName?: string;
+  /** Campos exibidos antes dos campos do contrato (ex.: seleção de tipo e operadora). */
+  leading?: ReactNode;
+  /** Quando falso, exibe apenas `leading` e mantém o envio bloqueado. */
+  ready?: boolean;
+  title?: ReactNode;
+  description?: ReactNode;
+  submitLabel?: string;
 }
 
 /** Formulário de cadastro de contrato: arquivo obrigatório + dados do prestador. */
@@ -26,6 +33,11 @@ export function NewContractModal({
   onOpenChange,
   onCreate,
   operatorName,
+  leading,
+  ready = true,
+  title,
+  description,
+  submitLabel = "Cadastrar",
 }: NewContractModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -39,7 +51,7 @@ export function NewContractModal({
 
   const [invalidFileMessage, setInvalidFileMessage] = useState<string | null>(null);
 
-  const canSubmit = Boolean(file) && company.trim().length > 0;
+  const canSubmit = ready && Boolean(file) && company.trim().length > 0;
   const fileError =
     invalidFileMessage ?? (fileTouched && !file ? "Selecione o arquivo do contrato." : undefined);
   const companyError =
@@ -86,7 +98,7 @@ export function NewContractModal({
   function submit() {
     setFileTouched(true);
     setCompanyTouched(true);
-    if (!file || company.trim().length === 0) return;
+    if (!ready || !file || company.trim().length === 0) return;
     onCreate({
       company: company.trim(),
       cnpj: cnpj.trim(),
@@ -101,11 +113,12 @@ export function NewContractModal({
     <AppModal
       open={open}
       onOpenChange={(next) => (next ? onOpenChange(true) : close())}
-      title={operatorName ? "Cadastrar contrato" : "Novo contrato"}
+      title={title ?? (operatorName ? "Cadastrar contrato" : "Novo contrato")}
       description={
-        operatorName
+        description ??
+        (operatorName
           ? "Anexe o arquivo do contrato com a operadora."
-          : "Anexe o arquivo do contrato e informe os dados do prestador."
+          : "Anexe o arquivo do contrato e informe os dados do prestador.")
       }
       icon={<FileText className="size-5" aria-hidden="true" />}
       footer={
@@ -114,7 +127,7 @@ export function NewContractModal({
             Cancelar
           </Button>
           <Button type="button" size="sm" disabled={!canSubmit} onClick={submit}>
-            Cadastrar
+            {submitLabel}
           </Button>
         </>
       }
@@ -126,12 +139,15 @@ export function NewContractModal({
           submit();
         }}
       >
-        {operatorName ? (
+        {leading}
+        {!ready ? null : operatorName ? (
           <>
-            <dl className="space-y-0.5">
-              <dt className="text-xs font-medium text-muted-foreground">Operadora</dt>
-              <dd className="text-sm font-semibold text-foreground">{operatorName}</dd>
-            </dl>
+            {leading ? null : (
+              <dl className="space-y-0.5">
+                <dt className="text-xs font-medium text-muted-foreground">Operadora</dt>
+                <dd className="text-sm font-semibold text-foreground">{operatorName}</dd>
+              </dl>
+            )}
             <Field id="contract-valid-until" label="Data de validade do contrato">
               <Input
                 type="date"
@@ -174,6 +190,7 @@ export function NewContractModal({
           </>
         )}
 
+        {ready && (
         <Field
           id="contract-file"
           label="Contrato"
