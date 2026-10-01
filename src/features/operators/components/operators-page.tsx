@@ -164,7 +164,7 @@ export function OperatorsPage() {
                 />
               </SurfaceCard>
             ) : (
-              <SurfaceCard padding="md" className="min-w-0 space-y-4">
+              <div className="min-w-0 space-y-4">
                 <DataTableCardList breakpoint="md">
                   {visible.length === 0 ? (
                     <li className="py-6 text-center text-sm text-muted-foreground">
@@ -277,7 +277,7 @@ export function OperatorsPage() {
                     setPage(1);
                   }}
                 />
-              </SurfaceCard>
+              </div>
             )}
           </section>
         </main>
