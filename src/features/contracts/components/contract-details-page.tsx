@@ -55,8 +55,6 @@ import {
   listContractAmendments,
   type AmendmentExtractionStatus,
 } from "../data/contract-amendments-service";
-import { appTabsLabelClass, appTabsListClass, appTabsTriggerClass } from "@/components/app-tabs";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ContractRulesDisplayStatus } from "../data/contract-rules";
 import {
   contractRulesStatusQueryKey,
@@ -65,7 +63,8 @@ import {
 import { useContractExtractionStates } from "../data/contract-extraction";
 import { ContractPreviewModal } from "./contract-preview-modal";
 import { ContractRulesStatusBadge } from "./contract-rules-status-badge";
-import { ContractRulesList } from "./contract-rules-list";
+import { FileExtractedDataModal, type ExtractedFileTarget } from "./file-extracted-data-modal";
+import { ActionIcon } from "@/components/action-icons";
 import { NewAmendmentModal } from "./new-amendment-modal";
 import { useCreateAmendment } from "../data/use-contract-registration";
 
@@ -205,6 +204,7 @@ function ContractDetailsContent({
 
   const [modalOpen, setModalOpen] = useState(false);
   const [preview, setPreview] = useState<Contract | null>(null);
+  const [extracted, setExtracted] = useState<ExtractedFileTarget | null>(null);
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -224,6 +224,14 @@ function ContractDetailsContent({
         statusKey: rulesStatus,
         file: contract.file,
         onView: () => setPreview(contract),
+        onExtracted: () =>
+          setExtracted({
+            contractId: contract.id,
+            amendmentId: null,
+            fileName: contract.file.name,
+            status: <ContractRulesStatusBadge status={rulesStatus} />,
+            available: rulesStatus === "available",
+          }),
       },
       ...amendments.map<FileRow>((item) => ({
         id: item.id,
@@ -235,6 +243,14 @@ function ContractDetailsContent({
         statusKey: item.extractionStatus,
         file: item.file,
         onView: () => setPreview(amendmentAsContractFile(item, contract.company)),
+        onExtracted: () =>
+          setExtracted({
+            contractId: contract.id,
+            amendmentId: item.id,
+            fileName: item.file.name,
+            status: <AmendmentStatusBadge status={item.extractionStatus} />,
+            available: item.extractionStatus === "available",
+          }),
       })),
     ],
     [contract, amendments, rulesStatus],
@@ -319,33 +335,14 @@ function ContractDetailsContent({
         </dl>
       </SurfaceCard>
 
-      <Tabs defaultValue="files" className="space-y-4">
-        <TabsList className={appTabsListClass}>
-          <TabsTrigger value="files" className={appTabsTriggerClass}>
-            <span className={appTabsLabelClass}>
-              Arquivos
-              {amendmentsQuery.data ? ` (${files.length.toLocaleString("pt-BR")})` : ""}
-            </span>
-          </TabsTrigger>
-          <TabsTrigger value="extracted" className={appTabsTriggerClass}>
-            <span className={appTabsLabelClass}>Dados extraídos</span>
-          </TabsTrigger>
-        </TabsList>
+      <section aria-labelledby="contract-files-title" className="space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h2 id="contract-files-title" className="text-lg font-semibold text-foreground">
+            Arquivos do contrato
+          </h2>
+          {addButton}
+        </div>
 
-        <TabsContent value="extracted" className="space-y-4">
-          {rulesStatus === "available" ? (
-            <ContractRulesList contractId={contract.id} />
-          ) : (
-            <SurfaceCard padding="md">
-              <p className="text-sm text-muted-foreground">
-                Os dados do contrato ficam disponíveis aqui quando a extração estiver concluída.
-              </p>
-            </SurfaceCard>
-          )}
-        </TabsContent>
-
-        <TabsContent value="files" forceMount className="space-y-4 data-[state=inactive]:hidden">
-          <div className="flex justify-end">{addButton}</div>
 
           {amendmentsQuery.isPending ? (
             <SurfaceCard padding="none">
@@ -520,8 +517,7 @@ function ContractDetailsContent({
               )}
             </>
           )}
-        </TabsContent>
-      </Tabs>
+      </section>
 
       <NewAmendmentModal
         open={modalOpen}
@@ -563,6 +559,20 @@ function FileActions({ row }: { row: FileRow }) {
   const noun = row.kind === "Aditivo" ? "aditivo" : "contrato";
   return (
     <div className="inline-flex items-center gap-1">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={`Ver dados extraídos de ${row.name}`}
+            onClick={row.onExtracted}
+          >
+            <ActionIcon.inspectProcessing className="size-4" aria-hidden="true" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Ver dados extraídos</TooltipContent>
+      </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
