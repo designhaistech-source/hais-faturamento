@@ -121,7 +121,7 @@ export function AddPricingBaseModal({
     <AppModal
       open={open}
       onOpenChange={handleOpenChange}
-      title="Adicionar à base de precificação"
+      title="Cadastrar base"
       description="Cadastre uma nova versão ou adicione uma atualização a uma base existente."
       icon={<Database className="size-5" aria-hidden="true" />}
       unstyledBody
