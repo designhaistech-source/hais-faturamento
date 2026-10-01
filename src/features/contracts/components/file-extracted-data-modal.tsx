@@ -88,12 +88,21 @@ function RuleDetails({ rule, fileName }: { rule: ContractRule; fileName: string 
           label="Início da eficácia"
           value={rule.validFrom ? brDate(rule.validFrom) : NOT_IDENTIFIED}
         />
-        <Field label="Fim da eficácia" value={rule.validTo ? brDate(rule.validTo) : NOT_IDENTIFIED} />
+        <Field
+          label="Fim da eficácia"
+          value={rule.validTo ? brDate(rule.validTo) : NOT_IDENTIFIED}
+        />
       </Section>
       <Section title="Alvo">
         <Field
           label="Código"
-          value={codes.length > 0 ? <span className="font-mono">{codes.join(", ")}</span> : NOT_IDENTIFIED}
+          value={
+            codes.length > 0 ? (
+              <span className="font-mono">{codes.join(", ")}</span>
+            ) : (
+              NOT_IDENTIFIED
+            )
+          }
         />
         <Field
           label="Sistema/tabela"
@@ -102,7 +111,10 @@ function RuleDetails({ rule, fileName }: { rule: ContractRule; fileName: string 
         <Field label="Categoria" value={rule.category.trim() || NOT_IDENTIFIED} />
       </Section>
       <Section title="Condição e efeito">
-        <Field label="Efeito identificado" value={effect.length > 0 ? effect.join(" · ") : NOT_IDENTIFIED} />
+        <Field
+          label="Efeito identificado"
+          value={effect.length > 0 ? effect.join(" · ") : NOT_IDENTIFIED}
+        />
       </Section>
       <Section title="Evidências">
         <Field label="Documento" value={fileName} />
@@ -204,7 +216,8 @@ export function FileExtractedDataModal({
                           </span>
                           <span className="block text-xs font-normal text-muted-foreground">
                             Vigência: {validity || NOT_IDENTIFIED}
-                            {rule.baseType !== "none" && ` · ${contractRuleBaseLabel(rule.baseType)}`}
+                            {rule.baseType !== "none" &&
+                              ` · ${contractRuleBaseLabel(rule.baseType)}`}
                           </span>
                         </span>
                       </AccordionTrigger>

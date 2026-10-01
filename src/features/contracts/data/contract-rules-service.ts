@@ -16,7 +16,9 @@ export const contractRulesStatusQueryKey = ["contract-rules-status"] as const;
 
 /** Situação das regras de todos os contratos, para a listagem de Contratos. */
 export async function listContractRulesStatuses(): Promise<Record<string, ContractRulesStatus>> {
-  const { data, error } = await supabase.from("contract_rules").select("contract_id, reviewed")
+  const { data, error } = await supabase
+    .from("contract_rules")
+    .select("contract_id, reviewed")
     .is("amendment_id", null);
   if (error) throw error;
 
