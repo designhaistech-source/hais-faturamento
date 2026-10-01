@@ -1,18 +1,14 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, FileText, Plus } from "lucide-react";
-import { toast } from "sonner";
 
 import {
   ContractDetailsPage,
   NewContractModal,
-  contractRulesStatusQueryKey,
   contractsQueryKey,
-  createContract,
-  extractContractRulesFor,
   listContracts,
-  type NewContractInput,
+  useCreateContract,
 } from "@/features/contracts";
 import { AppSidebar } from "@/components/app-sidebar";
 import { AppBreadcrumb } from "@/components/app-breadcrumb";
@@ -21,7 +17,6 @@ import { SiteFooter } from "@/components/site-footer";
 import { SurfaceCard } from "@/components/surface-card";
 import { EmptyStateCard } from "@/components/empty-state-card";
 import { ErrorState, LoadingState } from "@/components/data-state";
-import { useBackgroundTask } from "@/components/background-task";
 import { Button } from "@/components/ui/button";
 import { getOperator, resolveOperatorContractId } from "../data/operators";
 
@@ -103,43 +98,7 @@ export function OperatorDetailsPage({ operatorId }: { operatorId: string }) {
 
 function NoContractState({ operatorName }: { operatorName: string }) {
   const [modalOpen, setModalOpen] = useState(false);
-  const queryClient = useQueryClient();
-  const backgroundTask = useBackgroundTask();
-
-  const createMutation = useMutation({
-    mutationFn: (input: NewContractInput) => createContract(input),
-    onSuccess: async (contract) => {
-      await queryClient.invalidateQueries({ queryKey: contractsQueryKey });
-      // Mesma leitura automática do cadastro de contratos, em segundo plano.
-      backgroundTask.start({
-        kind: "contract-rules",
-        fileName: contract.file.name,
-        processing: {
-          title: "Extraindo dados do contrato",
-          description: "Extraindo as informações do contrato...",
-        },
-        failure: {
-          title: "Falha na extração",
-          description: "Não foi possível extrair os dados do contrato.",
-        },
-        run: async () => {
-          try {
-            const drafts = await extractContractRulesFor(contract);
-            return {
-              title: drafts.length > 0 ? "Dados extraídos" : "Nenhum dado identificado",
-              description:
-                drafts.length > 0
-                  ? "Os dados do contrato estão disponíveis para consulta."
-                  : "Nenhuma informação relevante foi identificada no contrato.",
-            };
-          } finally {
-            await queryClient.invalidateQueries({ queryKey: contractRulesStatusQueryKey });
-          }
-        },
-      });
-    },
-    onError: () => toast.error("Não foi possível cadastrar o contrato."),
-  });
+  const createMutation = useCreateContract();
 
   const action = (
     <Button type="button" disabled={createMutation.isPending} onClick={() => setModalOpen(true)}>

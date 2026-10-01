@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   CircleAlert,
@@ -17,7 +17,6 @@ import { toast } from "sonner";
 
 import { AppBreadcrumb } from "@/components/app-breadcrumb";
 import { AppSidebar } from "@/components/app-sidebar";
-import { useBackgroundTask } from "@/components/background-task";
 import { ErrorState, LoadingState, TableSkeleton } from "@/components/data-state";
 import {
   DataTable,
@@ -46,18 +45,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatIsoToBr, toLocalIsoDate } from "@/lib/date";
-import { CURRENT_USER } from "@/lib/current-user";
 
 import type { Contract } from "../data/contracts";
 import { contractsQueryKey, createContractFileUrl, listContracts } from "../data/contracts-service";
 import {
   amendmentAsContractFile,
   contractAmendmentsQueryKey,
-  createContractAmendment,
-  extractAmendment,
   listContractAmendments,
   type AmendmentExtractionStatus,
-  type ContractAmendment,
 } from "../data/contract-amendments-service";
 import { appTabsLabelClass, appTabsListClass, appTabsTriggerClass } from "@/components/app-tabs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -71,6 +66,7 @@ import { ContractPreviewModal } from "./contract-preview-modal";
 import { ContractRulesStatusBadge } from "./contract-rules-status-badge";
 import { ContractRulesList } from "./contract-rules-list";
 import { NewAmendmentModal } from "./new-amendment-modal";
+import { useCreateAmendment } from "../data/use-contract-registration";
 
 const COLUMNS = [
   "Arquivo",
@@ -182,8 +178,6 @@ function ContractDetailsContent({
   contract: Contract;
   operator?: ContractOperatorContext;
 }) {
-  const queryClient = useQueryClient();
-  const backgroundTask = useBackgroundTask();
   const queryKey = contractAmendmentsQueryKey(contract.id);
   const amendmentsQuery = useQuery({
     queryKey,
@@ -259,47 +253,7 @@ function ContractDetailsContent({
     setPage(1);
   }
 
-  function startExtraction(amendment: ContractAmendment) {
-    backgroundTask.start({
-      kind: "contract-amendment",
-      fileName: amendment.file.name,
-      processing: {
-        title: "Extraindo dados do aditivo",
-        description: "Extraindo as informações do aditivo...",
-      },
-      failure: {
-        title: "Falha na extração",
-        description: "Não foi possível extrair os dados do aditivo.",
-      },
-      run: async () => {
-        try {
-          const status = await extractAmendment(amendment, contract.company);
-          return status === "available"
-            ? {
-                title: "Dados extraídos",
-                description: "O aditivo foi processado com sucesso.",
-              }
-            : {
-                title: "Nenhum dado identificado",
-                description: "Nenhuma informação relevante foi identificada no aditivo.",
-                tone: "warning",
-              };
-        } finally {
-          await queryClient.invalidateQueries({ queryKey });
-        }
-      },
-    });
-  }
-
-  const createMutation = useMutation({
-    mutationFn: (file: File) =>
-      createContractAmendment({ contractId: contract.id, file, createdBy: CURRENT_USER.name }),
-    onSuccess: async (amendment) => {
-      await queryClient.invalidateQueries({ queryKey });
-      startExtraction(amendment);
-    },
-    onError: () => toast.error("Não foi possível adicionar o aditivo."),
-  });
+  const createMutation = useCreateAmendment();
 
   const addButton = (
     <Button
@@ -547,7 +501,7 @@ function ContractDetailsContent({
         open={modalOpen}
         onOpenChange={setModalOpen}
         pending={createMutation.isPending}
-        onCreate={(file) => createMutation.mutate(file)}
+        onCreate={(file) => createMutation.mutate({ contract, file })}
       />
 
       <ContractPreviewModal

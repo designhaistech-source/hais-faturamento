@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, CircleCheck, CircleDashed } from "lucide-react";
+import { useQueries, useQuery } from "@tanstack/react-query";
+import { ChevronRight, CircleCheck, CircleDashed, Plus } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -28,7 +28,14 @@ import {
   DataTableRow,
 } from "@/components/data-table";
 import { formatIsoToBr } from "@/lib/date";
-import { contractsQueryKey, listContracts } from "@/features/contracts";
+import {
+  contractAmendmentsQueryKey,
+  contractsQueryKey,
+  listContractAmendments,
+  listContracts,
+} from "@/features/contracts";
+import { Button } from "@/components/ui/button";
+import { AddDocumentModal } from "./add-document-modal";
 import {
   listOperators,
   operatorsQueryKey,
@@ -57,26 +64,41 @@ export function OperatorsPage() {
 
   const contractsQuery = useQuery({ queryKey: contractsQueryKey, queryFn: listContracts });
 
-  const filtered = useMemo(() => {
-    const term = search.trim().toLocaleLowerCase("pt-BR");
+  const [addOpen, setAddOpen] = useState(false);
+
+  // Vincula cada operadora ao contrato real, quando existe, antes de exibir ou cadastrar.
+  const merged = useMemo(() => {
     const contracts = contractsQuery.data ?? [];
-    // Operadoras sem contrato de exemplo passam a "cadastrado" quando o contrato é registrado.
-    const list = (query.data ?? []).map((operator) => {
-      if (operator.hasContract) return operator;
+    return (query.data ?? []).map((operator) => {
       const id = resolveOperatorContractId(operator, contracts);
       const contract = id ? contracts.find((item) => item.id === id) : undefined;
-      return contract
-        ? {
-            ...operator,
-            hasContract: true,
-            contractId: contract.id,
-            validUntil: contract.validUntil,
-            amendmentsCount: 0,
-          }
-        : operator;
+      if (!contract) return { ...operator, contractId: null };
+      return {
+        ...operator,
+        hasContract: true,
+        contractId: contract.id,
+        validUntil: operator.validUntil || contract.validUntil,
+      };
+    });
+  }, [query.data, contractsQuery.data]);
+
+  const amendmentQueries = useQueries({
+    queries: merged.map((operator) => ({
+      queryKey: contractAmendmentsQueryKey(operator.contractId ?? ""),
+      queryFn: () => listContractAmendments(operator.contractId ?? ""),
+      enabled: !!operator.contractId,
+    })),
+  });
+
+  const filtered = useMemo(() => {
+    const term = search.trim().toLocaleLowerCase("pt-BR");
+    const list = merged.map((operator, index) => {
+      const amendments = amendmentQueries[index]?.data;
+      if (!operator.contractId) return operator;
+      return { ...operator, amendmentsCount: amendments?.length ?? operator.amendmentsCount ?? 0 };
     });
     return term ? list.filter((o) => o.name.toLocaleLowerCase("pt-BR").includes(term)) : list;
-  }, [query.data, contractsQuery.data, search]);
+  }, [merged, amendmentQueries, search]);
   const visible = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const navigate = useNavigate();
@@ -92,7 +114,19 @@ export function OperatorsPage() {
           <PageHeader
             title="Operadoras e contratos"
             description="Gerencie os contratos do hospital com cada operadora."
+            actions={
+              <Button
+                type="button"
+                className="w-full sm:w-auto"
+                disabled={query.isPending || contractsQuery.isPending}
+                onClick={() => setAddOpen(true)}
+              >
+                <Plus className="size-4" aria-hidden="true" />
+                Adicionar
+              </Button>
+            }
           />
+          <AddDocumentModal open={addOpen} onOpenChange={setAddOpen} operators={merged} />
 
           <SurfaceCard padding="md">
             <SearchField

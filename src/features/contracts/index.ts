@@ -19,3 +19,9 @@ export {
 export { NewContractModal } from "./components/new-contract-modal";
 export { createContract } from "./data/contracts-service";
 export { extractContractRulesFor } from "./data/contract-extraction";
+export { NewAmendmentModal } from "./components/new-amendment-modal";
+export { useCreateAmendment, useCreateContract } from "./data/use-contract-registration";
+export {
+  contractAmendmentsQueryKey,
+  listContractAmendments,
+} from "./data/contract-amendments-service";
