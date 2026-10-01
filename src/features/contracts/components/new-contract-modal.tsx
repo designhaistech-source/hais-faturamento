@@ -16,13 +16,21 @@ interface NewContractModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreate: (contract: NewContractInput) => void;
+  /** Cadastro a partir da página da operadora: nome fixo e campos de prestador ocultos. */
+  operatorName?: string;
 }
 
 /** Formulário de cadastro de contrato: arquivo obrigatório + dados do prestador. */
-export function NewContractModal({ open, onOpenChange, onCreate }: NewContractModalProps) {
+export function NewContractModal({
+  open,
+  onOpenChange,
+  onCreate,
+  operatorName,
+}: NewContractModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [company, setCompany] = useState("");
+  const [typedCompany, setCompany] = useState("");
+  const company = operatorName ?? typedCompany;
   const [cnpj, setCnpj] = useState("");
   const [validUntil, setValidUntil] = useState("");
   const [fileTouched, setFileTouched] = useState(false);
@@ -93,8 +101,12 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
     <AppModal
       open={open}
       onOpenChange={(next) => (next ? onOpenChange(true) : close())}
-      title="Novo contrato"
-      description="Anexe o arquivo do contrato e informe os dados do prestador."
+      title={operatorName ? "Cadastrar contrato" : "Novo contrato"}
+      description={
+        operatorName
+          ? "Anexe o arquivo do contrato com a operadora."
+          : "Anexe o arquivo do contrato e informe os dados do prestador."
+      }
       icon={<FileText className="size-5" aria-hidden="true" />}
       footer={
         <>
@@ -114,35 +126,53 @@ export function NewContractModal({ open, onOpenChange, onCreate }: NewContractMo
           submit();
         }}
       >
-        <Field id="contract-company" label="Nome do prestador" required error={companyError}>
-          <Input
-            value={company}
-            onChange={(event) => setCompany(event.target.value)}
-            onBlur={() => setCompanyTouched(true)}
-            placeholder="Clínica ou hospital"
-            autoComplete="organization"
-          />
-        </Field>
+        {operatorName ? (
+          <>
+            <dl className="space-y-0.5">
+              <dt className="text-xs font-medium text-muted-foreground">Operadora</dt>
+              <dd className="text-sm font-semibold text-foreground">{operatorName}</dd>
+            </dl>
+            <Field id="contract-valid-until" label="Data de validade do contrato">
+              <Input
+                type="date"
+                value={validUntil}
+                onChange={(event) => setValidUntil(event.target.value)}
+              />
+            </Field>
+          </>
+        ) : (
+          <>
+            <Field id="contract-company" label="Nome do prestador" required error={companyError}>
+              <Input
+                value={company}
+                onChange={(event) => setCompany(event.target.value)}
+                onBlur={() => setCompanyTouched(true)}
+                placeholder="Clínica ou hospital"
+                autoComplete="organization"
+              />
+            </Field>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field id="contract-cnpj" label="CNPJ">
-            <Input
-              value={cnpj}
-              onChange={(event) => setCnpj(maskCnpj(event.target.value))}
-              placeholder="00.000.000/0000-00"
-              inputMode="numeric"
-              className="font-mono"
-            />
-          </Field>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field id="contract-cnpj" label="CNPJ">
+                <Input
+                  value={cnpj}
+                  onChange={(event) => setCnpj(maskCnpj(event.target.value))}
+                  placeholder="00.000.000/0000-00"
+                  inputMode="numeric"
+                  className="font-mono"
+                />
+              </Field>
 
-          <Field id="contract-valid-until" label="Data de validade do contrato">
-            <Input
-              type="date"
-              value={validUntil}
-              onChange={(event) => setValidUntil(event.target.value)}
-            />
-          </Field>
-        </div>
+              <Field id="contract-valid-until" label="Data de validade do contrato">
+                <Input
+                  type="date"
+                  value={validUntil}
+                  onChange={(event) => setValidUntil(event.target.value)}
+                />
+              </Field>
+            </div>
+          </>
+        )}
 
         <Field
           id="contract-file"
