@@ -32,7 +32,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 import type { Contract } from "../data/contracts";
-import { contractsQueryKey, createContractFileUrl, listContracts } from "../data/contracts-service";
+import { contractsQueryKey, listContracts } from "../data/contracts-service";
 import {
   amendmentAsContractFile,
   contractAmendmentsQueryKey,
@@ -61,11 +61,10 @@ import {
 } from "../data/contract-rules-service";
 import { useContractExtractionStates } from "../data/contract-extraction";
 import { AmendmentStatusBadge } from "./amendment-status-badge";
-import { ContractPreviewModal } from "./contract-preview-modal";
+import { ContractDocumentViewer } from "./contract-document-viewer";
 import { ContractRulesStatusBadge } from "./contract-rules-status-badge";
-import { RuleDetailsSheet } from "./rule-details-sheet";
+import { RuleDetailsPanel } from "./rule-details-panel";
 import { RuleSituationBadge } from "./rule-situation-badge";
-import { toast } from "sonner";
 
 const COLUMNS = ["Regra", "Referência", "Efeito", "Vigência", "Situação", "Ações"];
 
@@ -207,8 +206,13 @@ function ExtractionContent({
   const [situation, setSituation] = useState<"all" | "reviewed" | "pending">("all");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-  const [selected, setSelected] = useState<ContractRule | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [preview, setPreview] = useState(false);
+  const selected = rules.find((rule) => rule.id === selectedId) ?? null;
+
+  function selectRule(rule: ContractRule) {
+    setSelectedId(rule.id);
+  }
 
   const activeCount = [search.trim() !== "", kind !== "all", situation !== "all"].filter(
     Boolean,
@@ -280,7 +284,7 @@ function ExtractionContent({
           variant="ghost"
           size="icon"
           aria-label={`Ver detalhes da regra ${contractRuleTitle(rule)}`}
-          onClick={() => setSelected(rule)}
+          onClick={() => selectRule(rule)}
         >
           <Info className="size-4" aria-hidden="true" />
         </Button>
@@ -411,7 +415,16 @@ function ExtractionContent({
                     </DataTableHeader>
                     <DataTableBody>
                       {paginated.map((rule) => (
-                        <DataTableRow key={rule.id}>
+                        <DataTableRow
+                          key={rule.id}
+                          aria-selected={rule.id === selectedId}
+                          onClick={() => selectRule(rule)}
+                          className={
+                            rule.id === selectedId
+                              ? "cursor-pointer bg-primary/10 hover:bg-primary/10"
+                              : "cursor-pointer"
+                          }
+                        >
                           <DataTableCell className="font-medium">
                             {contractRuleTitle(rule)}
                           </DataTableCell>
@@ -432,7 +445,12 @@ function ExtractionContent({
 
                 <DataTableCardList divided>
                   {paginated.map((rule) => (
-                    <DataTableCard key={rule.id} flat className="space-y-1.5 py-2.5">
+                    <DataTableCard
+                      key={rule.id}
+                      flat
+                      aria-selected={rule.id === selectedId}
+                      className={`space-y-1.5 py-2.5 ${rule.id === selectedId ? "bg-primary/10" : ""}`}
+                    >
                       <DataTableCardHeader title={contractRuleTitle(rule)} />
                       <DataTableCardFields
                         className="gap-x-4 gap-y-1"
@@ -468,29 +486,41 @@ function ExtractionContent({
         )}
       </section>
 
-      <RuleDetailsSheet
-        rule={selected}
-        fileName={previewFile.file.name}
-        onOpenChange={(open) => !open && setSelected(null)}
-        onViewDocument={() => setPreview(true)}
-      />
-      <ContractPreviewModal
-        contract={preview ? previewFile : null}
-        open={preview}
-        onOpenChange={setPreview}
-        onDownload={(item) => {
-          void createContractFileUrl(item.file.path, item.file.name)
-            .then((url) => {
-              const link = document.createElement("a");
-              link.href = url;
-              link.download = item.file.name;
-              document.body.appendChild(link);
-              link.click();
-              link.remove();
-            })
-            .catch(() => toast.error("Não foi possível baixar o arquivo."));
-        }}
-      />
+      {selected && (
+        <section aria-labelledby="rule-details-title" className="space-y-4">
+          <h2 id="rule-details-title" className="text-lg font-semibold text-foreground">
+            Detalhes da regra
+          </h2>
+          <div className={preview ? "grid gap-6 lg:grid-cols-2 lg:items-start" : undefined}>
+            <RuleDetailsPanel
+              rule={selected}
+              fileName={previewFile.file.name}
+              documentVisible={preview}
+              onViewDocument={() => setPreview(true)}
+              onHideDocument={() => setPreview(false)}
+            />
+            {preview && (
+              <SurfaceCard
+                padding="md"
+                className="min-w-0 space-y-3 lg:sticky lg:top-6 lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <h3
+                    className="truncate text-sm font-semibold text-foreground"
+                    title={previewFile.file.name}
+                  >
+                    {previewFile.file.name}
+                  </h3>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setPreview(false)}>
+                    Ocultar documento
+                  </Button>
+                </div>
+                <ContractDocumentViewer contract={previewFile} active={preview} />
+              </SurfaceCard>
+            )}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
