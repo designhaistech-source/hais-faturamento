@@ -37,6 +37,7 @@ export function OperatorDetailsPage({ operatorId }: { operatorId: string }) {
       <ContractDetailsPage
         contractId={contractId}
         operator={{
+          id: operator.id,
           name: operator.name,
           validUntil: operator.validUntil || contract?.validUntil || "",
         }}
