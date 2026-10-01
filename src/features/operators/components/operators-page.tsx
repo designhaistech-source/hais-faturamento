@@ -272,7 +272,7 @@ export function OperatorsPage() {
                           />
                           <DataTableCardFields
                             fields={[
-                              { label: "Contrato", value: <ContractBadge operator={operator} /> },
+                              { label: "Status do contrato", value: <ContractBadge operator={operator} /> },
                               {
                                 label: "Validade",
                                 value: operator.validUntil
@@ -296,7 +296,7 @@ export function OperatorsPage() {
                       <DataTableHeader>
                         <tr>
                           <DataTableHead>Operadora</DataTableHead>
-                          <DataTableHead>Contrato</DataTableHead>
+                          <DataTableHead>Status do contrato</DataTableHead>
                           <DataTableHead>Validade</DataTableHead>
                           <DataTableHead>Aditivos</DataTableHead>
                           <DataTableHead className="w-12">
