@@ -54,6 +54,7 @@ const SAMPLE_OPERATORS: Operator[] = [
     hasContract: false,
     validUntil: "",
     amendmentsCount: null,
+    contractId: null,
   },
 ];
 
