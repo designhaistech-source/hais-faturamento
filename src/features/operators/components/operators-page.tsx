@@ -29,7 +29,13 @@ import {
   DataTableRow,
 } from "@/components/data-table";
 import { formatIsoToBr } from "@/lib/date";
-import { listOperators, operatorsQueryKey, type Operator } from "../data/operators";
+import { contractsQueryKey, listContracts } from "@/features/contracts";
+import {
+  listOperators,
+  operatorsQueryKey,
+  resolveOperatorContractId,
+  type Operator,
+} from "../data/operators";
 
 function amendmentsLabel(count: number | null): string {
   if (count === null) return "—";
@@ -50,11 +56,27 @@ export function OperatorsPage() {
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const query = useQuery({ queryKey: operatorsQueryKey, queryFn: listOperators });
 
+  const contractsQuery = useQuery({ queryKey: contractsQueryKey, queryFn: listContracts });
+
   const filtered = useMemo(() => {
     const term = search.trim().toLocaleLowerCase("pt-BR");
-    const list = query.data ?? [];
+    const contracts = contractsQuery.data ?? [];
+    // Operadoras sem contrato de exemplo passam a "cadastrado" quando o contrato é registrado.
+    const list = (query.data ?? []).map((operator) => {
+      if (operator.hasContract) return operator;
+      const id = resolveOperatorContractId(operator, contracts);
+      const contract = id ? contracts.find((item) => item.id === id) : undefined;
+      return contract
+        ? {
+            ...operator,
+            hasContract: true,
+            contractId: contract.id,
+            validUntil: contract.validUntil,
+          }
+        : operator;
+    });
     return term ? list.filter((o) => o.name.toLocaleLowerCase("pt-BR").includes(term)) : list;
-  }, [query.data, search]);
+  }, [query.data, contractsQuery.data, search]);
   const visible = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const navigate = useNavigate();

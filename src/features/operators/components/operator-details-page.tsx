@@ -142,11 +142,7 @@ function NoContractState({ operatorName }: { operatorName: string }) {
   });
 
   const action = (
-    <Button
-      type="button"
-      disabled={createMutation.isPending}
-      onClick={() => setModalOpen(true)}
-    >
+    <Button type="button" disabled={createMutation.isPending} onClick={() => setModalOpen(true)}>
       <Plus className="size-4" aria-hidden="true" />
       {createMutation.isPending ? "Cadastrando..." : "Cadastrar contrato"}
     </Button>
