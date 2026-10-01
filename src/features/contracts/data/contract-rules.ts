@@ -54,6 +54,8 @@ export interface ContractRule extends ContractRuleDraft {
   contractId: string;
   /** Marca que a regra já foi conferida por uma pessoa. */
   reviewed: boolean;
+  /** Momento em que a extração gravou a regra. */
+  createdAt?: string;
 }
 
 /** Situação das regras de remuneração de um contrato. */

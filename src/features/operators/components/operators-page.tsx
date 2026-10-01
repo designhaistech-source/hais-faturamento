@@ -229,7 +229,6 @@ export function OperatorsPage() {
           </FilterCard>
 
           <section className="space-y-4" aria-label="Lista de operadoras">
-
             {query.isPending ? (
               <SurfaceCard padding="none">
                 <TableSkeleton rows={5} columns={4} />
@@ -272,7 +271,10 @@ export function OperatorsPage() {
                           />
                           <DataTableCardFields
                             fields={[
-                              { label: "Status do contrato", value: <ContractBadge operator={operator} /> },
+                              {
+                                label: "Status do contrato",
+                                value: <ContractBadge operator={operator} />,
+                              },
                               {
                                 label: "Validade",
                                 value: operator.validUntil

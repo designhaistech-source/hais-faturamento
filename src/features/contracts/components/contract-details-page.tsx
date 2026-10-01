@@ -2,18 +2,7 @@ import { SelectField } from "@/components/form-field";
 import { useMemo, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ArrowLeft,
-  CircleAlert,
-  CircleCheck,
-  Download,
-  Eye,
-  FileText,
-  LoaderCircle,
-  Plus,
-  TriangleAlert,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowLeft, ClipboardList, Download, Eye, FileText, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppBreadcrumb } from "@/components/app-breadcrumb";
@@ -39,7 +28,6 @@ import { FilterCard } from "@/components/filter-card";
 import { SearchField } from "@/components/form-field";
 import { PageHeader } from "@/components/page-header";
 import { SiteFooter } from "@/components/site-footer";
-import { StatusBadge, type StatusTone } from "@/components/status-badge";
 import { SurfaceCard } from "@/components/surface-card";
 import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/table-pagination";
 import { Button } from "@/components/ui/button";
@@ -53,7 +41,6 @@ import {
   amendmentAsContractFile,
   contractAmendmentsQueryKey,
   listContractAmendments,
-  type AmendmentExtractionStatus,
 } from "../data/contract-amendments-service";
 import type { ContractRulesDisplayStatus } from "../data/contract-rules";
 import {
@@ -63,7 +50,8 @@ import {
 import { useContractExtractionStates } from "../data/contract-extraction";
 import { ContractPreviewModal } from "./contract-preview-modal";
 import { ContractRulesStatusBadge } from "./contract-rules-status-badge";
-import { FileExtractedDataModal, type ExtractedFileTarget } from "./file-extracted-data-modal";
+import { ExtractionSummaryModal, type ExtractionSummaryTarget } from "./extraction-summary-modal";
+import { AmendmentStatusBadge } from "./amendment-status-badge";
 import { ActionIcon } from "@/components/action-icons";
 import { NewAmendmentModal } from "./new-amendment-modal";
 import { useCreateAmendment } from "../data/use-contract-registration";
@@ -86,16 +74,6 @@ const EXTRACTION_STATUS_FILTER_OPTIONS = [
   { value: "failed", label: "Falha na extração" },
 ];
 
-const STATUS_CONFIG = {
-  available: { tone: "success", icon: CircleCheck, label: "Concluída" },
-  extracting: { tone: "info", icon: LoaderCircle, label: "Extraindo..." },
-  not_identified: { tone: "warning", icon: TriangleAlert, label: "Não identificados" },
-  failed: { tone: "danger", icon: CircleAlert, label: "Falha na extração" },
-} as const satisfies Record<
-  AmendmentExtractionStatus,
-  { tone: StatusTone; icon: LucideIcon; label: string }
->;
-
 function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 }
@@ -116,6 +94,8 @@ async function downloadFile(file: { path: string; name: string }) {
 
 /** Relação contratual vista a partir da operadora (substitui cabeçalho e resumo). */
 export interface ContractOperatorContext {
+  /** Segmento da URL da página da operadora. */
+  id: string;
   name: string;
   /** yyyy-MM-dd */
   validUntil: string;
@@ -204,7 +184,7 @@ function ContractDetailsContent({
 
   const [modalOpen, setModalOpen] = useState(false);
   const [preview, setPreview] = useState<Contract | null>(null);
-  const [extracted, setExtracted] = useState<ExtractedFileTarget | null>(null);
+  const [extracted, setExtracted] = useState<ExtractionSummaryTarget | null>(null);
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -229,12 +209,10 @@ function ContractDetailsContent({
             contractId: contract.id,
             amendmentId: null,
             fileName: contract.file.name,
+            operatorId: operator?.id ?? contract.id,
+            kind: "Contrato original",
             status: <ContractRulesStatusBadge status={rulesStatus} />,
             available: rulesStatus === "available",
-            onViewDocument: () => {
-              setExtracted(null);
-              setPreview(contract);
-            },
           }),
       },
       ...amendments.map<FileRow>((item) => ({
@@ -252,16 +230,14 @@ function ContractDetailsContent({
             contractId: contract.id,
             amendmentId: item.id,
             fileName: item.file.name,
+            operatorId: operator?.id ?? contract.id,
+            kind: "Aditivo",
             status: <AmendmentStatusBadge status={item.extractionStatus} />,
             available: item.extractionStatus === "available",
-            onViewDocument: () => {
-              setExtracted(null);
-              setPreview(amendmentAsContractFile(item, contract.company));
-            },
           }),
       })),
     ],
-    [contract, amendments, rulesStatus],
+    [contract, amendments, rulesStatus, operator?.id],
   );
 
   const activeCount = [search.trim() !== "", statusFilter !== "all", from !== "", to !== ""].filter(
@@ -477,7 +453,7 @@ function ContractDetailsContent({
                           </DataTableCell>
                           <DataTableCell>{item.status}</DataTableCell>
                           <DataTableCell className="text-right">
-                            <FileActions row={item} />
+                            <FileActions row={item} operatorId={operator?.id ?? contract.id} />
                           </DataTableCell>
                         </DataTableRow>
                       ))}
@@ -504,7 +480,7 @@ function ContractDetailsContent({
                         ]}
                       />
                       <DataTableCardActions className="-mt-0.5 justify-end">
-                        <FileActions row={item} />
+                        <FileActions row={item} operatorId={operator?.id ?? contract.id} />
                       </DataTableCardActions>
                     </DataTableCard>
                   ))}
@@ -535,7 +511,7 @@ function ContractDetailsContent({
         onCreate={(file) => createMutation.mutate({ contract, file })}
       />
 
-      <FileExtractedDataModal
+      <ExtractionSummaryModal
         target={extracted}
         onOpenChange={(open) => !open && setExtracted(null)}
       />
@@ -551,11 +527,6 @@ function ContractDetailsContent({
   );
 }
 
-function AmendmentStatusBadge({ status }: { status: AmendmentExtractionStatus }) {
-  const { tone, icon, label } = STATUS_CONFIG[status];
-  return <StatusBadge tone={tone} icon={icon} label={label} spinning={status === "extracting"} />;
-}
-
 interface FileRow {
   id: string;
   name: string;
@@ -569,8 +540,7 @@ interface FileRow {
   onExtracted: () => void;
 }
 
-function FileActions({ row }: { row: FileRow }) {
-  const noun = row.kind === "Aditivo" ? "aditivo" : "contrato";
+function FileActions({ row, operatorId }: { row: FileRow; operatorId: string }) {
   return (
     <div className="inline-flex items-center gap-1">
       <Tooltip>
@@ -579,13 +549,13 @@ function FileActions({ row }: { row: FileRow }) {
             type="button"
             variant="ghost"
             size="icon"
-            aria-label={`Visualizar ${noun} ${row.name}`}
+            aria-label={`Visualizar arquivo ${row.name}`}
             onClick={row.onView}
           >
             <Eye className="size-4" aria-hidden="true" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Visualizar {noun}</TooltipContent>
+        <TooltipContent>Visualizar arquivo</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
@@ -593,13 +563,31 @@ function FileActions({ row }: { row: FileRow }) {
             type="button"
             variant="ghost"
             size="icon"
-            aria-label={`Ver dados extraídos de ${row.name}`}
+            aria-label={`Ver resumo da extração de ${row.name}`}
             onClick={row.onExtracted}
           >
             <ActionIcon.inspectProcessing className="size-4" aria-hidden="true" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Ver dados extraídos</TooltipContent>
+        <TooltipContent>Ver resumo da extração</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            aria-label={`Ver detalhes da extração de ${row.name}`}
+          >
+            <Link
+              to="/contratos/$contractId/extracao/$fileId"
+              params={{ contractId: operatorId, fileId: row.id }}
+            >
+              <ClipboardList className="size-4" aria-hidden="true" />
+            </Link>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Ver detalhes da extração</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
@@ -607,13 +595,13 @@ function FileActions({ row }: { row: FileRow }) {
             type="button"
             variant="ghost"
             size="icon"
-            aria-label={`Baixar ${noun} ${row.name}`}
+            aria-label={`Baixar arquivo ${row.name}`}
             onClick={() => void downloadFile(row.file)}
           >
             <Download className="size-4" aria-hidden="true" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Baixar {noun}</TooltipContent>
+        <TooltipContent>Baixar arquivo</TooltipContent>
       </Tooltip>
     </div>
   );
