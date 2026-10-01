@@ -90,7 +90,8 @@ export function contractRuleFields(rule: ContractRule): RuleField[] {
       value: `${Math.abs(rule.adjustmentPercent).toLocaleString("pt-BR")}%`,
     });
   }
-  if (rule.factor !== 1) fields.push({ label: "Fator", value: rule.factor.toLocaleString("pt-BR") });
+  if (rule.factor !== 1)
+    fields.push({ label: "Fator", value: rule.factor.toLocaleString("pt-BR") });
   return fields;
 }
 

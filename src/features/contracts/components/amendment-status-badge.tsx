@@ -1,4 +1,10 @@
-import { CircleAlert, CircleCheck, LoaderCircle, TriangleAlert, type LucideIcon } from "lucide-react";
+import {
+  CircleAlert,
+  CircleCheck,
+  LoaderCircle,
+  TriangleAlert,
+  type LucideIcon,
+} from "lucide-react";
 
 import { StatusBadge, type StatusTone } from "@/components/status-badge";
 

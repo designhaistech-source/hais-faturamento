@@ -2,7 +2,13 @@ import type { ReactNode } from "react";
 import { FileText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 import {
   contractRuleApplication,
@@ -58,7 +64,9 @@ export function RuleDetailsSheet({
           <>
             <SheetHeader className="border-b border-border p-6 pr-12 text-left">
               <SheetTitle>{contractRuleTitle(rule)}</SheetTitle>
-              <SheetDescription>{contractRuleHeadline(rule) || "Não identificado"}</SheetDescription>
+              <SheetDescription>
+                {contractRuleHeadline(rule) || "Não identificado"}
+              </SheetDescription>
             </SheetHeader>
             <div className="flex-1 space-y-4 overflow-y-auto p-6">
               <Section title="Resumo">

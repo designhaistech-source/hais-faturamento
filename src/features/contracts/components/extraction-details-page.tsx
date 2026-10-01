@@ -48,7 +48,11 @@ import {
   extractionDateOf,
   type ContractRuleKind,
 } from "../data/contract-rule-details";
-import { contractRuleTitle, type ContractRule, type ContractRulesDisplayStatus } from "../data/contract-rules";
+import {
+  contractRuleTitle,
+  type ContractRule,
+  type ContractRulesDisplayStatus,
+} from "../data/contract-rules";
 import {
   contractRulesQueryKey,
   contractRulesStatusQueryKey,
@@ -239,14 +243,21 @@ function ExtractionContent({
     amendmentId === null || !amendmentStatus ? (
       <ContractRulesStatusBadge status={status} />
     ) : (
-      <AmendmentStatusBadge status={amendmentStatus as Parameters<typeof AmendmentStatusBadge>[0]["status"]} />
+      <AmendmentStatusBadge
+        status={amendmentStatus as Parameters<typeof AmendmentStatusBadge>[0]["status"]}
+      />
     );
 
   const summary = [
     { label: "Tipo do arquivo", value: amendmentId ? "Aditivo" : "Contrato original" },
     {
       label: "Data da extração",
-      value: available && rulesQuery.isPending ? "Carregando..." : extractedAt ? formatDateTime(extractedAt) : "—",
+      value:
+        available && rulesQuery.isPending
+          ? "Carregando..."
+          : extractedAt
+            ? formatDateTime(extractedAt)
+            : "—",
     },
     { label: "Status", value: statusBadge },
     {
@@ -401,7 +412,9 @@ function ExtractionContent({
                     <DataTableBody>
                       {paginated.map((rule) => (
                         <DataTableRow key={rule.id}>
-                          <DataTableCell className="font-medium">{contractRuleTitle(rule)}</DataTableCell>
+                          <DataTableCell className="font-medium">
+                            {contractRuleTitle(rule)}
+                          </DataTableCell>
                           <DataTableCell>{contractRuleReference(rule)}</DataTableCell>
                           <DataTableCell>{contractRuleEffect(rule)}</DataTableCell>
                           <DataTableCell className="whitespace-nowrap">
