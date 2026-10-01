@@ -308,12 +308,12 @@ function ContractDetailsContent({
             ? [
                 { label: "Validade", value: formatIsoToBr(operator.validUntil) || "—" },
                 {
-                  label: "Status da extração",
-                  value: <ContractRulesStatusBadge status={rulesStatus} />,
-                },
-                {
                   label: "Aditivos",
                   value: amendmentsQuery.isSuccess ? String(amendments.length) : "—",
+                },
+                {
+                  label: "Arquivos",
+                  value: amendmentsQuery.isSuccess ? String(files.length) : "—",
                 },
               ]
             : [
@@ -571,20 +571,6 @@ function FileActions({ row }: { row: FileRow }) {
             type="button"
             variant="ghost"
             size="icon"
-            aria-label={`Ver dados extraídos de ${row.name}`}
-            onClick={row.onExtracted}
-          >
-            <ActionIcon.inspectProcessing className="size-4" aria-hidden="true" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Ver dados extraídos</TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
             aria-label={`Visualizar ${noun} ${row.name}`}
             onClick={row.onView}
           >
@@ -592,6 +578,20 @@ function FileActions({ row }: { row: FileRow }) {
           </Button>
         </TooltipTrigger>
         <TooltipContent>Visualizar {noun}</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={`Ver dados extraídos de ${row.name}`}
+            onClick={row.onExtracted}
+          >
+            <ActionIcon.inspectProcessing className="size-4" aria-hidden="true" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Ver dados extraídos</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>

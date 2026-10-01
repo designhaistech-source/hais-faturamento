@@ -195,14 +195,14 @@ export function OperatorsPage() {
             />
             <fieldset className="min-w-0 space-y-1.5 sm:col-span-2 sm:space-y-2 lg:col-span-1">
               <legend className="text-xs font-medium leading-snug text-muted-foreground">
-                Validade
+                Validade do contrato
               </legend>
               <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
                 <span className="shrink-0 text-xs text-muted-foreground">De</span>
                 <Input
                   id="operators-valid-from"
                   type="date"
-                  aria-label="Validade de"
+                  aria-label="Validade do contrato de"
                   className="min-w-0 flex-1"
                   value={validFrom}
                   max={validTo || undefined}
@@ -215,7 +215,7 @@ export function OperatorsPage() {
                 <Input
                   id="operators-valid-to"
                   type="date"
-                  aria-label="Validade até"
+                  aria-label="Validade do contrato até"
                   className="min-w-0 flex-1"
                   value={validTo}
                   min={validFrom || undefined}
