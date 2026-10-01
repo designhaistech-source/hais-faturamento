@@ -13,12 +13,12 @@ export const Route = createFileRoute("/contratos")({
       {
         name: "description",
         content:
-          "Cadastre e consulte os contratos das clínicas e hospitais atendidos no HaisFaturamento, com prestador, CNPJ, validade e arquivo original.",
+          "Consulte as operadoras de saúde e a situação dos contratos do hospital com cada uma no HaisFaturamento.",
       },
       { property: "og:title", content: "Operadoras e contratos | HaisFaturamento" },
       {
         property: "og:description",
-        content: "Listagem e cadastro de contratos de clínicas e hospitais no HaisFaturamento.",
+        content: "Operadoras de saúde e contratos do hospital no HaisFaturamento.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
