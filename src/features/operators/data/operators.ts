@@ -17,7 +17,13 @@ const SAMPLE_OPERATORS: Operator[] = [
   { id: "caurn", name: "CAURN", hasContract: true, validUntil: "2027-06-30", amendmentsCount: 1 },
   { id: "hapvida", name: "Hapvida", hasContract: false, validUntil: "", amendmentsCount: null },
   { id: "unimed", name: "Unimed", hasContract: true, validUntil: "2026-12-31", amendmentsCount: 3 },
-  { id: "sulamerica", name: "SulAmérica", hasContract: false, validUntil: "", amendmentsCount: null },
+  {
+    id: "sulamerica",
+    name: "SulAmérica",
+    hasContract: false,
+    validUntil: "",
+    amendmentsCount: null,
+  },
 ];
 
 export async function listOperators(): Promise<Operator[]> {

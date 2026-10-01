@@ -15,6 +15,11 @@ import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/table-paginatio
 import {
   DataTable,
   DataTableBody,
+  DataTableCard,
+  DataTableCardFields,
+  DataTableCardHeader,
+  DataTableCardList,
+  DataTableDesktop,
   DataTableCell,
   DataTableEmptyRow,
   DataTableHead,
@@ -101,60 +106,108 @@ export function OperatorsPage() {
                 />
               </SurfaceCard>
             ) : (
-              <SurfaceCard padding="md" className="space-y-4">
-                <DataTable>
-                  <DataTableRoot>
-                    <DataTableHeader>
-                      <tr>
-                        <DataTableHead>Operadora</DataTableHead>
-                        <DataTableHead>Contrato</DataTableHead>
-                        <DataTableHead>Validade</DataTableHead>
-                        <DataTableHead>Aditivos</DataTableHead>
-                        <DataTableHead className="w-12">
-                          <span className="sr-only">Acessar</span>
-                        </DataTableHead>
-                      </tr>
-                    </DataTableHeader>
-                    <DataTableBody>
-                      {visible.length === 0 ? (
-                        <DataTableEmptyRow colSpan={5}>
-                          Nenhuma operadora encontrada.
-                        </DataTableEmptyRow>
-                      ) : (
-                        visible.map((operator) => (
-                          <DataTableRow
-                            key={operator.id}
-                            tabIndex={0}
-                            role="link"
-                            aria-label={`Acessar ${operator.name}`}
-                            onClick={() => openOperator(operator)}
-                            onKeyDown={(event) => {
-                              if (event.key === "Enter" || event.key === " ") {
-                                event.preventDefault();
-                                openOperator(operator);
-                              }
-                            }}
-                            className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-                          >
-                            <DataTableCell className="font-medium">{operator.name}</DataTableCell>
-                            <DataTableCell>
-                              <ContractBadge operator={operator} />
-                            </DataTableCell>
-                            <DataTableCell className="font-mono whitespace-nowrap">
-                              {operator.validUntil ? formatIsoToBr(operator.validUntil) : "—"}
-                            </DataTableCell>
-                            <DataTableCell className="whitespace-nowrap">
-                              {amendmentsLabel(operator.amendmentsCount)}
-                            </DataTableCell>
-                            <DataTableCell className="text-muted-foreground">
-                              <ChevronRight className="size-4" aria-hidden="true" />
-                            </DataTableCell>
-                          </DataTableRow>
-                        ))
-                      )}
-                    </DataTableBody>
-                  </DataTableRoot>
-                </DataTable>
+              <SurfaceCard padding="md" className="min-w-0 space-y-4">
+                <DataTableCardList breakpoint="md">
+                  {visible.length === 0 ? (
+                    <li className="py-6 text-center text-sm text-muted-foreground">
+                      Nenhuma operadora encontrada.
+                    </li>
+                  ) : (
+                    visible.map((operator) => (
+                      <DataTableCard
+                        key={operator.id}
+                        className="cursor-pointer"
+                        onClick={() => openOperator(operator)}
+                      >
+                        <button
+                          type="button"
+                          /* ds-allow: linha clicável em cartão */ className="w-full space-y-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          aria-label={`Acessar ${operator.name}`}
+                        >
+                          <DataTableCardHeader
+                            title={operator.name}
+                            trailing={
+                              <ChevronRight
+                                className="size-4 text-muted-foreground"
+                                aria-hidden="true"
+                              />
+                            }
+                          />
+                          <DataTableCardFields
+                            fields={[
+                              { label: "Contrato", value: <ContractBadge operator={operator} /> },
+                              {
+                                label: "Validade",
+                                value: operator.validUntil
+                                  ? formatIsoToBr(operator.validUntil)
+                                  : "—",
+                              },
+                              {
+                                label: "Aditivos",
+                                value: amendmentsLabel(operator.amendmentsCount),
+                              },
+                            ]}
+                          />
+                        </button>
+                      </DataTableCard>
+                    ))
+                  )}
+                </DataTableCardList>
+                <DataTableDesktop breakpoint="md">
+                  <DataTable>
+                    <DataTableRoot>
+                      <DataTableHeader>
+                        <tr>
+                          <DataTableHead>Operadora</DataTableHead>
+                          <DataTableHead>Contrato</DataTableHead>
+                          <DataTableHead>Validade</DataTableHead>
+                          <DataTableHead>Aditivos</DataTableHead>
+                          <DataTableHead className="w-12">
+                            <span className="sr-only">Acessar</span>
+                          </DataTableHead>
+                        </tr>
+                      </DataTableHeader>
+                      <DataTableBody>
+                        {visible.length === 0 ? (
+                          <DataTableEmptyRow colSpan={5}>
+                            Nenhuma operadora encontrada.
+                          </DataTableEmptyRow>
+                        ) : (
+                          visible.map((operator) => (
+                            <DataTableRow
+                              key={operator.id}
+                              tabIndex={0}
+                              role="link"
+                              aria-label={`Acessar ${operator.name}`}
+                              onClick={() => openOperator(operator)}
+                              onKeyDown={(event) => {
+                                if (event.key === "Enter" || event.key === " ") {
+                                  event.preventDefault();
+                                  openOperator(operator);
+                                }
+                              }}
+                              className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                            >
+                              <DataTableCell className="font-medium">{operator.name}</DataTableCell>
+                              <DataTableCell>
+                                <ContractBadge operator={operator} />
+                              </DataTableCell>
+                              <DataTableCell className="font-mono whitespace-nowrap">
+                                {operator.validUntil ? formatIsoToBr(operator.validUntil) : "—"}
+                              </DataTableCell>
+                              <DataTableCell className="whitespace-nowrap">
+                                {amendmentsLabel(operator.amendmentsCount)}
+                              </DataTableCell>
+                              <DataTableCell className="text-muted-foreground">
+                                <ChevronRight className="size-4" aria-hidden="true" />
+                              </DataTableCell>
+                            </DataTableRow>
+                          ))
+                        )}
+                      </DataTableBody>
+                    </DataTableRoot>
+                  </DataTable>
+                </DataTableDesktop>
                 <TablePagination
                   id="operators-pagination"
                   totalItems={filtered.length}
