@@ -72,6 +72,7 @@ export function OperatorsPage() {
             hasContract: true,
             contractId: contract.id,
             validUntil: contract.validUntil,
+            amendmentsCount: 0,
           }
         : operator;
     });
