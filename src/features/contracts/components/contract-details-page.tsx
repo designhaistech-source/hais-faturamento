@@ -1,6 +1,6 @@
 import { SelectField } from "@/components/form-field";
 import { useMemo, useState, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -8,6 +8,7 @@ import {
   CircleCheck,
   Download,
   Eye,
+  FileSearch,
   FileText,
   LoaderCircle,
   Plus,
@@ -117,6 +118,7 @@ async function downloadFile(file: { path: string; name: string }) {
 
 /** Relação contratual vista a partir da operadora (substitui cabeçalho e resumo). */
 export interface ContractOperatorContext {
+  id: string;
   name: string;
   /** yyyy-MM-dd */
   validUntil: string;
@@ -188,6 +190,15 @@ function ContractDetailsContent({
   contract: Contract;
   operator?: ContractOperatorContext;
 }) {
+  const navigate = useNavigate();
+  const openExtracted = (fileId: string) =>
+    operator
+      ? () =>
+          void navigate({
+            to: "/contratos/$contractId/arquivos/$fileId",
+            params: { contractId: operator.id, fileId },
+          })
+      : undefined;
   const queryKey = contractAmendmentsQueryKey(contract.id);
   const amendmentsQuery = useQuery({
     queryKey,
@@ -224,6 +235,7 @@ function ContractDetailsContent({
         statusKey: rulesStatus,
         file: contract.file,
         onView: () => setPreview(contract),
+        onExtracted: openExtracted(contract.id),
       },
       ...amendments.map<FileRow>((item) => ({
         id: item.id,
@@ -235,12 +247,15 @@ function ContractDetailsContent({
         statusKey: item.extractionStatus,
         file: item.file,
         onView: () => setPreview(amendmentAsContractFile(item, contract.company)),
+        onExtracted: openExtracted(item.id),
       })),
     ],
     [contract, amendments, rulesStatus],
   );
 
-  const activeCount = [search.trim() !== "", statusFilter !== "all", from !== "", to !== ""].filter(Boolean).length;
+  const activeCount = [search.trim() !== "", statusFilter !== "all", from !== "", to !== ""].filter(
+    Boolean,
+  ).length;
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -328,7 +343,7 @@ function ContractDetailsContent({
             </span>
           </TabsTrigger>
           <TabsTrigger value="extracted" className={appTabsTriggerClass}>
-            <span className={appTabsLabelClass}>Dados extraídos</span>
+            <span className={appTabsLabelClass}>Condições contratuais</span>
           </TabsTrigger>
         </TabsList>
 
@@ -557,10 +572,10 @@ interface FileRow {
   statusKey: ContractRulesDisplayStatus | null;
   file: { path: string; name: string };
   onView: () => void;
+  onExtracted?: () => void;
 }
 
 function FileActions({ row }: { row: FileRow }) {
-  const noun = row.kind === "Aditivo" ? "aditivo" : "contrato";
   return (
     <div className="inline-flex items-center gap-1">
       <Tooltip>
@@ -569,27 +584,43 @@ function FileActions({ row }: { row: FileRow }) {
             type="button"
             variant="ghost"
             size="icon"
-            aria-label={`Visualizar ${noun} ${row.name}`}
+            aria-label={`Visualizar arquivo ${row.name}`}
             onClick={row.onView}
           >
             <Eye className="size-4" aria-hidden="true" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Visualizar {noun}</TooltipContent>
+        <TooltipContent>Visualizar arquivo</TooltipContent>
       </Tooltip>
+      {row.onExtracted && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={`Ver dados extraídos de ${row.name}`}
+              onClick={row.onExtracted}
+            >
+              <FileSearch className="size-4" aria-hidden="true" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Ver dados extraídos</TooltipContent>
+        </Tooltip>
+      )}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            aria-label={`Baixar ${noun} ${row.name}`}
+            aria-label={`Baixar arquivo ${row.name}`}
             onClick={() => void downloadFile(row.file)}
           >
             <Download className="size-4" aria-hidden="true" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Baixar {noun}</TooltipContent>
+        <TooltipContent>Baixar arquivo</TooltipContent>
       </Tooltip>
     </div>
   );

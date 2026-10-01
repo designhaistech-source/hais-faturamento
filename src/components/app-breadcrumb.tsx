@@ -33,10 +33,13 @@ const ROUTE_META: Record<string, RouteMeta> = {
 export function AppBreadcrumb({
   className,
   currentLabel,
+  operatorCrumb,
 }: {
   className?: string;
   /** Substitui o rótulo do último nível (ex.: nome da operadora). */
   currentLabel?: string;
+  /** Nível intermediário da operadora (ex.: … > Unimed > Dados extraídos). */
+  operatorCrumb?: { id: string; name: string };
 }) {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
@@ -110,6 +113,22 @@ export function AppBreadcrumb({
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="shrink-0" />
+            {operatorCrumb && (
+              <>
+                <BreadcrumbItem className="shrink-0">
+                  <BreadcrumbLink asChild>
+                    <Link
+                      to="/contratos/$contractId"
+                      params={{ contractId: operatorCrumb.id }}
+                      className="transition-colors hover:text-foreground"
+                    >
+                      {operatorCrumb.name}
+                    </Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="shrink-0" />
+              </>
+            )}
           </>
         )}
         <BreadcrumbItem className="min-w-0 flex-1">
