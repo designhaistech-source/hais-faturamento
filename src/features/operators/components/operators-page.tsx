@@ -35,7 +35,7 @@ import {
   listContracts,
 } from "@/features/contracts";
 import { Button } from "@/components/ui/button";
-import { AddDocumentModal } from "./add-document-modal";
+import { AddContractModal } from "./add-document-modal";
 import {
   listOperators,
   operatorsQueryKey,
@@ -122,11 +122,11 @@ export function OperatorsPage() {
                 onClick={() => setAddOpen(true)}
               >
                 <Plus className="size-4" aria-hidden="true" />
-                Adicionar
+                Adicionar contrato
               </Button>
             }
           />
-          <AddDocumentModal open={addOpen} onOpenChange={setAddOpen} operators={merged} />
+          <AddContractModal open={addOpen} onOpenChange={setAddOpen} operators={merged} />
 
           <SurfaceCard padding="md">
             <SearchField
