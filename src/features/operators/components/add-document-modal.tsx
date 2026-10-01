@@ -4,8 +4,12 @@ import { FileText } from "lucide-react";
 import { AppModal } from "@/components/app-modal";
 import { Field, SelectField } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ContractFileDropzone, useCreateContract, validateContractFile } from "@/features/contracts";
+import {
+  ContractFileDropzone,
+  useCreateAmendment,
+  useCreateContract,
+  validateContractFile,
+} from "@/features/contracts";
 import type { Operator } from "../data/operators";
 
 interface AddContractModalProps {
@@ -15,17 +19,20 @@ interface AddContractModalProps {
   operators: Operator[];
 }
 
-/** Cadastro global de contrato para operadoras que ainda não têm contrato. */
+/**
+ * Cadastro global de documento contratual: sem contrato, vira o contrato original;
+ * com contrato, entra na mesma relação contratual como aditivo.
+ */
 export function AddContractModal({ open, onOpenChange, operators }: AddContractModalProps) {
   const [operatorId, setOperatorId] = useState("");
-  const [validUntil, setValidUntil] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | undefined>();
   const createContract = useCreateContract();
+  const createAmendment = useCreateAmendment();
 
-  const available = operators.filter((operator) => !operator.contractId);
-  const operator = available.find((item) => item.id === operatorId);
-  const canSubmit = Boolean(operator && file) && !createContract.isPending;
+  const operator = operators.find((item) => item.id === operatorId);
+  const pending = createContract.isPending || createAmendment.isPending;
+  const canSubmit = Boolean(operator && file) && !pending;
 
   function selectFile(selected: File | null) {
     const error = selected ? validateContractFile(selected) : null;
@@ -35,7 +42,6 @@ export function AddContractModal({ open, onOpenChange, operators }: AddContractM
 
   function close() {
     setOperatorId("");
-    setValidUntil("");
     setFile(null);
     setFileError(undefined);
     onOpenChange(false);
@@ -43,7 +49,14 @@ export function AddContractModal({ open, onOpenChange, operators }: AddContractM
 
   function submit() {
     if (!canSubmit || !operator || !file) return;
-    createContract.mutate({ company: operator.name, cnpj: "", validUntil, file });
+    if (operator.contractId) {
+      createAmendment.mutate({
+        contract: { id: operator.contractId, company: operator.name },
+        file,
+      });
+    } else {
+      createContract.mutate({ company: operator.name, cnpj: "", validUntil: "", file });
+    }
     close();
   }
 
@@ -52,7 +65,7 @@ export function AddContractModal({ open, onOpenChange, operators }: AddContractM
       open={open}
       onOpenChange={(next) => (next ? onOpenChange(true) : close())}
       title="Adicionar contrato"
-      description="Cadastre o contrato do hospital com uma operadora."
+      description="Adicione um contrato vinculado a uma operadora."
       icon={<FileText className="size-5" aria-hidden="true" />}
       footer={
         <>
@@ -72,25 +85,15 @@ export function AddContractModal({ open, onOpenChange, operators }: AddContractM
           submit();
         }}
       >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <SelectField
-            id="contract-operator"
-            label="Operadora"
-            required
-            placeholder={available.length === 0 ? "Nenhuma operadora disponível" : "Selecione"}
-            disabled={available.length === 0}
-            options={available.map((item) => ({ value: item.id, label: item.name }))}
-            value={operatorId}
-            onValueChange={setOperatorId}
-          />
-          <Field id="contract-valid-until" label="Data de validade do contrato">
-            <Input
-              type="date"
-              value={validUntil}
-              onChange={(event) => setValidUntil(event.target.value)}
-            />
-          </Field>
-        </div>
+        <SelectField
+          id="contract-operator"
+          label="Operadora"
+          required
+          placeholder="Selecione"
+          options={operators.map((item) => ({ value: item.id, label: item.name }))}
+          value={operatorId}
+          onValueChange={setOperatorId}
+        />
 
         <Field
           id="contract-file"
