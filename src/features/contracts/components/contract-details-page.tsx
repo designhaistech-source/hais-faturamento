@@ -304,16 +304,16 @@ function ContractDetailsContent({
         </dl>
       </SurfaceCard>
 
-      <Tabs defaultValue="extracted" className="space-y-4">
+      <Tabs defaultValue="files" className="space-y-4">
         <TabsList className={appTabsListClass}>
-          <TabsTrigger value="extracted" className={appTabsTriggerClass}>
-            <span className={appTabsLabelClass}>Dados extraídos</span>
-          </TabsTrigger>
           <TabsTrigger value="files" className={appTabsTriggerClass}>
             <span className={appTabsLabelClass}>
               Arquivos
               {amendmentsQuery.data ? ` (${files.length.toLocaleString("pt-BR")})` : ""}
             </span>
+          </TabsTrigger>
+          <TabsTrigger value="extracted" className={appTabsTriggerClass}>
+            <span className={appTabsLabelClass}>Dados extraídos</span>
           </TabsTrigger>
         </TabsList>
 
