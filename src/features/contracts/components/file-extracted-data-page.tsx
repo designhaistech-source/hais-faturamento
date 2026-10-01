@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, CircleCheck, Clock, Eye, FileSearch, History } from "lucide-react";
+import { ArrowLeft, CircleCheck, Clock, FileSearch, History } from "lucide-react";
 
 import { AppBreadcrumb } from "@/components/app-breadcrumb";
 import { AppModal } from "@/components/app-modal";
@@ -363,7 +363,7 @@ function RuleDetailsButton({
           aria-label={`Ver detalhes da regra ${rule.type} — ${rule.target}`}
           onClick={() => onOpen(rule)}
         >
-          <Eye className="size-4" aria-hidden="true" />
+          <FileSearch className="size-4" aria-hidden="true" />
         </Button>
       </TooltipTrigger>
       <TooltipContent>Ver detalhes da regra</TooltipContent>
