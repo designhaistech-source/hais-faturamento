@@ -109,7 +109,20 @@ async function downloadFile(file: { path: string; name: string }) {
   }
 }
 
-export function ContractDetailsPage({ contractId }: { contractId: string }) {
+/** Relação contratual vista a partir da operadora (substitui cabeçalho e resumo). */
+export interface ContractOperatorContext {
+  name: string;
+  /** yyyy-MM-dd */
+  validUntil: string;
+}
+
+export function ContractDetailsPage({
+  contractId,
+  operator,
+}: {
+  contractId: string;
+  operator?: ContractOperatorContext;
+}) {
   const contractsQuery = useQuery({ queryKey: contractsQueryKey, queryFn: listContracts });
   const contract = contractsQuery.data?.find((item) => item.id === contractId) ?? null;
 
@@ -119,15 +132,15 @@ export function ContractDetailsPage({ contractId }: { contractId: string }) {
         <AppSidebar activeKey="contratos" />
         <div className="flex min-h-screen min-w-0 flex-1 flex-col pt-14 md:pt-0">
           <main className="flex-1 space-y-6 p-6 pb-16">
-            <AppBreadcrumb />
+            <AppBreadcrumb currentLabel={operator?.name} />
             <PageHeader
-              title="Detalhes do contrato"
-              description={contract?.company}
+              title={operator?.name ?? "Detalhes do contrato"}
+              description={operator ? "Contrato com a operadora." : contract?.company}
               actions={
                 <Button asChild variant="outline" className="w-full sm:w-auto">
                   <Link to="/contratos">
                     <ArrowLeft className="size-4" aria-hidden="true" />
-                    Voltar para contratos
+                    {operator ? "Voltar para operadoras" : "Voltar para contratos"}
                   </Link>
                 </Button>
               }
@@ -152,7 +165,7 @@ export function ContractDetailsPage({ contractId }: { contractId: string }) {
                 />
               </SurfaceCard>
             ) : (
-              <ContractDetailsContent contract={contract} />
+              <ContractDetailsContent contract={contract} operator={operator} />
             )}
           </main>
           <SiteFooter />
@@ -162,7 +175,13 @@ export function ContractDetailsPage({ contractId }: { contractId: string }) {
   );
 }
 
-function ContractDetailsContent({ contract }: { contract: Contract }) {
+function ContractDetailsContent({
+  contract,
+  operator,
+}: {
+  contract: Contract;
+  operator?: ContractOperatorContext;
+}) {
   const queryClient = useQueryClient();
   const backgroundTask = useBackgroundTask();
   const queryKey = contractAmendmentsQueryKey(contract.id);
@@ -298,15 +317,31 @@ function ContractDetailsContent({ contract }: { contract: Contract }) {
     <div className="space-y-6">
       <SurfaceCard padding="md">
         <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { label: "Prestador", value: contract.company },
-            { label: "CNPJ", value: <span className="font-mono">{contract.cnpj || "—"}</span> },
-            { label: "Validade", value: formatIsoToBr(contract.validUntil) || "—" },
-            {
-              label: "Status da extração",
-              value: <ContractRulesStatusBadge status={rulesStatus} />,
-            },
-          ].map((item) => (
+          {(operator
+            ? [
+                { label: "Validade", value: formatIsoToBr(operator.validUntil) || "—" },
+                {
+                  label: "Status da extração",
+                  value: <ContractRulesStatusBadge status={rulesStatus} />,
+                },
+                {
+                  label: "Aditivos",
+                  value: amendmentsQuery.isSuccess ? String(amendments.length) : "—",
+                },
+              ]
+            : [
+                { label: "Prestador", value: contract.company },
+                {
+                  label: "CNPJ",
+                  value: <span className="font-mono">{contract.cnpj || "—"}</span>,
+                },
+                { label: "Validade", value: formatIsoToBr(contract.validUntil) || "—" },
+                {
+                  label: "Status da extração",
+                  value: <ContractRulesStatusBadge status={rulesStatus} />,
+                },
+              ]
+          ).map((item) => (
             <div key={item.label} className="min-w-0 space-y-0.5">
               <dt className="text-xs font-medium text-muted-foreground">{item.label}</dt>
               <dd className="min-w-0 break-words text-sm text-foreground">{item.value}</dd>

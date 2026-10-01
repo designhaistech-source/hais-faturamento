@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, CircleCheck, CircleDashed } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "@tanstack/react-router";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteFooter } from "@/components/site-footer";
@@ -56,8 +57,14 @@ export function OperatorsPage() {
   }, [query.data, search]);
   const visible = filtered.slice((page - 1) * pageSize, page * pageSize);
 
-  const openOperator = (operator: Operator) =>
+  const navigate = useNavigate();
+  const openOperator = (operator: Operator) => {
+    if (operator.contractId) {
+      void navigate({ to: "/contratos/$contractId", params: { contractId: operator.id } });
+      return;
+    }
     toast.info(`A página da operadora ${operator.name} ainda não está disponível.`);
+  };
 
   return (
     <div className="flex min-h-screen bg-background">

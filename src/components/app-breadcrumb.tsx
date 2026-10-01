@@ -30,7 +30,14 @@ const ROUTE_META: Record<string, RouteMeta> = {
  * Trilha de navegação padrão do sistema, derivada da rota atual.
  * Renderiza apenas quando há um nível além da home.
  */
-export function AppBreadcrumb({ className }: { className?: string }) {
+export function AppBreadcrumb({
+  className,
+  currentLabel,
+}: {
+  className?: string;
+  /** Substitui o rótulo do último nível (ex.: nome da operadora). */
+  currentLabel?: string;
+}) {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
@@ -41,13 +48,14 @@ export function AppBreadcrumb({ className }: { className?: string }) {
   const isAnalysisDetail = normalized.startsWith("/analise-faturamento/");
   const isPricingDetail = normalized.startsWith("/base-precificacao/");
   const isContractDetail = normalized.startsWith("/contratos/");
-  const meta = isAnalysisDetail
+  const routeMeta = isAnalysisDetail
     ? { label: normalized.endsWith("/resultado") ? "Resultado da análise" : "Detalhes da análise" }
     : isPricingDetail
       ? { label: "Detalhes da base" }
       : isContractDetail
         ? { label: "Detalhes do contrato" }
         : ROUTE_META[normalized];
+  const meta = routeMeta && currentLabel ? { label: currentLabel } : routeMeta;
 
   if (!meta || normalized === "/") return null;
 
