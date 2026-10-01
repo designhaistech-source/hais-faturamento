@@ -75,14 +75,17 @@ function effectOf(rule: ContractRule): string[] {
 }
 
 /**
- * Exibe apenas os campos que a extração atual produz; seções do escopo
- * solicitado sem dado correspondente na extração não são exibidas.
+ * Escopo e Dados necessários ainda não são produzidos pela extração; as seções
+ * aparecem com "Não identificado" em vez de valores inventados.
  */
 function RuleDetails({ rule, fileName }: { rule: ContractRule; fileName: string }) {
   const codes = parseRuleCodes(rule.codes);
   const effect = effectOf(rule);
   return (
     <div className="space-y-4">
+      <Section title="Escopo">
+        <Field label="Abrangência" value={NOT_IDENTIFIED} />
+      </Section>
       <Section title="Vigência">
         <Field
           label="Início da eficácia"
@@ -115,6 +118,9 @@ function RuleDetails({ rule, fileName }: { rule: ContractRule; fileName: string 
           label="Efeito identificado"
           value={effect.length > 0 ? effect.join(" · ") : NOT_IDENTIFIED}
         />
+      </Section>
+      <Section title="Dados necessários">
+        <Field label="Informações exigidas" value={NOT_IDENTIFIED} />
       </Section>
       <Section title="Evidências">
         <Field label="Documento" value={fileName} />
@@ -161,7 +167,7 @@ export function FileExtractedDataModal({
     <AppModal
       open={open}
       onOpenChange={onOpenChange}
-      size="lg"
+      size="xl"
       title="Dados extraídos"
       description={target?.fileName}
       footer={
