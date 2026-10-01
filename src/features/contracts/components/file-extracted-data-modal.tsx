@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { FileSearch } from "lucide-react";
+import { Eye, FileSearch } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
 import { EmptyState, ErrorState, LoadingState } from "@/components/data-state";
@@ -30,6 +30,8 @@ export interface ExtractedFileTarget {
   status: ReactNode;
   /** Só busca as regras quando a extração foi concluída. */
   available: boolean;
+  /** Abre o documento original para conferir o trecho. */
+  onViewDocument?: () => void;
 }
 
 const NOT_IDENTIFIED = "Não identificado";
@@ -74,18 +76,63 @@ function effectOf(rule: ContractRule): string[] {
   return items;
 }
 
+function SimpleSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="space-y-2 border-t border-border pt-3">
+      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {title}
+      </h4>
+      {children}
+    </section>
+  );
+}
+
 /**
- * Escopo e Dados necessários ainda não são produzidos pela extração; as seções
- * aparecem com "Não identificado" em vez de valores inventados.
+ * Mostra só os campos que a extração atual guarda. Seções sem nenhum dado
+ * guardado (Aplicabilidade, Dados necessários) aparecem como "Não identificado".
  */
-function RuleDetails({ rule, fileName }: { rule: ContractRule; fileName: string }) {
+function RuleDetails({
+  rule,
+  fileName,
+  onViewDocument,
+}: {
+  rule: ContractRule;
+  fileName: string;
+  onViewDocument?: () => void;
+}) {
   const codes = parseRuleCodes(rule.codes);
   const effect = effectOf(rule);
   return (
     <div className="space-y-4">
-      <Section title="Escopo">
-        <Field label="Abrangência" value={NOT_IDENTIFIED} />
-      </Section>
+      <section className="space-y-2">
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Condição e efeito
+        </h4>
+        <p className="font-display text-base font-semibold text-foreground">
+          {effect[0] ?? NOT_IDENTIFIED}
+        </p>
+        <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-3">
+          {rule.adjustmentPercent !== 0 && (
+            <Field
+              label={rule.adjustmentPercent > 0 ? "Acréscimo" : "Desconto"}
+              value={`${Math.abs(rule.adjustmentPercent).toLocaleString("pt-BR")}%`}
+            />
+          )}
+          {rule.factor !== 1 && <Field label="Fator" value={rule.factor.toLocaleString("pt-BR")} />}
+          {rule.negotiatedValue !== null && (
+            <Field
+              label="Valor"
+              value={rule.negotiatedValue.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              })}
+            />
+          )}
+        </dl>
+      </section>
+      <SimpleSection title="Aplicabilidade">
+        <p className="text-sm text-foreground">{NOT_IDENTIFIED}</p>
+      </SimpleSection>
       <Section title="Vigência">
         <Field
           label="Início da eficácia"
@@ -96,7 +143,7 @@ function RuleDetails({ rule, fileName }: { rule: ContractRule; fileName: string 
           value={rule.validTo ? brDate(rule.validTo) : NOT_IDENTIFIED}
         />
       </Section>
-      <Section title="Alvo">
+      <Section title="Itens abrangidos">
         <Field
           label="Código"
           value={
@@ -108,23 +155,17 @@ function RuleDetails({ rule, fileName }: { rule: ContractRule; fileName: string 
           }
         />
         <Field
-          label="Sistema/tabela"
+          label="Tabela/sistema"
           value={rule.baseType === "none" ? NOT_IDENTIFIED : contractRuleBaseLabel(rule.baseType)}
         />
         <Field label="Categoria" value={rule.category.trim() || NOT_IDENTIFIED} />
       </Section>
-      <Section title="Condição e efeito">
-        <Field
-          label="Efeito identificado"
-          value={effect.length > 0 ? effect.join(" · ") : NOT_IDENTIFIED}
-        />
-      </Section>
-      <Section title="Dados necessários">
-        <Field label="Informações exigidas" value={NOT_IDENTIFIED} />
-      </Section>
-      <Section title="Evidências">
-        <Field label="Documento" value={fileName} />
-        <div className="sm:col-span-2">
+      <SimpleSection title="Dados necessários para verificação">
+        <p className="text-sm text-foreground">{NOT_IDENTIFIED}</p>
+      </SimpleSection>
+      <SimpleSection title="Evidências">
+        <dl className="grid grid-cols-1 gap-y-2">
+          <Field label="Documento" value={fileName} />
           <Field
             label="Trecho"
             value={
@@ -135,7 +176,16 @@ function RuleDetails({ rule, fileName }: { rule: ContractRule; fileName: string 
               )
             }
           />
-        </div>
+        </dl>
+        {onViewDocument && (
+          <Button type="button" variant="outline" size="sm" onClick={onViewDocument}>
+            <Eye className="size-4" aria-hidden="true" />
+            Ver trecho no documento
+          </Button>
+        )}
+      </SimpleSection>
+      <Section title="Situação da regra">
+        <Field label="Revisão" value={rule.reviewed ? "Revisada" : "Pendente de revisão"} />
       </Section>
     </div>
   );
@@ -203,7 +253,7 @@ export function FileExtractedDataModal({
                 description="Não há regras guardadas para este arquivo."
               />
             ) : (
-              <Accordion type="multiple" className="rounded-xl border border-border">
+              <Accordion type="single" collapsible className="rounded-xl border border-border">
                 {query.data.map((rule) => {
                   const validity = formatContractRuleValidity(rule);
                   return (
@@ -222,13 +272,15 @@ export function FileExtractedDataModal({
                           </span>
                           <span className="block text-xs font-normal text-muted-foreground">
                             Vigência: {validity || NOT_IDENTIFIED}
-                            {rule.baseType !== "none" &&
-                              ` · ${contractRuleBaseLabel(rule.baseType)}`}
                           </span>
                         </span>
                       </AccordionTrigger>
                       <AccordionContent className="pb-4">
-                        <RuleDetails rule={rule} fileName={target.fileName} />
+                        <RuleDetails
+                          rule={rule}
+                          fileName={target.fileName}
+                          onViewDocument={target.onViewDocument}
+                        />
                       </AccordionContent>
                     </AccordionItem>
                   );
