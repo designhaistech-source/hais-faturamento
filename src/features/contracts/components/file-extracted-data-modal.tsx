@@ -246,9 +246,11 @@ export function FileExtractedDataModal({
                           <span className="block text-sm font-normal text-muted-foreground">
                             {summarizeContractRule(rule) || NOT_IDENTIFIED}
                           </span>
-                          <span className="block text-xs font-normal text-muted-foreground">
-                            Vigência: {validity || NOT_IDENTIFIED}
-                          </span>
+                          {validity && (
+                            <span className="block text-xs font-normal text-muted-foreground">
+                              Vigência: {validity}
+                            </span>
+                          )}
                         </span>
                       </AccordionTrigger>
                       <AccordionContent className="pb-4">
