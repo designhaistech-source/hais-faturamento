@@ -9,7 +9,15 @@ import { PageHeader } from "@/components/page-header";
 import { AppBreadcrumb } from "@/components/app-breadcrumb";
 import { SurfaceCard } from "@/components/surface-card";
 import { ErrorState, TableSkeleton } from "@/components/data-state";
-import { SearchField } from "@/components/form-field";
+import { SearchField, SelectField } from "@/components/form-field";
+import { FilterCard } from "@/components/filter-card";
+import { Input } from "@/components/ui/input";
+
+const STATUS_OPTIONS = [
+  { value: "all", label: "Todos os status" },
+  { value: "registered", label: "Contrato cadastrado" },
+  { value: "missing", label: "Não cadastrado" },
+];
 import { StatusBadge } from "@/components/status-badge";
 import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/table-pagination";
 import {
@@ -58,6 +66,18 @@ function ContractBadge({ operator }: { operator: Operator }) {
 
 export function OperatorsPage() {
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [validFrom, setValidFrom] = useState("");
+  const [validTo, setValidTo] = useState("");
+  const activeCount =
+    (search.trim() ? 1 : 0) + (statusFilter !== "all" ? 1 : 0) + (validFrom || validTo ? 1 : 0);
+  const clearFilters = () => {
+    setSearch("");
+    setStatusFilter("all");
+    setValidFrom("");
+    setValidTo("");
+    setPage(1);
+  };
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const query = useQuery({ queryKey: operatorsQueryKey, queryFn: listOperators });
@@ -97,8 +117,18 @@ export function OperatorsPage() {
       if (!operator.contractId) return operator;
       return { ...operator, amendmentsCount: amendments?.length ?? operator.amendmentsCount ?? 0 };
     });
-    return term ? list.filter((o) => o.name.toLocaleLowerCase("pt-BR").includes(term)) : list;
-  }, [merged, amendmentQueries, search]);
+    return list.filter((o) => {
+      if (term && !o.name.toLocaleLowerCase("pt-BR").includes(term)) return false;
+      if (statusFilter === "registered" && !o.hasContract) return false;
+      if (statusFilter === "missing" && o.hasContract) return false;
+      if (validFrom || validTo) {
+        if (!o.validUntil) return false;
+        if (validFrom && o.validUntil < validFrom) return false;
+        if (validTo && o.validUntil > validTo) return false;
+      }
+      return true;
+    });
+  }, [merged, amendmentQueries, search, statusFilter, validFrom, validTo]);
   const visible = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const navigate = useNavigate();
@@ -128,11 +158,18 @@ export function OperatorsPage() {
           />
           <AddContractModal open={addOpen} onOpenChange={setAddOpen} operators={merged} />
 
-          <SurfaceCard padding="md">
+          <FilterCard
+            id="operators-filters"
+            variant="bar"
+            activeCount={activeCount}
+            onClear={clearFilters}
+            clearDisabled={activeCount === 0}
+            barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_14rem_22rem_auto] lg:gap-4"
+          >
             <SearchField
               id="operators-search"
               label="Buscar"
-              fieldClassName="max-w-md"
+              fieldClassName="sm:col-span-2 lg:col-span-1"
               placeholder="Buscar por operadora"
               value={search}
               clearable
@@ -145,7 +182,51 @@ export function OperatorsPage() {
                 setPage(1);
               }}
             />
-          </SurfaceCard>
+            <SelectField
+              id="operators-contract-status"
+              label="Status do contrato"
+              className="sm:col-span-2 lg:col-span-1"
+              value={statusFilter}
+              options={STATUS_OPTIONS}
+              onValueChange={(value) => {
+                setStatusFilter(value);
+                setPage(1);
+              }}
+            />
+            <fieldset className="min-w-0 space-y-1.5 sm:col-span-2 sm:space-y-2 lg:col-span-1">
+              <legend className="text-xs font-medium leading-snug text-muted-foreground">
+                Validade
+              </legend>
+              <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
+                <span className="shrink-0 text-xs text-muted-foreground">De</span>
+                <Input
+                  id="operators-valid-from"
+                  type="date"
+                  aria-label="Validade de"
+                  className="min-w-0 flex-1"
+                  value={validFrom}
+                  max={validTo || undefined}
+                  onChange={(event) => {
+                    setValidFrom(event.target.value);
+                    setPage(1);
+                  }}
+                />
+                <span className="shrink-0 text-xs text-muted-foreground">até</span>
+                <Input
+                  id="operators-valid-to"
+                  type="date"
+                  aria-label="Validade até"
+                  className="min-w-0 flex-1"
+                  value={validTo}
+                  min={validFrom || undefined}
+                  onChange={(event) => {
+                    setValidTo(event.target.value);
+                    setPage(1);
+                  }}
+                />
+              </div>
+            </fieldset>
+          </FilterCard>
 
           <section className="space-y-4" aria-labelledby="operators-title">
             <h2 id="operators-title" className="font-display text-lg font-semibold text-foreground">
