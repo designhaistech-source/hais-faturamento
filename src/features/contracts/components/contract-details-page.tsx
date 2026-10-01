@@ -1,3 +1,4 @@
+import { SelectField } from "@/components/form-field";
 import { useMemo, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -75,6 +76,15 @@ const COLUMNS = [
   "Data do cadastro",
   "Status da extração",
   "Ações",
+];
+
+const EXTRACTION_STATUS_FILTER_OPTIONS = [
+  { value: "all", label: "Todos os status" },
+  { value: "available", label: "Concluída" },
+  { value: "extracting", label: "Extraindo..." },
+  { value: "not_extracted", label: "Não extraída" },
+  { value: "not_identified", label: "Não identificados" },
+  { value: "failed", label: "Falha na extração" },
 ];
 
 const STATUS_CONFIG = {
@@ -198,6 +208,7 @@ function ContractDetailsContent({
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ContractRulesDisplayStatus | "all">("all");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
@@ -210,6 +221,7 @@ function ContractDetailsContent({
         createdBy: "—",
         createdAt: contract.createdAt,
         status: <ContractRulesStatusBadge status={rulesStatus} />,
+        statusKey: rulesStatus,
         file: contract.file,
         onView: () => setPreview(contract),
       },
@@ -220,6 +232,7 @@ function ContractDetailsContent({
         createdBy: item.createdBy,
         createdAt: item.createdAt,
         status: <AmendmentStatusBadge status={item.extractionStatus} />,
+        statusKey: item.extractionStatus,
         file: item.file,
         onView: () => setPreview(amendmentAsContractFile(item, contract.company)),
       })),
@@ -227,12 +240,13 @@ function ContractDetailsContent({
     [contract, amendments, rulesStatus],
   );
 
-  const activeCount = [search.trim() !== "", from !== "", to !== ""].filter(Boolean).length;
+  const activeCount = [search.trim() !== "", statusFilter !== "all", from !== "", to !== ""].filter(Boolean).length;
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     return files.filter((item) => {
       if (term && !item.name.toLowerCase().includes(term)) return false;
+      if (statusFilter !== "all" && item.statusKey !== statusFilter) return false;
       if ((from || to) && !item.createdAt) return false;
       if (!item.createdAt) return true;
       const day = toLocalIsoDate(new Date(item.createdAt));
@@ -240,7 +254,7 @@ function ContractDetailsContent({
       if (to && day > to) return false;
       return true;
     });
-  }, [files, search, from, to]);
+  }, [files, search, statusFilter, from, to]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -250,6 +264,7 @@ function ContractDetailsContent({
     setSearch("");
     setFrom("");
     setTo("");
+    setStatusFilter("all");
     setPage(1);
   }
 
@@ -352,7 +367,7 @@ function ContractDetailsContent({
                 activeCount={activeCount}
                 onClear={clearFilters}
                 clearDisabled={activeCount === 0}
-                barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_22rem_auto] lg:gap-4"
+                barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_12rem_22rem_auto] lg:gap-4"
               >
                 <SearchField
                   id="amendments-search"
@@ -367,6 +382,17 @@ function ContractDetailsContent({
                   }}
                   onClear={() => {
                     setSearch("");
+                    setPage(1);
+                  }}
+                />
+                <SelectField
+                  id="amendments-extraction-status"
+                  label="Status da extração"
+                  className="sm:col-span-2 lg:col-span-1"
+                  value={statusFilter}
+                  options={EXTRACTION_STATUS_FILTER_OPTIONS}
+                  onValueChange={(value) => {
+                    setStatusFilter(value as ContractRulesDisplayStatus | "all");
                     setPage(1);
                   }}
                 />
@@ -528,6 +554,7 @@ interface FileRow {
   createdBy: string;
   createdAt?: string;
   status: ReactNode;
+  statusKey: ContractRulesDisplayStatus | null;
   file: { path: string; name: string };
   onView: () => void;
 }
