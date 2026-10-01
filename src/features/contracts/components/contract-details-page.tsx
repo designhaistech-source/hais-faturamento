@@ -71,6 +71,7 @@ import { ContractPreviewModal } from "./contract-preview-modal";
 import { ContractRulesStatusBadge } from "./contract-rules-status-badge";
 import { ContractRulesList } from "./contract-rules-list";
 import { NewAmendmentModal } from "./new-amendment-modal";
+import { useCreateAmendment } from "../data/use-contract-registration";
 
 const COLUMNS = [
   "Arquivo",
@@ -259,47 +260,7 @@ function ContractDetailsContent({
     setPage(1);
   }
 
-  function startExtraction(amendment: ContractAmendment) {
-    backgroundTask.start({
-      kind: "contract-amendment",
-      fileName: amendment.file.name,
-      processing: {
-        title: "Extraindo dados do aditivo",
-        description: "Extraindo as informações do aditivo...",
-      },
-      failure: {
-        title: "Falha na extração",
-        description: "Não foi possível extrair os dados do aditivo.",
-      },
-      run: async () => {
-        try {
-          const status = await extractAmendment(amendment, contract.company);
-          return status === "available"
-            ? {
-                title: "Dados extraídos",
-                description: "O aditivo foi processado com sucesso.",
-              }
-            : {
-                title: "Nenhum dado identificado",
-                description: "Nenhuma informação relevante foi identificada no aditivo.",
-                tone: "warning",
-              };
-        } finally {
-          await queryClient.invalidateQueries({ queryKey });
-        }
-      },
-    });
-  }
-
-  const createMutation = useMutation({
-    mutationFn: (file: File) =>
-      createContractAmendment({ contractId: contract.id, file, createdBy: CURRENT_USER.name }),
-    onSuccess: async (amendment) => {
-      await queryClient.invalidateQueries({ queryKey });
-      startExtraction(amendment);
-    },
-    onError: () => toast.error("Não foi possível adicionar o aditivo."),
-  });
+  const createMutation = useCreateAmendment();
 
   const addButton = (
     <Button
@@ -547,7 +508,7 @@ function ContractDetailsContent({
         open={modalOpen}
         onOpenChange={setModalOpen}
         pending={createMutation.isPending}
-        onCreate={(file) => createMutation.mutate(file)}
+        onCreate={(file) => createMutation.mutate({ contract, file })}
       />
 
       <ContractPreviewModal
