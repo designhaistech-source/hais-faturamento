@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   CircleAlert,
@@ -17,7 +17,6 @@ import { toast } from "sonner";
 
 import { AppBreadcrumb } from "@/components/app-breadcrumb";
 import { AppSidebar } from "@/components/app-sidebar";
-import { useBackgroundTask } from "@/components/background-task";
 import { ErrorState, LoadingState, TableSkeleton } from "@/components/data-state";
 import {
   DataTable,
@@ -46,18 +45,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatIsoToBr, toLocalIsoDate } from "@/lib/date";
-import { CURRENT_USER } from "@/lib/current-user";
 
 import type { Contract } from "../data/contracts";
 import { contractsQueryKey, createContractFileUrl, listContracts } from "../data/contracts-service";
 import {
   amendmentAsContractFile,
   contractAmendmentsQueryKey,
-  createContractAmendment,
-  extractAmendment,
   listContractAmendments,
   type AmendmentExtractionStatus,
-  type ContractAmendment,
 } from "../data/contract-amendments-service";
 import { appTabsLabelClass, appTabsListClass, appTabsTriggerClass } from "@/components/app-tabs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -183,8 +178,6 @@ function ContractDetailsContent({
   contract: Contract;
   operator?: ContractOperatorContext;
 }) {
-  const queryClient = useQueryClient();
-  const backgroundTask = useBackgroundTask();
   const queryKey = contractAmendmentsQueryKey(contract.id);
   const amendmentsQuery = useQuery({
     queryKey,
