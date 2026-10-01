@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, CircleCheck, CircleDashed } from "lucide-react";
-import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 
 import { AppSidebar } from "@/components/app-sidebar";
