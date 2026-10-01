@@ -83,7 +83,7 @@ export function OperatorDetailsPage({ operatorId }: { operatorId: string }) {
             <SurfaceCard padding="md">
               <ErrorState
                 title="Operadora não encontrada"
-                description="Volte para Operadoras e contratos e escolha outra operadora."
+                description="Volte para Contratos com operadoras e escolha outra operadora."
               />
             </SurfaceCard>
           ) : (

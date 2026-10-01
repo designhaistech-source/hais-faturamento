@@ -142,7 +142,7 @@ export function OperatorsPage() {
         <main className="flex-1 space-y-6 p-6 pb-16">
           <AppBreadcrumb />
           <PageHeader
-            title="Operadoras e contratos"
+            title="Contratos com operadoras"
             description="Gerencie os contratos do hospital com cada operadora."
             actions={
               <Button
