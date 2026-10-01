@@ -182,7 +182,7 @@ export function TussPage() {
   const newVersionButton = (
     <Button type="button" onClick={() => setModalOpen(true)}>
       <Plus className="size-4" aria-hidden="true" />
-      Nova tabela
+      Cadastrar tabela
     </Button>
   );
 
@@ -203,7 +203,7 @@ export function TussPage() {
                   onClick={() => setModalOpen(true)}
                 >
                   <Plus className="size-4" aria-hidden="true" />
-                  Nova tabela
+                  Cadastrar tabela
                 </Button>
               }
             />

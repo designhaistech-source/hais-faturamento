@@ -88,7 +88,7 @@ export function NewTussVersionModal({ open, onOpenChange, onCreate }: NewTussVer
     <AppModal
       open={open}
       onOpenChange={(next) => (next ? onOpenChange(true) : close())}
-      title="Nova tabela TUSS"
+      title="Cadastrar tabela"
       description="Selecione a tabela TUSS e envie o(s) arquivo(s) correspondente(s)."
       icon={<BookMarked className="size-5" aria-hidden="true" />}
       footer={
