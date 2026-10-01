@@ -48,7 +48,7 @@ export async function listContractRules(
   const base = supabase
     .from("contract_rules")
     .select(
-      "id, contract_id, category, base_type, codes, factor, adjustment_percent, negotiated_value, valid_from, valid_to, source_excerpt, reviewed",
+      "id, contract_id, category, base_type, codes, factor, adjustment_percent, negotiated_value, valid_from, valid_to, source_excerpt, reviewed, created_at",
     )
     .eq("contract_id", contractId)
     .order("created_at", { ascending: true });
@@ -70,6 +70,7 @@ export async function listContractRules(
     validTo: row.valid_to ?? "",
     sourceExcerpt: row.source_excerpt ?? "",
     reviewed: row.reviewed,
+    createdAt: row.created_at,
   }));
 }
 
