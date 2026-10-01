@@ -25,3 +25,4 @@ export {
   contractAmendmentsQueryKey,
   listContractAmendments,
 } from "./data/contract-amendments-service";
+export { ContractFileDropzone, validateContractFile } from "./components/contract-file-dropzone";
