@@ -332,7 +332,7 @@ export function PricingBasePage() {
                   onClick={() => setModalOpen(true)}
                 >
                   <Plus className="size-4" aria-hidden="true" />
-                  Adicionar
+                  Cadastrar base
                 </Button>
               }
             />
