@@ -498,6 +498,7 @@ function ContractDetailsContent({
     id: item.id,
     name: item.name,
     amendmentId: item.kind === "Aditivo" ? item.id : null,
+    onView: item.onView,
   }));
 
   return (

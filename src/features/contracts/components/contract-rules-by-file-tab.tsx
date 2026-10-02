@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQueries } from "@tanstack/react-query";
-import { FileSearch } from "lucide-react";
+import { Eye, FileSearch } from "lucide-react";
 
 import { EmptyState, ErrorState, TableSkeleton } from "@/components/data-state";
 import {
@@ -41,6 +41,8 @@ export interface RuleSourceFile {
   name: string;
   /** null para o contrato original. */
   amendmentId: string | null;
+  /** Abre o visualizador de documento já usado na aba Arquivos. */
+  onView?: () => void;
 }
 
 interface SourcedRule {
@@ -200,6 +202,9 @@ export function ContractRulesByFileTab({
                   {COLUMNS.map((column) => (
                     <DataTableHead key={column}>{column}</DataTableHead>
                   ))}
+                  <DataTableHead className="w-px">
+                    <span className="sr-only">Ações</span>
+                  </DataTableHead>
                 </tr>
               </DataTableHeader>
               <DataTableBody>
@@ -216,6 +221,9 @@ export function ContractRulesByFileTab({
                     <DataTableCell className="max-w-56">
                       <SourceName name={source.name} />
                     </DataTableCell>
+                    <DataTableCell className="w-px whitespace-nowrap text-right">
+                      <ViewSourceButton source={source} />
+                    </DataTableCell>
                   </DataTableRow>
                 ))}
               </DataTableBody>
@@ -225,7 +233,10 @@ export function ContractRulesByFileTab({
           <DataTableCardList divided>
             {paginated.map(({ rule, source }) => (
               <DataTableCard key={`${source.id}-${rule.id}`} flat className="space-y-1.5 py-2.5">
-                <DataTableCardHeader title={contractRuleTitle(rule)} />
+                <div className="flex items-start justify-between gap-2">
+                  <DataTableCardHeader title={contractRuleTitle(rule)} />
+                  <ViewSourceButton source={source} />
+                </div>
                 <DataTableCardFields
                   className="gap-x-4 gap-y-1"
                   fields={[
@@ -282,6 +293,28 @@ function SourceName({ name }: { name: string }) {
           </span>
         </TooltipTrigger>
         <TooltipContent>{name}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+function ViewSourceButton({ source }: { source: RuleSourceFile }) {
+  if (!source.onView) return null;
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={`Visualizar arquivo de origem ${source.name}`}
+            onClick={source.onView}
+          >
+            <Eye className="size-4" aria-hidden="true" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Visualizar arquivo de origem</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
