@@ -21,7 +21,14 @@ import { Button } from "@/components/ui/button";
 import { getOperator, resolveOperatorContractId } from "../data/operators";
 
 /** Página da relação contratual com uma operadora, apoiada no detalhe do contrato. */
-export function OperatorDetailsPage({ operatorId }: { operatorId: string }) {
+export function OperatorDetailsPage({
+  operatorId,
+  variant = "default",
+}: {
+  operatorId: string;
+  variant?: "default" | "test";
+}) {
+  const isTest = variant === "test";
   const operatorQuery = useQuery({
     queryKey: ["operators", operatorId],
     queryFn: () => getOperator(operatorId),
@@ -36,6 +43,7 @@ export function OperatorDetailsPage({ operatorId }: { operatorId: string }) {
     return (
       <ContractDetailsPage
         contractId={contractId}
+        variant={variant}
         operator={{
           id: operator.id,
           name: operator.name,
@@ -49,7 +57,7 @@ export function OperatorDetailsPage({ operatorId }: { operatorId: string }) {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <AppSidebar activeKey="contratos" />
+      <AppSidebar activeKey={isTest ? "contratos-teste" : "contratos"} />
       <div className="flex min-h-screen min-w-0 flex-1 flex-col pt-14 md:pt-0">
         <main className="flex-1 space-y-6 p-6 pb-16">
           <AppBreadcrumb currentLabel={operator?.name} />
@@ -58,9 +66,9 @@ export function OperatorDetailsPage({ operatorId }: { operatorId: string }) {
             description="Contrato com a operadora."
             actions={
               <Button asChild variant="outline" className="w-full sm:w-auto">
-                <Link to="/contratos">
+                <Link to={isTest ? "/contratos-teste" : "/contratos"}>
                   <ArrowLeft className="size-4" aria-hidden="true" />
-                  Voltar para operadoras
+                  {isTest ? "Voltar para contratos" : "Voltar para operadoras"}
                 </Link>
               </Button>
             }
