@@ -13,17 +13,17 @@ interface AuthLayoutProps {
 export function AuthLayout({ title, description, children }: AuthLayoutProps) {
   return (
     <main className="flex min-h-dvh w-full bg-background">
-      <section className="flex w-full flex-col bg-card px-6 py-8 sm:px-10 md:w-1/2 lg:w-[45%] lg:px-16">
+      <section className="flex w-full flex-col bg-background px-6 py-8 sm:px-10 md:w-1/2 lg:w-[45%] lg:px-16">
         <div>
           <img src={brandLogo.url} alt="HaisFaturamento" className="h-8 w-auto dark:hidden" />
           <img src={brandLogoDark.url} alt="HaisFaturamento" className="hidden h-8 w-auto dark:block" />
         </div>
 
         <div className="flex flex-1 items-center justify-center py-12">
-          <div className="w-full max-w-[400px]">
+          <div className="w-full max-w-[440px] rounded-xl border border-border bg-card p-6 shadow-xs sm:p-9 [&_form]:space-y-5 [&_input]:h-12 [&_input]:text-base [&_label]:text-sm [&_button[type=submit]]:h-12 [&_button[type=submit]]:text-base">
             <header className="mb-8">
-              <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">{title}</h1>
-              {description && <p className="mt-2 text-sm text-muted-foreground">{description}</p>}
+              <h1 className="font-display text-[2rem] leading-tight font-semibold tracking-tight text-foreground">{title}</h1>
+              {description && <p className="mt-2 text-base text-muted-foreground">{description}</p>}
             </header>
             {children}
           </div>
@@ -46,7 +46,7 @@ function BrandPanel() {
     >
       <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-foreground/40" />
       <div
-        className="absolute inset-0 opacity-[0.12]"
+        className="absolute inset-0 opacity-[0.06]"
         style={{
           backgroundImage:
             "linear-gradient(var(--primary-foreground) 1px, transparent 1px), linear-gradient(90deg, var(--primary-foreground) 1px, transparent 1px)",
