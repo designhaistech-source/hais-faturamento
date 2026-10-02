@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import brandPattern from "@/assets/hais-pattern.svg.asset.json";
+import { BrandPattern } from "./brand-pattern";
 import brandLogoDark from "@/assets/haisfaturamento-logo-dark.png.asset.json";
 
 interface AuthLayoutProps {
@@ -14,13 +14,7 @@ export function AuthLayout({ title, description, children }: AuthLayoutProps) {
   return (
     <div className="relative isolate flex min-h-dvh w-full flex-col overflow-hidden bg-gradient-to-br from-brand-surface-from to-brand-surface-to text-brand-surface-foreground">
       {/* Pattern institucional decorativo: sangra pela borda inferior esquerda, só em telas largas. */}
-      <img
-        src={brandPattern.url}
-        alt=""
-        aria-hidden="true"
-        className="pointer-events-none absolute -bottom-[22rem] -left-[20rem] -z-10 hidden w-[860px] select-none opacity-40 lg:block"
-        style={{ maskImage: "radial-gradient(ellipse 55% 60% at 37% 66%, black 30%, transparent 100%)", WebkitMaskImage: "radial-gradient(ellipse 55% 60% at 37% 66%, black 30%, transparent 100%)" }}
-      />
+      <BrandPattern className="pointer-events-none absolute bottom-0 left-0 -z-10 hidden h-[88vh] w-auto select-none lg:block" />
 
       <header className="px-6 pt-8 sm:px-10 lg:px-16">
         <img src={brandLogoDark.url} alt="HaisFaturamento" className="h-8 w-auto" />
