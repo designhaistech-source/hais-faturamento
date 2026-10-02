@@ -67,7 +67,7 @@ function BrandMark({ className }: { className?: string }) {
 }
 
 export type ItemKey =
-  "inicio" | "contratos" | "base-precificacao" | "tuss" | "analise-faturamento" | "design-system" | "icones";
+  "inicio" | "contratos" | "contratos-teste" | "base-precificacao" | "tuss" | "analise-faturamento" | "design-system" | "icones";
 
 export function AppSidebar({ activeKey }: { activeKey: ItemKey }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -234,6 +234,15 @@ function SidebarNav({
           to="/contratos"
           active={activeKey === "contratos"}
           hint="Contratos das clínicas e hospitais atendidos, com arquivo original anexado."
+          collapsed={collapsed}
+          onNavigate={onNavigate}
+        />
+        <SidebarItem
+          icon={FlaskConical}
+          label="Contratos com operadoras teste"
+          to="/contratos-teste"
+          active={activeKey === "contratos-teste"}
+          hint="Versão temporária para comparar a nova organização dos contratos."
           collapsed={collapsed}
           onNavigate={onNavigate}
         />
