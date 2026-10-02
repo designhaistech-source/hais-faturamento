@@ -14,7 +14,7 @@ export function BrandPattern({ className }: { className?: string }) {
         src={haisPattern}
         alt=""
         draggable={false}
-        className="absolute bottom-[calc(-40vh-120px)] left-[-260px] h-[110vh] w-auto max-w-none opacity-60"
+        className="absolute bottom-[calc(-40vh-260px)] left-[-260px] h-[110vh] w-auto max-w-none opacity-60"
         style={{ maskImage: fadeMask, WebkitMaskImage: fadeMask }}
       />
     </div>
