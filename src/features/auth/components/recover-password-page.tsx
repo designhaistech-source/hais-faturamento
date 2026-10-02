@@ -18,8 +18,8 @@ export function RecoverPasswordPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<RecoverInput>({ resolver: zodResolver(recoverSchema), defaultValues: { email: "" } });
+    formState: { errors, isSubmitting, isValid },
+  } = useForm<RecoverInput>({ resolver: zodResolver(recoverSchema), mode: "onChange", defaultValues: { email: "" } });
 
   const submit = handleSubmit(async (data) => {
     setNotFound(false);
@@ -39,15 +39,19 @@ export function RecoverPasswordPage() {
 
   return (
     <AuthLayout
-      title="Recuperar senha"
-      description="Informe seu e-mail cadastrado para receber as instruções de recuperação."
+      title={sentTo ? "Verifique seu e-mail" : "Recuperar senha"}
+      description={
+        sentTo
+          ? "Enviamos um link de recuperação para o endereço informado."
+          : "Informe seu e-mail cadastrado para receber o link de recuperação de senha."
+      }
     >
       {sentTo ? (
         <div className="space-y-6 text-center" role="status">
           <MailCheck className="mx-auto size-10 text-success" aria-hidden="true" />
           <p className="text-sm text-muted-foreground">
-            Enviamos as instruções de recuperação para{" "}
-            <strong className="break-all text-foreground">{sentTo}</strong>.
+            Abra o e-mail enviado para{" "}
+            <strong className="break-all text-foreground">{sentTo}</strong> e siga o link para criar uma nova senha.
           </p>
           {backLink}
         </div>
@@ -62,9 +66,9 @@ export function RecoverPasswordPage() {
               <AlertDescription>E-mail não encontrado. Confira o endereço informado.</AlertDescription>
             </Alert>
           )}
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <Button type="submit" className="w-full" disabled={isSubmitting || !isValid}>
             {isSubmitting && <Loader2 className="animate-spin" aria-hidden="true" />}
-            Enviar instruções
+            Enviar link de recuperação
           </Button>
           {backLink}
         </form>
