@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, FileSearch, Info } from "lucide-react";
+import { ArrowLeft, FileSearch } from "lucide-react";
 
 import { AppBreadcrumb } from "@/components/app-breadcrumb";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -10,7 +10,6 @@ import {
   DataTable,
   DataTableBody,
   DataTableCard,
-  DataTableCardActions,
   DataTableCardFields,
   DataTableCardHeader,
   DataTableCardList,
@@ -29,7 +28,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SurfaceCard } from "@/components/surface-card";
 import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/table-pagination";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 import type { Contract } from "../data/contracts";
 import { contractsQueryKey, listContracts } from "../data/contracts-service";
@@ -48,11 +47,7 @@ import {
   extractionDateOf,
   type ContractRuleKind,
 } from "../data/contract-rule-details";
-import {
-  contractRuleTitle,
-  type ContractRule,
-  type ContractRulesDisplayStatus,
-} from "../data/contract-rules";
+import { contractRuleTitle, type ContractRulesDisplayStatus } from "../data/contract-rules";
 import {
   contractRulesQueryKey,
   contractRulesStatusQueryKey,
@@ -61,22 +56,13 @@ import {
 } from "../data/contract-rules-service";
 import { useContractExtractionStates } from "../data/contract-extraction";
 import { AmendmentStatusBadge } from "./amendment-status-badge";
-import { ContractDocumentViewer } from "./contract-document-viewer";
 import { ContractRulesStatusBadge } from "./contract-rules-status-badge";
-import { RuleDetailsPanel } from "./rule-details-panel";
-import { RuleSituationBadge } from "./rule-situation-badge";
 
-const COLUMNS = ["Regra", "Referência", "Efeito", "Vigência", "Situação", "Ações"];
+const COLUMNS = ["Regra", "Referência", "Efeito", "Vigência"];
 
 const KIND_OPTIONS = [
   { value: "all", label: "Todos os tipos" },
   ...CONTRACT_RULE_KINDS.map((kind) => ({ value: kind, label: contractRuleKindLabel(kind) })),
-];
-
-const SITUATION_OPTIONS = [
-  { value: "all", label: "Todas as situações" },
-  { value: "reviewed", label: "Revisada" },
-  { value: "pending", label: "Pendente de revisão" },
 ];
 
 function formatDateTime(iso: string): string {
@@ -203,18 +189,9 @@ function ExtractionContent({
 
   const [search, setSearch] = useState("");
   const [kind, setKind] = useState<ContractRuleKind | "all">("all");
-  const [situation, setSituation] = useState<"all" | "reviewed" | "pending">("all");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [preview, setPreview] = useState(false);
-  const selected = rules.find((rule) => rule.id === selectedId) ?? null;
-
-  function selectRule(rule: ContractRule) {
-    setSelectedId(rule.id);
-  }
-
-  const activeCount = [search.trim() !== "", kind !== "all", situation !== "all"].filter(
+  const activeCount = [search.trim() !== "", kind !== "all"].filter(
     Boolean,
   ).length;
 
@@ -222,7 +199,6 @@ function ExtractionContent({
     const term = search.trim().toLowerCase();
     return rules.filter((rule) => {
       if (kind !== "all" && contractRuleKindOf(rule) !== kind) return false;
-      if (situation === "reviewed" && !rule.reviewed) return false;
       if (situation === "pending" && rule.reviewed) return false;
       if (!term) return true;
       return [contractRuleTitle(rule), contractRuleReference(rule), contractRuleEffect(rule)]
@@ -230,7 +206,7 @@ function ExtractionContent({
         .toLowerCase()
         .includes(term);
     });
-  }, [rules, search, kind, situation]);
+  }, [rules, search, kind]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -239,7 +215,6 @@ function ExtractionContent({
   function clearFilters() {
     setSearch("");
     setKind("all");
-    setSituation("all");
     setPage(1);
   }
 
@@ -275,23 +250,6 @@ function ExtractionContent({
             : "—",
     },
   ];
-
-  const actionButton = (rule: ContractRule) => (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={`Ver detalhes da regra ${contractRuleTitle(rule)}`}
-          onClick={() => selectRule(rule)}
-        >
-          <Info className="size-4" aria-hidden="true" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>Ver detalhes da regra</TooltipContent>
-    </Tooltip>
-  );
 
   return (
     <div className="space-y-6">
@@ -346,7 +304,7 @@ function ExtractionContent({
               activeCount={activeCount}
               onClear={clearFilters}
               clearDisabled={activeCount === 0}
-              barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_12rem_12rem_auto] lg:gap-4"
+              barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_12rem_auto] lg:gap-4"
             >
               <SearchField
                 id="extracted-rules-search"
@@ -374,16 +332,6 @@ function ExtractionContent({
                   setPage(1);
                 }}
               />
-              <SelectField
-                id="extracted-rules-situation"
-                label="Situação"
-                value={situation}
-                options={SITUATION_OPTIONS}
-                onValueChange={(value) => {
-                  setSituation(value as "all" | "reviewed" | "pending");
-                  setPage(1);
-                }}
-              />
             </FilterCard>
 
             {filtered.length === 0 ? (
@@ -406,8 +354,7 @@ function ExtractionContent({
                         {COLUMNS.map((column) => (
                           <DataTableHead
                             key={column}
-                            className={column === "Ações" ? "text-right" : undefined}
-                          >
+                            >
                             {column}
                           </DataTableHead>
                         ))}
@@ -417,13 +364,6 @@ function ExtractionContent({
                       {paginated.map((rule) => (
                         <DataTableRow
                           key={rule.id}
-                          aria-selected={rule.id === selectedId}
-                          onClick={() => selectRule(rule)}
-                          className={
-                            rule.id === selectedId
-                              ? "cursor-pointer bg-primary/10 hover:bg-primary/10"
-                              : "cursor-pointer"
-                          }
                         >
                           <DataTableCell className="font-medium">
                             {contractRuleTitle(rule)}
@@ -433,10 +373,6 @@ function ExtractionContent({
                           <DataTableCell className="whitespace-nowrap">
                             {contractRuleValidity(rule)}
                           </DataTableCell>
-                          <DataTableCell>
-                            <RuleSituationBadge rule={rule} />
-                          </DataTableCell>
-                          <DataTableCell className="text-right">{actionButton(rule)}</DataTableCell>
                         </DataTableRow>
                       ))}
                     </DataTableBody>
@@ -448,8 +384,7 @@ function ExtractionContent({
                     <DataTableCard
                       key={rule.id}
                       flat
-                      aria-selected={rule.id === selectedId}
-                      className={`space-y-1.5 py-2.5 ${rule.id === selectedId ? "bg-primary/10" : ""}`}
+                      className="space-y-1.5 py-2.5"
                     >
                       <DataTableCardHeader title={contractRuleTitle(rule)} />
                       <DataTableCardFields
@@ -458,12 +393,8 @@ function ExtractionContent({
                           { label: "Referência", value: contractRuleReference(rule) },
                           { label: "Efeito", value: contractRuleEffect(rule) },
                           { label: "Vigência", value: contractRuleValidity(rule) },
-                          { label: "Situação", value: <RuleSituationBadge rule={rule} /> },
                         ]}
                       />
-                      <DataTableCardActions className="-mt-0.5 justify-end">
-                        {actionButton(rule)}
-                      </DataTableCardActions>
                     </DataTableCard>
                   ))}
                 </DataTableCardList>
@@ -485,42 +416,6 @@ function ExtractionContent({
           </>
         )}
       </section>
-
-      {selected && (
-        <section aria-labelledby="rule-details-title" className="space-y-4">
-          <h2 id="rule-details-title" className="text-lg font-semibold text-foreground">
-            Detalhes da regra
-          </h2>
-          <div className={preview ? "grid gap-6 lg:grid-cols-2 lg:items-start" : undefined}>
-            <RuleDetailsPanel
-              rule={selected}
-              fileName={previewFile.file.name}
-              documentVisible={preview}
-              onViewDocument={() => setPreview(true)}
-              onHideDocument={() => setPreview(false)}
-            />
-            {preview && (
-              <SurfaceCard
-                padding="md"
-                className="min-w-0 space-y-3 lg:sticky lg:top-6 lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <h3
-                    className="truncate text-sm font-semibold text-foreground"
-                    title={previewFile.file.name}
-                  >
-                    {previewFile.file.name}
-                  </h3>
-                  <Button type="button" variant="ghost" size="sm" onClick={() => setPreview(false)}>
-                    Ocultar documento
-                  </Button>
-                </div>
-                <ContractDocumentViewer contract={previewFile} active={preview} />
-              </SurfaceCard>
-            )}
-          </div>
-        </section>
-      )}
     </div>
   );
 }
