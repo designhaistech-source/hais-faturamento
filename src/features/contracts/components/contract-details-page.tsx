@@ -50,7 +50,6 @@ import {
 import { useContractExtractionStates } from "../data/contract-extraction";
 import { ContractPreviewModal } from "./contract-preview-modal";
 import { ContractRulesStatusBadge } from "./contract-rules-status-badge";
-import { ExtractionSummaryModal, type ExtractionSummaryTarget } from "./extraction-summary-modal";
 import { AmendmentStatusBadge } from "./amendment-status-badge";
 import { ActionIcon } from "@/components/action-icons";
 import { NewAmendmentModal } from "./new-amendment-modal";
@@ -184,7 +183,6 @@ function ContractDetailsContent({
 
   const [modalOpen, setModalOpen] = useState(false);
   const [preview, setPreview] = useState<Contract | null>(null);
-  const [extracted, setExtracted] = useState<ExtractionSummaryTarget | null>(null);
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -204,16 +202,6 @@ function ContractDetailsContent({
         statusKey: rulesStatus,
         file: contract.file,
         onView: () => setPreview(contract),
-        onExtracted: () =>
-          setExtracted({
-            contractId: contract.id,
-            amendmentId: null,
-            fileName: contract.file.name,
-            operatorId: operator?.id ?? contract.id,
-            kind: "Contrato original",
-            status: <ContractRulesStatusBadge status={rulesStatus} />,
-            available: rulesStatus === "available",
-          }),
       },
       ...amendments.map<FileRow>((item) => ({
         id: item.id,
@@ -225,19 +213,9 @@ function ContractDetailsContent({
         statusKey: item.extractionStatus,
         file: item.file,
         onView: () => setPreview(amendmentAsContractFile(item, contract.company)),
-        onExtracted: () =>
-          setExtracted({
-            contractId: contract.id,
-            amendmentId: item.id,
-            fileName: item.file.name,
-            operatorId: operator?.id ?? contract.id,
-            kind: "Aditivo",
-            status: <AmendmentStatusBadge status={item.extractionStatus} />,
-            available: item.extractionStatus === "available",
-          }),
       })),
     ],
-    [contract, amendments, rulesStatus, operator?.id],
+    [contract, amendments, rulesStatus],
   );
 
   const activeCount = [search.trim() !== "", statusFilter !== "all", from !== "", to !== ""].filter(
@@ -511,10 +489,6 @@ function ContractDetailsContent({
         onCreate={(file) => createMutation.mutate({ contract, file })}
       />
 
-      <ExtractionSummaryModal
-        target={extracted}
-        onOpenChange={(open) => !open && setExtracted(null)}
-      />
       <ContractPreviewModal
         contract={preview}
         open={preview !== null}
@@ -537,7 +511,6 @@ interface FileRow {
   statusKey: ContractRulesDisplayStatus | null;
   file: { path: string; name: string };
   onView: () => void;
-  onExtracted: () => void;
 }
 
 function FileActions({ row, operatorId }: { row: FileRow; operatorId: string }) {
@@ -556,20 +529,6 @@ function FileActions({ row, operatorId }: { row: FileRow; operatorId: string }) 
           </Button>
         </TooltipTrigger>
         <TooltipContent>Visualizar arquivo</TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={`Ver resumo da extração de ${row.name}`}
-            onClick={row.onExtracted}
-          >
-            <ActionIcon.inspectProcessing className="size-4" aria-hidden="true" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Ver resumo da extração</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
