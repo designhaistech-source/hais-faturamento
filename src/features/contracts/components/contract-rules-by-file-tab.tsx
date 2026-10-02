@@ -33,7 +33,7 @@ import {
 import { contractRuleTitle, type ContractRule } from "../data/contract-rules";
 import { contractRulesQueryKey, listContractRules } from "../data/contract-rules-service";
 
-const COLUMNS = ["Regra", "Referência", "Efeito", "Vigência", "Arquivo de origem"];
+const COLUMNS = ["Regra", "Referência", "Condição", "Vigência"];
 
 export interface RuleSourceFile {
   /** Id do contrato original ou do aditivo. */
@@ -202,9 +202,7 @@ export function ContractRulesByFileTab({
                   {COLUMNS.map((column) => (
                     <DataTableHead key={column}>{column}</DataTableHead>
                   ))}
-                  <DataTableHead className="w-px">
-                    <span className="sr-only">Ações</span>
-                  </DataTableHead>
+                  <DataTableHead className="w-px whitespace-nowrap text-center">Arquivo de origem</DataTableHead>
                 </tr>
               </DataTableHeader>
               <DataTableBody>
@@ -218,10 +216,7 @@ export function ContractRulesByFileTab({
                     <DataTableCell className="whitespace-nowrap">
                       {contractRuleValidity(rule)}
                     </DataTableCell>
-                    <DataTableCell className="max-w-56">
-                      <SourceName name={source.name} />
-                    </DataTableCell>
-                    <DataTableCell className="w-px whitespace-nowrap text-right">
+                    <DataTableCell className="w-px whitespace-nowrap text-center">
                       <ViewSourceButton source={source} />
                     </DataTableCell>
                   </DataTableRow>
@@ -241,12 +236,8 @@ export function ContractRulesByFileTab({
                   className="gap-x-4 gap-y-1"
                   fields={[
                     { label: "Referência", value: contractRuleReference(rule) },
-                    { label: "Efeito", value: contractRuleEffect(rule) },
+                    { label: "Condição", value: contractRuleEffect(rule) },
                     { label: "Vigência", value: contractRuleValidity(rule) },
-                    {
-                      label: "Arquivo de origem",
-                      value: <span className="break-all">{source.name}</span>,
-                    },
                   ]}
                 />
               </DataTableCard>
@@ -278,24 +269,6 @@ function ruleSignature(rule: ContractRule): string {
     contractRuleEffect(rule),
     contractRuleValidity(rule),
   ].join("|");
-}
-
-function SourceName({ name }: { name: string }) {
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span
-            tabIndex={0}
-            className="block truncate rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {name}
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>{name}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
 }
 
 function ViewSourceButton({ source }: { source: RuleSourceFile }) {
