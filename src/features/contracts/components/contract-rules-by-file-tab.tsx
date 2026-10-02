@@ -23,6 +23,7 @@ import { SearchField, SelectField } from "@/components/form-field";
 import { SurfaceCard } from "@/components/surface-card";
 import { DEFAULT_PAGE_SIZE, TablePagination } from "@/components/table-pagination";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 import {
   CONTRACT_RULE_KINDS,
@@ -73,8 +74,17 @@ export function ContractRulesByFileTab({
 
   const pending = queries.some((query) => query.isPending);
   const failed = queries.some((query) => query.isError);
+  // Um mesmo documento pode ter sido enviado mais de uma vez; a regra aparece só na primeira origem.
+  const seen = new Set<string>();
   const rows: SourcedRule[] = files.flatMap((source, index) =>
-    (queries[index]?.data ?? []).map((rule) => ({ rule, source })),
+    (queries[index]?.data ?? [])
+      .filter((rule) => {
+        const signature = ruleSignature(rule);
+        if (seen.has(signature)) return false;
+        seen.add(signature);
+        return true;
+      })
+      .map((rule) => ({ rule, source })),
   );
 
   const [search, setSearch] = useState("");
@@ -215,16 +225,16 @@ export function ContractRulesByFileTab({
               <DataTableBody>
                 {paginated.map(({ rule, source }) => (
                   <DataTableRow key={`${source.id}-${rule.id}`}>
-                    <DataTableCell className="font-medium">{contractRuleTitle(rule)}</DataTableCell>
+                    <DataTableCell className="min-w-48 max-w-72 font-medium">
+                      <span className="line-clamp-2">{contractRuleTitle(rule)}</span>
+                    </DataTableCell>
                     <DataTableCell>{contractRuleReference(rule)}</DataTableCell>
                     <DataTableCell>{contractRuleEffect(rule)}</DataTableCell>
                     <DataTableCell className="whitespace-nowrap">
                       {contractRuleValidity(rule)}
                     </DataTableCell>
-                    <DataTableCell className="max-w-64">
-                      <span className="block truncate" title={source.name}>
-                        {source.name}
-                      </span>
+                    <DataTableCell className="max-w-56">
+                      <SourceName name={source.name} />
                     </DataTableCell>
                   </DataTableRow>
                 ))}
@@ -267,5 +277,32 @@ export function ContractRulesByFileTab({
         </DataTable>
       )}
     </div>
+  );
+}
+
+function ruleSignature(rule: ContractRule): string {
+  return [
+    contractRuleTitle(rule),
+    contractRuleReference(rule),
+    contractRuleEffect(rule),
+    contractRuleValidity(rule),
+  ].join("|");
+}
+
+function SourceName({ name }: { name: string }) {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span
+            tabIndex={0}
+            className="block truncate rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {name}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>{name}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
