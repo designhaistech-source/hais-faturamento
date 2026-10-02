@@ -11,7 +11,7 @@ interface AuthLayoutProps {
 }
 
 /** Estrutura comum das telas de autenticação: fundo institucional único, mensagem à esquerda e cartão à direita. */
-export function AuthLayout({ title, description, children, showPattern = false }: AuthLayoutProps) {
+export function AuthLayout({ title, description, children, showPattern = true }: AuthLayoutProps) {
   return (
     <div className="relative isolate flex min-h-dvh w-full flex-col overflow-hidden bg-gradient-to-br from-brand-surface-from to-brand-surface-to text-brand-surface-foreground">
       {/* Pattern institucional decorativo: sangra pela borda inferior esquerda, só em telas largas. */}

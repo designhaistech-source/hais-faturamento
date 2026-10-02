@@ -1,22 +1,14 @@
-import haisPattern from "@/assets/hais-pattern.svg";
+import haisPattern from "@/assets/hais-pattern-fade.svg.asset.json";
 
-/**
- * Original Hais pattern kept as a single grouped composition. A top-only
- * vertical mask fades the image in from its upper edge so it emerges from the
- * background instead of starting abruptly; sides and bottom stay fully visible.
- */
-const fadeMask =
-  "linear-gradient(to bottom, transparent 0%, rgb(0 0 0 / 0.5) 6%, #000 13%, #000 100%)";
-
+/** Pattern institucional da Hais; o próprio arquivo já traz o fade superior. */
 export function BrandPattern({ className }: { className?: string }) {
   return (
     <div aria-hidden="true" className={className}>
       <img
-        src={haisPattern}
+        src={haisPattern.url}
         alt=""
         draggable={false}
-        className="absolute top-[58vh] left-[-9vh] h-[80vh] w-auto max-w-none"
-        style={{ maskImage: fadeMask, WebkitMaskImage: fadeMask }}
+        className="absolute bottom-0 left-0 h-[75vh] w-auto max-w-none"
       />
     </div>
   );
