@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Eye, MoreHorizontal, Pencil, Plus, Trash2, UserRound, Users } from "lucide-react";
+import { Eye, Pencil, Plus, Trash2, UserRound, Users } from "lucide-react";
 
 import { AppModal } from "@/components/app-modal";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -12,12 +12,7 @@ import { SearchField } from "@/components/form-field";
 import { PageHeader } from "@/components/page-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DataTable,
   DataTableBody,
@@ -125,7 +120,7 @@ export function UsersPage() {
                   <DataTableHeader>
                     <tr>
                       {COLUMNS.map((column) => (
-                        <DataTableHead key={column} className={column === "Ações" ? "text-right" : undefined}>
+                        <DataTableHead key={column} className={column === "Ações" ? "text-center" : undefined}>
                           {column}
                         </DataTableHead>
                       ))}
@@ -138,7 +133,7 @@ export function UsersPage() {
                         <DataTableCell>{user.email}</DataTableCell>
                         <DataTableCell className="font-mono">{user.cpf || "—"}</DataTableCell>
                         <DataTableCell>{hospitalName(user.hospitalId)}</DataTableCell>
-                        <DataTableCell className="text-right">
+                        <DataTableCell className="text-center">
                           <UserActions user={user} {...actions} />
                         </DataTableCell>
                       </DataTableRow>
@@ -242,30 +237,37 @@ interface UserActionsProps {
 }
 
 function UserActions({ user, onView, onEdit, onDelete }: UserActionsProps) {
+  const items = [
+    { label: "Ver detalhes", icon: Eye, onClick: onView, className: "text-muted-foreground hover:text-foreground" },
+    { label: "Editar usuário", icon: Pencil, onClick: onEdit, className: "text-muted-foreground hover:text-foreground" },
+    {
+      label: "Excluir usuário",
+      icon: Trash2,
+      onClick: onDelete,
+      className: "text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
+    },
+  ];
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button type="button" variant="ghost" size="icon" aria-label={`Ações de ${user.name}`}>
-          <MoreHorizontal aria-hidden="true" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onSelect={() => onView(user)}>
-          <Eye aria-hidden="true" />
-          Detalhamento
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => onEdit(user)}>
-          <Pencil aria-hidden="true" />
-          Editar
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className="text-destructive focus:text-destructive"
-          onSelect={() => onDelete(user)}
-        >
-          <Trash2 aria-hidden="true" />
-          Excluir
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <TooltipProvider delayDuration={150}>
+      <div className="inline-flex items-center justify-center gap-1">
+        {items.map(({ label, icon: Icon, onClick, className }) => (
+          <Tooltip key={label}>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label={`${label}: ${user.name}`}
+                className={className}
+                onClick={() => onClick(user)}
+              >
+                <Icon aria-hidden="true" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{label}</TooltipContent>
+          </Tooltip>
+        ))}
+      </div>
+    </TooltipProvider>
   );
 }
