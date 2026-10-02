@@ -64,7 +64,7 @@ export function LoginPage() {
           </Field>
           <Link
             to="/recuperar-senha"
-            className="inline-block rounded-sm text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="ml-auto block w-fit rounded-sm text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Esqueci minha senha
           </Link>
