@@ -26,23 +26,14 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 import {
-  CONTRACT_RULE_KINDS,
   contractRuleEffect,
-  contractRuleKindLabel,
-  contractRuleKindOf,
   contractRuleReference,
   contractRuleValidity,
-  type ContractRuleKind,
 } from "../data/contract-rule-details";
 import { contractRuleTitle, type ContractRule } from "../data/contract-rules";
 import { contractRulesQueryKey, listContractRules } from "../data/contract-rules-service";
 
 const COLUMNS = ["Regra", "Referência", "Efeito", "Vigência", "Origem"];
-
-const KIND_OPTIONS = [
-  { value: "all", label: "Todos os tipos" },
-  ...CONTRACT_RULE_KINDS.map((kind) => ({ value: kind, label: contractRuleKindLabel(kind) })),
-];
 
 export interface RuleSourceFile {
   /** Id do contrato original ou do aditivo. */
@@ -88,23 +79,23 @@ export function ContractRulesByFileTab({
   );
 
   const [search, setSearch] = useState("");
-  const [kind, setKind] = useState<ContractRuleKind | "all">("all");
   const [sourceId, setSourceId] = useState("all");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-  const activeCount = [search.trim() !== "", kind !== "all", sourceId !== "all"].filter(
-    Boolean,
-  ).length;
+  const activeCount = [search.trim() !== "", sourceId !== "all"].filter(Boolean).length;
 
   const sourceOptions = [
     { value: "all", label: "Todos os arquivos" },
-    ...files.map((file) => ({ value: file.id, label: file.name })),
+    // O mesmo nome pode estar registrado mais de uma vez; cada arquivo aparece uma única vez.
+    ...Array.from(new Set(files.map((file) => file.name))).map((name) => ({
+      value: name,
+      label: name,
+    })),
   ];
 
   const term = search.trim().toLowerCase();
   const filtered = rows.filter(({ rule, source }) => {
-    if (sourceId !== "all" && source.id !== sourceId) return false;
-    if (kind !== "all" && contractRuleKindOf(rule) !== kind) return false;
+    if (sourceId !== "all" && source.name !== sourceId) return false;
     if (!term) return true;
     return [contractRuleTitle(rule), contractRuleReference(rule), contractRuleEffect(rule)]
       .join(" ")
@@ -118,7 +109,6 @@ export function ContractRulesByFileTab({
 
   function clearFilters() {
     setSearch("");
-    setKind("all");
     setSourceId("all");
     setPage(1);
   }
@@ -160,7 +150,7 @@ export function ContractRulesByFileTab({
         activeCount={activeCount}
         onClear={clearFilters}
         clearDisabled={activeCount === 0}
-        barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_12rem_16rem_auto] lg:gap-4"
+        barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)_auto] lg:gap-4"
       >
         <SearchField
           id="contract-rules-search"
@@ -175,16 +165,6 @@ export function ContractRulesByFileTab({
           }}
           onClear={() => {
             setSearch("");
-            setPage(1);
-          }}
-        />
-        <SelectField
-          id="contract-rules-kind"
-          label="Tipo da regra"
-          value={kind}
-          options={KIND_OPTIONS}
-          onValueChange={(value) => {
-            setKind(value as ContractRuleKind | "all");
             setPage(1);
           }}
         />
