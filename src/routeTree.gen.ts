@@ -14,7 +14,10 @@ import { Route as AnaliseFaturamentoRouteImport } from './routes/analise-faturam
 import { Route as BasePrecificacaoRouteImport } from './routes/base-precificacao'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as DesignSystemIconesRouteImport } from './routes/design-system-icones'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as OperadorasRouteImport } from './routes/operadoras'
+import { Route as PrimeiroAcessoRouteImport } from './routes/primeiro-acesso'
+import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as TussRouteImport } from './routes/tuss'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as AnaliseFaturamentoAnalysisIdRouteImport } from './routes/analise-faturamento_.$analysisId'
@@ -48,9 +51,24 @@ const DesignSystemIconesRoute = DesignSystemIconesRouteImport.update({
   path: '/design-system-icones',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OperadorasRoute = OperadorasRouteImport.update({
   id: '/operadoras',
   path: '/operadoras',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrimeiroAcessoRoute = PrimeiroAcessoRouteImport.update({
+  id: '/primeiro-acesso',
+  path: '/primeiro-acesso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecuperarSenhaRoute = RecuperarSenhaRouteImport.update({
+  id: '/recuperar-senha',
+  path: '/recuperar-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TussRoute = TussRouteImport.update({
@@ -99,7 +117,10 @@ export interface FileRoutesByFullPath {
   '/base-precificacao': typeof BasePrecificacaoRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
+  '/login': typeof LoginRoute
   '/operadoras': typeof OperadorasRoute
+  '/primeiro-acesso': typeof PrimeiroAcessoRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
   '/tuss': typeof TussRoute
   '/usuarios': typeof UsuariosRoute
   '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
@@ -114,7 +135,10 @@ export interface FileRoutesByTo {
   '/base-precificacao': typeof BasePrecificacaoRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
+  '/login': typeof LoginRoute
   '/operadoras': typeof OperadorasRoute
+  '/primeiro-acesso': typeof PrimeiroAcessoRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
   '/tuss': typeof TussRoute
   '/usuarios': typeof UsuariosRoute
   '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
@@ -130,7 +154,10 @@ export interface FileRoutesById {
   '/base-precificacao': typeof BasePrecificacaoRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
+  '/login': typeof LoginRoute
   '/operadoras': typeof OperadorasRoute
+  '/primeiro-acesso': typeof PrimeiroAcessoRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
   '/tuss': typeof TussRoute
   '/usuarios': typeof UsuariosRoute
   '/analise-faturamento_/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
@@ -147,7 +174,10 @@ export interface FileRouteTypes {
     | '/base-precificacao'
     | '/design-system'
     | '/design-system-icones'
+    | '/login'
     | '/operadoras'
+    | '/primeiro-acesso'
+    | '/recuperar-senha'
     | '/tuss'
     | '/usuarios'
     | '/analise-faturamento/$analysisId'
@@ -162,7 +192,10 @@ export interface FileRouteTypes {
     | '/base-precificacao'
     | '/design-system'
     | '/design-system-icones'
+    | '/login'
     | '/operadoras'
+    | '/primeiro-acesso'
+    | '/recuperar-senha'
     | '/tuss'
     | '/usuarios'
     | '/analise-faturamento/$analysisId'
@@ -177,7 +210,10 @@ export interface FileRouteTypes {
     | '/base-precificacao'
     | '/design-system'
     | '/design-system-icones'
+    | '/login'
     | '/operadoras'
+    | '/primeiro-acesso'
+    | '/recuperar-senha'
     | '/tuss'
     | '/usuarios'
     | '/analise-faturamento_/$analysisId'
@@ -193,7 +229,10 @@ export interface RootRouteChildren {
   BasePrecificacaoRoute: typeof BasePrecificacaoRoute
   DesignSystemRoute: typeof DesignSystemRoute
   DesignSystemIconesRoute: typeof DesignSystemIconesRoute
+  LoginRoute: typeof LoginRoute
   OperadorasRoute: typeof OperadorasRoute
+  PrimeiroAcessoRoute: typeof PrimeiroAcessoRoute
+  RecuperarSenhaRoute: typeof RecuperarSenhaRoute
   TussRoute: typeof TussRoute
   UsuariosRoute: typeof UsuariosRoute
   AnaliseFaturamentoAnalysisIdRoute: typeof AnaliseFaturamentoAnalysisIdRoute
@@ -240,11 +279,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DesignSystemIconesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/operadoras': {
       id: '/operadoras'
       path: '/operadoras'
       fullPath: '/operadoras'
       preLoaderRoute: typeof OperadorasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/primeiro-acesso': {
+      id: '/primeiro-acesso'
+      path: '/primeiro-acesso'
+      fullPath: '/primeiro-acesso'
+      preLoaderRoute: typeof PrimeiroAcessoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recuperar-senha': {
+      id: '/recuperar-senha'
+      path: '/recuperar-senha'
+      fullPath: '/recuperar-senha'
+      preLoaderRoute: typeof RecuperarSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tuss': {
@@ -305,7 +365,10 @@ const rootRouteChildren: RootRouteChildren = {
   BasePrecificacaoRoute: BasePrecificacaoRoute,
   DesignSystemRoute: DesignSystemRoute,
   DesignSystemIconesRoute: DesignSystemIconesRoute,
+  LoginRoute: LoginRoute,
   OperadorasRoute: OperadorasRoute,
+  PrimeiroAcessoRoute: PrimeiroAcessoRoute,
+  RecuperarSenhaRoute: RecuperarSenhaRoute,
   TussRoute: TussRoute,
   UsuariosRoute: UsuariosRoute,
   AnaliseFaturamentoAnalysisIdRoute: AnaliseFaturamentoAnalysisIdRoute,
