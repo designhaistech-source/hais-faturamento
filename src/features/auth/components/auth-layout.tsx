@@ -18,7 +18,8 @@ export function AuthLayout({ title, description, children }: AuthLayoutProps) {
         src={brandPattern.url}
         alt=""
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-[22rem] -left-[20rem] -z-10 hidden w-[860px] select-none opacity-40 [mask-image:linear-gradient(to_top,black_55%,transparent_85%)] lg:block"
+        className="pointer-events-none absolute -bottom-[22rem] -left-[20rem] -z-10 hidden w-[860px] select-none opacity-40 lg:block"
+        style={{ maskImage: "radial-gradient(ellipse 55% 60% at 37% 66%, black 30%, transparent 100%)", WebkitMaskImage: "radial-gradient(ellipse 55% 60% at 37% 66%, black 30%, transparent 100%)" }}
       />
 
       <header className="px-6 pt-8 sm:px-10 lg:px-16">
