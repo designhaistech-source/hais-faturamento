@@ -8,7 +8,8 @@ import { toast } from "sonner";
 import { AppBreadcrumb } from "@/components/app-breadcrumb";
 import { AppSidebar } from "@/components/app-sidebar";
 import { EmptyStateCard } from "@/components/empty-state-card";
-import { SearchField } from "@/components/form-field";
+import { SearchField, SelectField } from "@/components/form-field";
+import { FilterCard } from "@/components/filter-card";
 import { PageHeader } from "@/components/page-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
@@ -29,13 +30,14 @@ import {
 } from "@/components/data-table";
 
 import { NewUserModal } from "./new-user-modal";
-import { hospitalName, INITIAL_USERS, type AppUser, type NewUserInput } from "../data/users";
+import { HOSPITALS, hospitalName, INITIAL_USERS, type AppUser, type NewUserInput } from "../data/users";
 
 const COLUMNS = ["Nome", "E-mail", "CPF", "Hospital", "Ações"] as const;
 
 export function UsersPage() {
   const [users, setUsers] = useState<AppUser[]>(INITIAL_USERS);
   const [search, setSearch] = useState("");
+  const [hospitalFilter, setHospitalFilter] = useState("all");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<AppUser | null>(null);
   const [viewing, setViewing] = useState<AppUser | null>(null);
@@ -52,13 +54,23 @@ export function UsersPage() {
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return users;
-    return users.filter((user) =>
-      [user.name, user.email, user.cpf, hospitalName(user.hospitalId)].some((value) =>
-        value.toLowerCase().includes(term),
-      ),
-    );
-  }, [users, search]);
+    const digits = term.replace(/\D/g, "");
+    return users.filter((user) => {
+      if (hospitalFilter !== "all" && user.hospitalId !== hospitalFilter) return false;
+      if (!term) return true;
+      // CPF é comparado só por dígitos para aceitar a busca com ou sem máscara.
+      return (
+        user.name.toLowerCase().includes(term) ||
+        (digits.length > 0 && user.cpf.replace(/\D/g, "").includes(digits))
+      );
+    });
+  }, [users, search, hospitalFilter]);
+
+  const activeCount = (search.trim() ? 1 : 0) + (hospitalFilter !== "all" ? 1 : 0);
+  function clearFilters() {
+    setSearch("");
+    setHospitalFilter("all");
+  }
 
   function handleSave(input: NewUserInput) {
     const target = editing;
@@ -86,33 +98,64 @@ export function UsersPage() {
       <div className="flex min-h-screen min-w-0 flex-1 flex-col pt-14 md:pt-0">
         <main className="flex-1 space-y-6 p-6 pb-16">
           <AppBreadcrumb />
-          <PageHeader title="Usuários" description="Gerencie os usuários e seus respectivos hospitais." />
+          <PageHeader
+            title="Usuários"
+            description="Gerencie os usuários e seus respectivos hospitais."
+            actions={
+              <Button
+                type="button"
+                onClick={() => {
+                  setEditing(null);
+                  setModalOpen(true);
+                }}
+              >
+                <Plus aria-hidden="true" />
+                Cadastrar usuário
+              </Button>
+            }
+          />
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <FilterCard
+            id="users-filters"
+            variant="bar"
+            activeCount={activeCount}
+            onClear={clearFilters}
+            clearDisabled={activeCount === 0}
+            barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_16rem_auto] lg:gap-4"
+          >
             <SearchField
               id="users-search"
-              aria-label="Pesquisar usuário"
-              placeholder="Pesquisar usuário"
+              label="Buscar"
+              fieldClassName="sm:col-span-2 lg:col-span-1"
+              placeholder="Buscar por nome ou CPF"
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
               clearable
-              className="bg-card"
-              fieldClassName="w-full sm:max-w-sm"
+              onChange={(event) => setSearch(event.target.value)}
+              onClear={() => setSearch("")}
             />
-            <Button type="button" onClick={() => {
-              setEditing(null);
-              setModalOpen(true);
-            }}>
-              <Plus aria-hidden="true" />
-              Cadastrar usuário
-            </Button>
-          </div>
+            <SelectField
+              id="users-hospital-filter"
+              label="Hospital"
+              className="sm:col-span-2 lg:col-span-1"
+              value={hospitalFilter}
+              options={[
+                { value: "all", label: "Todos os hospitais" },
+                ...HOSPITALS.map((hospital) => ({ value: hospital.id, label: hospital.name })),
+              ]}
+              onValueChange={setHospitalFilter}
+            />
+          </FilterCard>
 
           {filtered.length === 0 ? (
             <EmptyStateCard
               icon={<Users className="size-10" aria-hidden="true" />}
               title="Nenhum usuário encontrado"
-              description="Ajuste a pesquisa para ver outros resultados."
+              description="Ajuste os filtros para ver outros resultados."
+              action={
+                <Button type="button" variant="outline" onClick={clearFilters}>
+                  Limpar filtros
+                </Button>
+              }
             />
           ) : (
             <DataTable>
