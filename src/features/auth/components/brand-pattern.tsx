@@ -8,7 +8,7 @@ export function BrandPattern({ className }: { className?: string }) {
         src={haisPattern.url}
         alt=""
         draggable={false}
-        className="absolute bottom-[-12vh] left-[-8vh] h-[50vh] w-auto max-w-none"
+        className="absolute bottom-[-38vh] left-[-13vh] h-[80vh] w-auto max-w-none"
       />
     </div>
   );
