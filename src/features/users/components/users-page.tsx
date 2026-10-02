@@ -96,6 +96,7 @@ export function UsersPage() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               clearable
+              className="bg-card"
               fieldClassName="w-full sm:max-w-sm"
             />
             <Button type="button" onClick={() => {
@@ -187,21 +188,16 @@ export function UsersPage() {
         title="Detalhes do usuário"
         icon={<UserRound className="size-5" aria-hidden="true" />}
         size="md"
-        footer={
-          <Button type="button" variant="outline" onClick={() => setViewing(null)}>
-            Fechar
-          </Button>
-        }
       >
         {viewing && (
-          <dl className="grid gap-4 sm:grid-cols-2">
+          <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
             {[
-              { label: "Nome completo", value: viewing.name, wide: true },
-              { label: "E-mail", value: viewing.email, wide: true },
+              { label: "Nome completo", value: viewing.name },
+              { label: "E-mail", value: viewing.email },
               { label: "CPF", value: viewing.cpf || "Não informado", mono: true },
               { label: "Hospital", value: hospitalName(viewing.hospitalId) },
             ].map((item) => (
-              <div key={item.label} className={item.wide ? "sm:col-span-2" : undefined}>
+              <div key={item.label} className="min-w-0">
                 <dt className="text-xs font-medium text-muted-foreground">{item.label}</dt>
                 <dd className={`mt-1 break-words text-sm text-foreground ${item.mono ? "font-mono" : ""}`}>
                   {item.value}
