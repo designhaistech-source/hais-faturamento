@@ -15,11 +15,13 @@ interface NewUserModalProps {
   onOpenChange: (open: boolean) => void;
   existingEmails: string[];
   onCreate: (input: NewUserInput) => void;
+  /** Quando informado, o modal entra em modo de edição com os dados atuais. */
+  initialValues?: NewUserInput;
 }
 
 const EMPTY: NewUserInput = { name: "", email: "", cpf: "", hospitalId: "" };
 
-export function NewUserModal({ open, onOpenChange, existingEmails, onCreate }: NewUserModalProps) {
+export function NewUserModal({ open, onOpenChange, existingEmails, onCreate, initialValues }: NewUserModalProps) {
   const {
     register,
     control,
@@ -30,8 +32,10 @@ export function NewUserModal({ open, onOpenChange, existingEmails, onCreate }: N
   } = useForm<NewUserInput>({ resolver: zodResolver(newUserSchema), defaultValues: EMPTY });
 
   useEffect(() => {
-    if (open) reset(EMPTY);
-  }, [open, reset]);
+    if (open) reset(initialValues ?? EMPTY);
+  }, [open, reset, initialValues]);
+
+  const editing = Boolean(initialValues);
 
   const submit = handleSubmit((data) => {
     const email = data.email.trim().toLowerCase();
@@ -46,7 +50,7 @@ export function NewUserModal({ open, onOpenChange, existingEmails, onCreate }: N
     <AppModal
       open={open}
       onOpenChange={onOpenChange}
-      title="Cadastrar usuário"
+      title={editing ? "Editar usuário" : "Cadastrar usuário"}
       icon={<UserPlus className="size-5" aria-hidden="true" />}
       size="md"
       footer={
@@ -55,7 +59,7 @@ export function NewUserModal({ open, onOpenChange, existingEmails, onCreate }: N
             Cancelar
           </Button>
           <Button type="submit" form="new-user-form" disabled={isSubmitting}>
-            Cadastrar usuário
+            {editing ? "Salvar alterações" : "Cadastrar usuário"}
           </Button>
         </>
       }
