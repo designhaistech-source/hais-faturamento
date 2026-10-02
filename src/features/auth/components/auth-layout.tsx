@@ -18,7 +18,7 @@ export function AuthLayout({ title, description, children }: AuthLayoutProps) {
 
       <main className="mx-auto flex w-full max-w-7xl flex-1 items-center gap-12 px-4 py-10 sm:px-10 lg:justify-between lg:px-16">
         <section className="hidden max-w-xl lg:block">
-          <h2 className="font-display text-5xl font-semibold leading-tight tracking-tight">
+          <h2 className="font-display text-5xl font-semibold leading-tight tracking-tight text-brand-surface-foreground">
             Gestão de faturamento hospitalar{" "}
             <span className="text-brand-highlight">mais simples.</span>
           </h2>
