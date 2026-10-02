@@ -202,7 +202,7 @@ export function ContractRulesByFileTab({
                   {COLUMNS.map((column) => (
                     <DataTableHead key={column}>{column}</DataTableHead>
                   ))}
-                  <DataTableHead className="w-px whitespace-nowrap text-center">Arquivo de origem</DataTableHead>
+                  <DataTableHead className="w-px whitespace-nowrap">Arquivo de origem</DataTableHead>
                 </tr>
               </DataTableHeader>
               <DataTableBody>
@@ -216,8 +216,9 @@ export function ContractRulesByFileTab({
                     <DataTableCell className="whitespace-nowrap">
                       {contractRuleValidity(rule)}
                     </DataTableCell>
-                    <DataTableCell className="w-px whitespace-nowrap text-center">
-                      <ViewSourceButton source={source} />
+                    <DataTableCell className="w-px whitespace-nowrap">
+                      {/* Compensa o recuo interno do botão para o ícone alinhar com o título da coluna. */}
+                      <ViewSourceButton source={source} className="-ml-2.5" />
                     </DataTableCell>
                   </DataTableRow>
                 ))}
@@ -271,7 +272,7 @@ function ruleSignature(rule: ContractRule): string {
   ].join("|");
 }
 
-function ViewSourceButton({ source }: { source: RuleSourceFile }) {
+function ViewSourceButton({ source, className }: { source: RuleSourceFile; className?: string }) {
   if (!source.onView) return null;
   return (
     <TooltipProvider>
@@ -281,6 +282,7 @@ function ViewSourceButton({ source }: { source: RuleSourceFile }) {
             type="button"
             variant="ghost"
             size="icon"
+            className={className}
             aria-label={`Visualizar arquivo de origem ${source.name}`}
             onClick={source.onView}
           >
