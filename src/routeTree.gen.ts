@@ -16,6 +16,7 @@ import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as DesignSystemIconesRouteImport } from './routes/design-system-icones'
 import { Route as OperadorasRouteImport } from './routes/operadoras'
 import { Route as TussRouteImport } from './routes/tuss'
+import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as AnaliseFaturamentoAnalysisIdRouteImport } from './routes/analise-faturamento_.$analysisId'
 import { Route as BasePrecificacaoVersionIdRouteImport } from './routes/base-precificacao_.$versionId'
 import { Route as OperadorasContractIdRouteImport } from './routes/operadoras_.$contractId'
@@ -57,6 +58,11 @@ const TussRoute = TussRouteImport.update({
   path: '/tuss',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UsuariosRoute = UsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AnaliseFaturamentoAnalysisIdRoute =
   AnaliseFaturamentoAnalysisIdRouteImport.update({
     id: '/analise-faturamento_/$analysisId',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/design-system-icones': typeof DesignSystemIconesRoute
   '/operadoras': typeof OperadorasRoute
   '/tuss': typeof TussRoute
+  '/usuarios': typeof UsuariosRoute
   '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
   '/base-precificacao/$versionId': typeof BasePrecificacaoVersionIdRoute
   '/operadoras/$contractId': typeof OperadorasContractIdRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/design-system-icones': typeof DesignSystemIconesRoute
   '/operadoras': typeof OperadorasRoute
   '/tuss': typeof TussRoute
+  '/usuarios': typeof UsuariosRoute
   '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
   '/base-precificacao/$versionId': typeof BasePrecificacaoVersionIdRoute
   '/operadoras/$contractId': typeof OperadorasContractIdRoute
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/design-system-icones': typeof DesignSystemIconesRoute
   '/operadoras': typeof OperadorasRoute
   '/tuss': typeof TussRoute
+  '/usuarios': typeof UsuariosRoute
   '/analise-faturamento_/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
   '/base-precificacao_/$versionId': typeof BasePrecificacaoVersionIdRoute
   '/operadoras_/$contractId': typeof OperadorasContractIdRoute
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/design-system-icones'
     | '/operadoras'
     | '/tuss'
+    | '/usuarios'
     | '/analise-faturamento/$analysisId'
     | '/base-precificacao/$versionId'
     | '/operadoras/$contractId'
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
     | '/design-system-icones'
     | '/operadoras'
     | '/tuss'
+    | '/usuarios'
     | '/analise-faturamento/$analysisId'
     | '/base-precificacao/$versionId'
     | '/operadoras/$contractId'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '/design-system-icones'
     | '/operadoras'
     | '/tuss'
+    | '/usuarios'
     | '/analise-faturamento_/$analysisId'
     | '/base-precificacao_/$versionId'
     | '/operadoras_/$contractId'
@@ -183,6 +195,7 @@ export interface RootRouteChildren {
   DesignSystemIconesRoute: typeof DesignSystemIconesRoute
   OperadorasRoute: typeof OperadorasRoute
   TussRoute: typeof TussRoute
+  UsuariosRoute: typeof UsuariosRoute
   AnaliseFaturamentoAnalysisIdRoute: typeof AnaliseFaturamentoAnalysisIdRoute
   BasePrecificacaoVersionIdRoute: typeof BasePrecificacaoVersionIdRoute
   OperadorasContractIdRoute: typeof OperadorasContractIdRoute
@@ -241,6 +254,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TussRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/usuarios': {
+      id: '/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof UsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/analise-faturamento_/$analysisId': {
       id: '/analise-faturamento_/$analysisId'
       path: '/analise-faturamento/$analysisId'
@@ -287,6 +307,7 @@ const rootRouteChildren: RootRouteChildren = {
   DesignSystemIconesRoute: DesignSystemIconesRoute,
   OperadorasRoute: OperadorasRoute,
   TussRoute: TussRoute,
+  UsuariosRoute: UsuariosRoute,
   AnaliseFaturamentoAnalysisIdRoute: AnaliseFaturamentoAnalysisIdRoute,
   BasePrecificacaoVersionIdRoute: BasePrecificacaoVersionIdRoute,
   OperadorasContractIdRoute: OperadorasContractIdRoute,

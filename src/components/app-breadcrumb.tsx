@@ -22,6 +22,7 @@ const ROUTE_META: Record<string, RouteMeta> = {
   "/base-precificacao": { label: "Base de precificação" },
   "/tuss": { label: "TUSS" },
   "/analise-faturamento": { label: "Análise de faturamento" },
+  "/usuarios": { label: "Usuários" },
   "/design-system": { label: "Fundamentos" },
   "/design-system-icones": { label: "Ícones" },
 };
