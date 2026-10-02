@@ -1,8 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import { FirstAccessPage } from "@/features/auth";
+import { FirstAccessPage, hasPendingFirstAccess } from "@/features/auth";
 
 export const Route = createFileRoute("/primeiro-acesso")({
+  // O fluxo pendente vive no navegador; decidir no cliente, antes de renderizar,
+  // evita mostrar um formulário que depois seria trocado pelo login.
+  ssr: false,
+  beforeLoad: () => {
+    if (!hasPendingFirstAccess()) throw redirect({ to: "/login", replace: true });
+  },
   head: () => ({
     meta: [
       { title: "Primeiro acesso | HaisFaturamento" },

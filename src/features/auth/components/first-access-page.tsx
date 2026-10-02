@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Check, CheckCircle2, Loader2, X } from "lucide-react";
+import { Check, CheckCircle2, Circle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Field } from "@/components/form-field";
@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 import { AuthLayout } from "./auth-layout";
 import { PasswordInput } from "./password-input";
-import { PASSWORD_RULES, definePassword, hasPendingFirstAccess, meetsPasswordRules } from "../data/auth-service";
+import { PASSWORD_RULES, definePassword, meetsPasswordRules } from "../data/auth-service";
 
 export function FirstAccessPage() {
   const navigate = useNavigate();
@@ -17,11 +17,6 @@ export function FirstAccessPage() {
   const [confirmation, setConfirmation] = useState("");
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(false);
-
-  // Sem um login de primeiro acesso em andamento, volta para o login.
-  useEffect(() => {
-    if (!hasPendingFirstAccess() && !done) void navigate({ to: "/login", replace: true });
-  }, [navigate, done]);
 
   const mismatch = confirmation.length > 0 && confirmation !== password;
   const canSubmit = meetsPasswordRules(password) && password === confirmation && !pending;
@@ -89,7 +84,7 @@ export function FirstAccessPage() {
                 key={rule.id}
                 className={cn("flex items-center gap-2 text-sm", ok ? "text-success" : "text-muted-foreground")}
               >
-                {ok ? <Check className="size-4 shrink-0" aria-hidden="true" /> : <X className="size-4 shrink-0" aria-hidden="true" />}
+                {ok ? <Check className="size-4 shrink-0" aria-hidden="true" /> : <Circle className="size-4 shrink-0" aria-hidden="true" />}
                 <span>{rule.label}</span>
                 <span className="sr-only">{ok ? "(atendido)" : "(pendente)"}</span>
               </li>
