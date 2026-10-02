@@ -18,7 +18,7 @@ export function AuthLayout({ title, description, children }: AuthLayoutProps) {
         src={brandPattern.url}
         alt=""
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-[22rem] -left-[20rem] -z-10 hidden w-[860px] select-none opacity-40 [mask-image:linear-gradient(to_top,black_55%,transparent_85%)] lg:block"
+        className="pointer-events-none absolute -bottom-[22rem] -left-[20rem] -z-10 hidden w-[860px] select-none opacity-40 [mask-image:radial-gradient(ellipse_60%_65%_at_37%_66%,black_35%,transparent_100%)] lg:block"
       />
 
       <header className="px-6 pt-8 sm:px-10 lg:px-16">
