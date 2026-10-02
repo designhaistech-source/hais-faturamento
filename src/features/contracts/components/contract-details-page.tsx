@@ -53,6 +53,9 @@ import { ContractRulesStatusBadge } from "./contract-rules-status-badge";
 import { AmendmentStatusBadge } from "./amendment-status-badge";
 import { ActionIcon } from "@/components/action-icons";
 import { NewAmendmentModal } from "./new-amendment-modal";
+import { ContractRulesByFileTab } from "./contract-rules-by-file-tab";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { appTabsLabelClass, appTabsListClass, appTabsTriggerClass } from "@/components/app-tabs";
 import { useCreateAmendment } from "../data/use-contract-registration";
 
 const COLUMNS = [
@@ -103,17 +106,21 @@ export interface ContractOperatorContext {
 export function ContractDetailsPage({
   contractId,
   operator,
+  variant = "default",
 }: {
   contractId: string;
   operator?: ContractOperatorContext;
+  /** Versão temporária para comparar a organização em abas. */
+  variant?: "default" | "test";
 }) {
+  const isTest = variant === "test";
   const contractsQuery = useQuery({ queryKey: contractsQueryKey, queryFn: listContracts });
   const contract = contractsQuery.data?.find((item) => item.id === contractId) ?? null;
 
   return (
     <TooltipProvider delayDuration={150}>
       <div className="flex min-h-screen bg-background">
-        <AppSidebar activeKey="contratos" />
+        <AppSidebar activeKey={isTest ? "contratos-teste" : "contratos"} />
         <div className="flex min-h-screen min-w-0 flex-1 flex-col pt-14 md:pt-0">
           <main className="flex-1 space-y-6 p-6 pb-16">
             <AppBreadcrumb currentLabel={operator?.name} />
@@ -122,9 +129,9 @@ export function ContractDetailsPage({
               description={operator ? "Contrato com a operadora." : contract?.company}
               actions={
                 <Button asChild variant="outline" className="w-full sm:w-auto">
-                  <Link to="/contratos">
+                  <Link to={isTest ? "/contratos-teste" : "/contratos"}>
                     <ArrowLeft className="size-4" aria-hidden="true" />
-                    {operator ? "Voltar para operadoras" : "Voltar para contratos"}
+                    {operator && !isTest ? "Voltar para operadoras" : "Voltar para contratos"}
                   </Link>
                 </Button>
               }
@@ -149,7 +156,7 @@ export function ContractDetailsPage({
                 />
               </SurfaceCard>
             ) : (
-              <ContractDetailsContent contract={contract} operator={operator} />
+              <ContractDetailsContent contract={contract} operator={operator} isTest={isTest} />
             )}
           </main>
           <SiteFooter />
@@ -162,9 +169,11 @@ export function ContractDetailsPage({
 function ContractDetailsContent({
   contract,
   operator,
+  isTest,
 }: {
   contract: Contract;
   operator?: ContractOperatorContext;
+  isTest: boolean;
 }) {
   const queryKey = contractAmendmentsQueryKey(contract.id);
   const amendmentsQuery = useQuery({
@@ -262,225 +271,290 @@ function ContractDetailsContent({
     </Button>
   );
 
-  return (
-    <div className="space-y-6">
-      <SurfaceCard padding="md">
-        <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
-          {(operator
-            ? [
-                { label: "Validade", value: formatIsoToBr(operator.validUntil) || "—" },
-                {
-                  label: "Aditivos",
-                  value: amendmentsQuery.isSuccess ? String(amendments.length) : "—",
-                },
-                {
-                  label: "Arquivos",
-                  value: amendmentsQuery.isSuccess ? String(files.length) : "—",
-                },
-              ]
-            : [
-                { label: "Prestador", value: contract.company },
-                {
-                  label: "CNPJ",
-                  value: <span className="font-mono">{contract.cnpj || "—"}</span>,
-                },
-                { label: "Validade", value: formatIsoToBr(contract.validUntil) || "—" },
-                {
-                  label: "Status da extração",
-                  value: <ContractRulesStatusBadge status={rulesStatus} />,
-                },
-              ]
-          ).map((item) => (
-            <div key={item.label} className="min-w-0 space-y-0.5">
-              <dt className="text-xs font-medium text-muted-foreground">{item.label}</dt>
-              <dd className="min-w-0 break-words text-sm text-foreground">{item.value}</dd>
-            </div>
-          ))}
-        </dl>
-      </SurfaceCard>
+  const summaryCard = (
+    <SurfaceCard padding="md">
+      <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
+        {(operator
+          ? [
+              { label: "Validade", value: formatIsoToBr(operator.validUntil) || "—" },
+              {
+                label: "Aditivos",
+                value: amendmentsQuery.isSuccess ? String(amendments.length) : "—",
+              },
+              {
+                label: "Arquivos",
+                value: amendmentsQuery.isSuccess ? String(files.length) : "—",
+              },
+            ]
+          : [
+              { label: "Prestador", value: contract.company },
+              {
+                label: "CNPJ",
+                value: <span className="font-mono">{contract.cnpj || "—"}</span>,
+              },
+              { label: "Validade", value: formatIsoToBr(contract.validUntil) || "—" },
+              {
+                label: "Status da extração",
+                value: <ContractRulesStatusBadge status={rulesStatus} />,
+              },
+            ]
+        ).map((item) => (
+          <div key={item.label} className="min-w-0 space-y-0.5">
+            <dt className="text-xs font-medium text-muted-foreground">{item.label}</dt>
+            <dd className="min-w-0 break-words text-sm text-foreground">{item.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </SurfaceCard>
+  );
 
-      <section aria-labelledby="contract-files-title" className="space-y-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 id="contract-files-title" className="text-lg font-semibold text-foreground">
-            Arquivos do contrato
-          </h2>
-          {addButton}
-        </div>
-
-        {amendmentsQuery.isPending ? (
-          <SurfaceCard padding="none">
-            <TableSkeleton rows={3} columns={6} />
-          </SurfaceCard>
-        ) : amendmentsQuery.isError ? (
-          <SurfaceCard padding="md">
-            <ErrorState
-              title="Não foi possível carregar os aditivos"
-              description="Tente novamente em alguns instantes."
-              onRetry={() => void amendmentsQuery.refetch()}
+  const filesBody = (
+    <>
+      {amendmentsQuery.isPending ? (
+        <SurfaceCard padding="none">
+          <TableSkeleton rows={3} columns={6} />
+        </SurfaceCard>
+      ) : amendmentsQuery.isError ? (
+        <SurfaceCard padding="md">
+          <ErrorState
+            title="Não foi possível carregar os aditivos"
+            description="Tente novamente em alguns instantes."
+            onRetry={() => void amendmentsQuery.refetch()}
+          />
+        </SurfaceCard>
+      ) : (
+        <>
+          <FilterCard
+            id="amendments-filters"
+            variant="bar"
+            activeCount={activeCount}
+            onClear={clearFilters}
+            clearDisabled={activeCount === 0}
+            barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_12rem_22rem_auto] lg:gap-4"
+          >
+            <SearchField
+              id="amendments-search"
+              label="Buscar"
+              fieldClassName="sm:col-span-2 lg:col-span-1"
+              placeholder="Buscar por nome do arquivo"
+              value={search}
+              clearable
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+              onClear={() => {
+                setSearch("");
+                setPage(1);
+              }}
             />
-          </SurfaceCard>
-        ) : (
-          <>
-            <FilterCard
-              id="amendments-filters"
-              variant="bar"
-              activeCount={activeCount}
-              onClear={clearFilters}
-              clearDisabled={activeCount === 0}
-              barColumnsClassName="lg:grid-cols-[minmax(0,1fr)_12rem_22rem_auto] lg:gap-4"
-            >
-              <SearchField
-                id="amendments-search"
-                label="Buscar"
-                fieldClassName="sm:col-span-2 lg:col-span-1"
-                placeholder="Buscar por nome do arquivo"
-                value={search}
-                clearable
-                onChange={(event) => {
-                  setSearch(event.target.value);
-                  setPage(1);
-                }}
-                onClear={() => {
-                  setSearch("");
-                  setPage(1);
-                }}
-              />
-              <SelectField
-                id="amendments-extraction-status"
-                label="Status da extração"
-                className="sm:col-span-2 lg:col-span-1"
-                value={statusFilter}
-                options={EXTRACTION_STATUS_FILTER_OPTIONS}
-                onValueChange={(value) => {
-                  setStatusFilter(value as ContractRulesDisplayStatus | "all");
-                  setPage(1);
-                }}
-              />
-              <fieldset className="min-w-0 space-y-1.5 sm:col-span-2 sm:space-y-2 lg:col-span-1">
-                <legend className="text-xs font-medium leading-snug text-muted-foreground">
-                  Data do cadastro
-                </legend>
-                <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
-                  <span className="shrink-0 text-xs text-muted-foreground">De</span>
-                  <Input
-                    type="date"
-                    aria-label="Data do cadastro de"
-                    className="min-w-0 flex-1"
-                    value={from}
-                    max={to || undefined}
-                    onChange={(event) => {
-                      setFrom(event.target.value);
-                      setPage(1);
-                    }}
-                  />
-                  <span className="shrink-0 text-xs text-muted-foreground">até</span>
-                  <Input
-                    type="date"
-                    aria-label="Data do cadastro até"
-                    className="min-w-0 flex-1"
-                    value={to}
-                    min={from || undefined}
-                    onChange={(event) => {
-                      setTo(event.target.value);
-                      setPage(1);
-                    }}
-                  />
-                </div>
-              </fieldset>
-            </FilterCard>
-
-            {filtered.length === 0 ? (
-              <EmptyStateCard
-                icon={<FileText className="size-10" aria-hidden="true" />}
-                title="Nenhum arquivo encontrado"
-                description="Ajuste a busca ou o período de cadastro para ver outros resultados."
-                action={
-                  <Button type="button" variant="outline" onClick={clearFilters}>
-                    Limpar filtros
-                  </Button>
-                }
-              />
-            ) : (
-              <DataTable>
-                <DataTableDesktop>
-                  <DataTableRoot>
-                    <DataTableHeader>
-                      <tr>
-                        {COLUMNS.map((column) => (
-                          <DataTableHead
-                            key={column}
-                            className={column === "Ações" ? "text-right" : undefined}
-                          >
-                            {column}
-                          </DataTableHead>
-                        ))}
-                      </tr>
-                    </DataTableHeader>
-                    <DataTableBody>
-                      {paginated.map((item) => (
-                        <DataTableRow key={item.id}>
-                          <DataTableCell className="max-w-72 font-medium">
-                            <span className="block truncate" title={item.name}>
-                              {item.name}
-                            </span>
-                          </DataTableCell>
-                          <DataTableCell>{item.kind}</DataTableCell>
-                          <DataTableCell>{item.createdBy}</DataTableCell>
-                          <DataTableCell>
-                            {item.createdAt ? formatDateTime(item.createdAt) : "—"}
-                          </DataTableCell>
-                          <DataTableCell>{item.status}</DataTableCell>
-                          <DataTableCell className="text-right">
-                            <FileActions row={item} operatorId={operator?.id ?? contract.id} />
-                          </DataTableCell>
-                        </DataTableRow>
-                      ))}
-                    </DataTableBody>
-                  </DataTableRoot>
-                </DataTableDesktop>
-
-                <DataTableCardList divided>
-                  {paginated.map((item) => (
-                    <DataTableCard key={item.id} flat className="space-y-1.5 py-2.5">
-                      <DataTableCardHeader
-                        title={<span className="min-w-0 truncate">{item.name}</span>}
-                      />
-                      <DataTableCardFields
-                        className="gap-x-4 gap-y-1"
-                        fields={[
-                          { label: "Tipo", value: item.kind },
-                          { label: "Cadastrado por", value: item.createdBy },
-                          {
-                            label: "Data do cadastro",
-                            value: item.createdAt ? formatDateTime(item.createdAt) : "—",
-                          },
-                          { label: "Status da extração", value: item.status },
-                        ]}
-                      />
-                      <DataTableCardActions className="-mt-0.5 justify-end">
-                        <FileActions row={item} operatorId={operator?.id ?? contract.id} />
-                      </DataTableCardActions>
-                    </DataTableCard>
-                  ))}
-                </DataTableCardList>
-
-                <TablePagination
-                  id="contract-files"
-                  totalItems={filtered.length}
-                  page={currentPage}
-                  pageSize={pageSize}
-                  onPageChange={setPage}
-                  onPageSizeChange={(size) => {
-                    setPageSize(size);
+            <SelectField
+              id="amendments-extraction-status"
+              label="Status da extração"
+              className="sm:col-span-2 lg:col-span-1"
+              value={statusFilter}
+              options={EXTRACTION_STATUS_FILTER_OPTIONS}
+              onValueChange={(value) => {
+                setStatusFilter(value as ContractRulesDisplayStatus | "all");
+                setPage(1);
+              }}
+            />
+            <fieldset className="min-w-0 space-y-1.5 sm:col-span-2 sm:space-y-2 lg:col-span-1">
+              <legend className="text-xs font-medium leading-snug text-muted-foreground">
+                Data do cadastro
+              </legend>
+              <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-nowrap">
+                <span className="shrink-0 text-xs text-muted-foreground">De</span>
+                <Input
+                  type="date"
+                  aria-label="Data do cadastro de"
+                  className="min-w-0 flex-1"
+                  value={from}
+                  max={to || undefined}
+                  onChange={(event) => {
+                    setFrom(event.target.value);
                     setPage(1);
                   }}
-                  className="px-4 pb-4"
                 />
-              </DataTable>
-            )}
-          </>
-        )}
-      </section>
+                <span className="shrink-0 text-xs text-muted-foreground">até</span>
+                <Input
+                  type="date"
+                  aria-label="Data do cadastro até"
+                  className="min-w-0 flex-1"
+                  value={to}
+                  min={from || undefined}
+                  onChange={(event) => {
+                    setTo(event.target.value);
+                    setPage(1);
+                  }}
+                />
+              </div>
+            </fieldset>
+          </FilterCard>
+
+          {filtered.length === 0 ? (
+            <EmptyStateCard
+              icon={<FileText className="size-10" aria-hidden="true" />}
+              title="Nenhum arquivo encontrado"
+              description="Ajuste a busca ou o período de cadastro para ver outros resultados."
+              action={
+                <Button type="button" variant="outline" onClick={clearFilters}>
+                  Limpar filtros
+                </Button>
+              }
+            />
+          ) : (
+            <DataTable>
+              <DataTableDesktop>
+                <DataTableRoot>
+                  <DataTableHeader>
+                    <tr>
+                      {COLUMNS.map((column) => (
+                        <DataTableHead
+                          key={column}
+                          className={column === "Ações" ? "text-right" : undefined}
+                        >
+                          {column}
+                        </DataTableHead>
+                      ))}
+                    </tr>
+                  </DataTableHeader>
+                  <DataTableBody>
+                    {paginated.map((item) => (
+                      <DataTableRow key={item.id}>
+                        <DataTableCell className="max-w-72 font-medium">
+                          <span className="block truncate" title={item.name}>
+                            {item.name}
+                          </span>
+                        </DataTableCell>
+                        <DataTableCell>{item.kind}</DataTableCell>
+                        <DataTableCell>{item.createdBy}</DataTableCell>
+                        <DataTableCell>
+                          {item.createdAt ? formatDateTime(item.createdAt) : "—"}
+                        </DataTableCell>
+                        <DataTableCell>{item.status}</DataTableCell>
+                        <DataTableCell className="text-right">
+                          <FileActions
+                            row={item}
+                            operatorId={operator?.id ?? contract.id}
+                            showExtraction={!isTest}
+                          />
+                        </DataTableCell>
+                      </DataTableRow>
+                    ))}
+                  </DataTableBody>
+                </DataTableRoot>
+              </DataTableDesktop>
+
+              <DataTableCardList divided>
+                {paginated.map((item) => (
+                  <DataTableCard key={item.id} flat className="space-y-1.5 py-2.5">
+                    <DataTableCardHeader
+                      title={<span className="min-w-0 truncate">{item.name}</span>}
+                    />
+                    <DataTableCardFields
+                      className="gap-x-4 gap-y-1"
+                      fields={[
+                        { label: "Tipo", value: item.kind },
+                        { label: "Cadastrado por", value: item.createdBy },
+                        {
+                          label: "Data do cadastro",
+                          value: item.createdAt ? formatDateTime(item.createdAt) : "—",
+                        },
+                        { label: "Status da extração", value: item.status },
+                      ]}
+                    />
+                    <DataTableCardActions className="-mt-0.5 justify-end">
+                      <FileActions
+                        row={item}
+                        operatorId={operator?.id ?? contract.id}
+                        showExtraction={!isTest}
+                      />
+                    </DataTableCardActions>
+                  </DataTableCard>
+                ))}
+              </DataTableCardList>
+
+              <TablePagination
+                id="contract-files"
+                totalItems={filtered.length}
+                page={currentPage}
+                pageSize={pageSize}
+                onPageChange={setPage}
+                onPageSizeChange={(size) => {
+                  setPageSize(size);
+                  setPage(1);
+                }}
+                className="px-4 pb-4"
+              />
+            </DataTable>
+          )}
+        </>
+      )}
+    </>
+  );
+
+  const ruleSources = files.map((item) => ({
+    id: item.id,
+    name: item.name,
+    amendmentId: item.kind === "Aditivo" ? item.id : null,
+  }));
+
+  return (
+    <div className="space-y-6">
+      {summaryCard}
+
+      {isTest ? (
+        <section aria-labelledby="contract-content-title" className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2
+              id="contract-content-title"
+              className="font-display text-base font-semibold tracking-tight text-foreground"
+            >
+              Conteúdo do contrato
+            </h2>
+            {addButton}
+          </div>
+          <Tabs defaultValue="files" className="space-y-4">
+            <TabsList className={appTabsListClass}>
+              <TabsTrigger value="files" className={appTabsTriggerClass}>
+                <span className={appTabsLabelClass}>
+                  Arquivos{amendmentsQuery.isSuccess && ` (${files.length})`}
+                </span>
+              </TabsTrigger>
+              <TabsTrigger value="rules" className={appTabsTriggerClass}>
+                <span className={appTabsLabelClass}>Regras identificadas</span>
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent
+              value="files"
+              forceMount
+              className="space-y-4 data-[state=inactive]:hidden"
+            >
+              {filesBody}
+            </TabsContent>
+            <TabsContent value="rules" className="space-y-4">
+              {amendmentsQuery.isSuccess ? (
+                <ContractRulesByFileTab contractId={contract.id} files={ruleSources} />
+              ) : (
+                <SurfaceCard padding="none">
+                  <TableSkeleton rows={3} columns={5} />
+                </SurfaceCard>
+              )}
+            </TabsContent>
+          </Tabs>
+        </section>
+      ) : (
+        <section aria-labelledby="contract-files-title" className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 id="contract-files-title" className="text-lg font-semibold text-foreground">
+              Arquivos do contrato
+            </h2>
+            {addButton}
+          </div>
+          {filesBody}
+        </section>
+      )}
 
       <NewAmendmentModal
         open={modalOpen}
@@ -513,7 +587,15 @@ interface FileRow {
   onView: () => void;
 }
 
-function FileActions({ row, operatorId }: { row: FileRow; operatorId: string }) {
+function FileActions({
+  row,
+  operatorId,
+  showExtraction,
+}: {
+  row: FileRow;
+  operatorId: string;
+  showExtraction: boolean;
+}) {
   return (
     <div className="inline-flex items-center gap-1">
       <Tooltip>
@@ -530,24 +612,26 @@ function FileActions({ row, operatorId }: { row: FileRow; operatorId: string }) 
         </TooltipTrigger>
         <TooltipContent>Visualizar arquivo</TooltipContent>
       </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            asChild
-            variant="ghost"
-            size="icon"
-            aria-label={`Ver detalhes da extração de ${row.name}`}
-          >
-            <Link
-              to="/contratos/$contractId/extracao/$fileId"
-              params={{ contractId: operatorId, fileId: row.id }}
+      {showExtraction && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              aria-label={`Ver detalhes da extração de ${row.name}`}
             >
-              <ClipboardList className="size-4" aria-hidden="true" />
-            </Link>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Ver detalhes da extração</TooltipContent>
-      </Tooltip>
+              <Link
+                to="/contratos/$contractId/extracao/$fileId"
+                params={{ contractId: operatorId, fileId: row.id }}
+              >
+                <ClipboardList className="size-4" aria-hidden="true" />
+              </Link>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Ver detalhes da extração</TooltipContent>
+        </Tooltip>
+      )}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
