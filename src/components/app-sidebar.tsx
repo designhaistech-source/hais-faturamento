@@ -14,6 +14,7 @@ import {
   PanelLeft,
   Menu,
   X,
+  Users,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -73,7 +74,8 @@ export type ItemKey =
   | "tuss"
   | "analise-faturamento"
   | "design-system"
-  | "icones";
+  | "icones"
+  | "usuarios";
 
 export function AppSidebar({ activeKey }: { activeKey: ItemKey }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -267,6 +269,18 @@ function SidebarNav({
           to="/analise-faturamento"
           active={activeKey === "analise-faturamento"}
           hint="Análise de arquivos XML TISS para identificar divergências nos valores faturados."
+          collapsed={collapsed}
+          onNavigate={onNavigate}
+        />
+      </SidebarGroup>
+
+      <SidebarGroup label="Administração" collapsed={collapsed}>
+        <SidebarItem
+          icon={Users}
+          label="Usuários"
+          to="/usuarios"
+          active={activeKey === "usuarios"}
+          hint="Gerencie os usuários e seus respectivos hospitais."
           collapsed={collapsed}
           onNavigate={onNavigate}
         />
