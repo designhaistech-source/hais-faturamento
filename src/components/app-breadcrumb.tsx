@@ -18,7 +18,7 @@ interface RouteMeta {
 /** Mapa de rotas para rótulos de trilha, alinhado aos itens da sidebar. */
 const ROUTE_META: Record<string, RouteMeta> = {
   "/": { label: "Início" },
-  "/contratos": { label: "Operadoras e seus contratos" },
+  "/contratos": { label: "Operadoras" },
   "/base-precificacao": { label: "Base de precificação" },
   "/tuss": { label: "TUSS" },
   "/analise-faturamento": { label: "Análise de faturamento" },
@@ -112,7 +112,7 @@ export function AppBreadcrumb({
             <BreadcrumbItem className="shrink-0">
               <BreadcrumbLink asChild>
                 <Link to="/contratos" className="transition-colors hover:text-foreground">
-                  Operadoras e seus contratos
+                  Operadoras
                 </Link>
               </BreadcrumbLink>
             </BreadcrumbItem>

@@ -92,7 +92,7 @@ export function OperatorDetailsPage({
             <SurfaceCard padding="md">
               <ErrorState
                 title="Operadora não encontrada"
-                description="Volte para Operadoras e seus contratos e escolha outra operadora."
+                description="Volte para Operadoras e escolha outra operadora."
               />
             </SurfaceCard>
           ) : (

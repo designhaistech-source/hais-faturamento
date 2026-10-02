@@ -65,7 +65,7 @@ export function OperatorExtractionPage({
             ) : (
               <ErrorState
                 title="Arquivo não encontrado"
-                description="Volte para Operadoras e seus contratos e escolha outra operadora."
+                description="Volte para Operadoras e escolha outra operadora."
               />
             )}
           </SurfaceCard>
