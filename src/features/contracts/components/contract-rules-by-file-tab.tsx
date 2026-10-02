@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { FileSearch } from "lucide-react";
 
@@ -73,14 +73,8 @@ export function ContractRulesByFileTab({
 
   const pending = queries.some((query) => query.isPending);
   const failed = queries.some((query) => query.isError);
-  const queriesData = queries.map((query) => query.data);
-  const rows = useMemo<SourcedRule[]>(
-    () =>
-      files.flatMap((source, index) =>
-        (queriesData[index] ?? []).map((rule) => ({ rule, source })),
-      ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [files, ...queriesData],
+  const rows: SourcedRule[] = files.flatMap((source, index) =>
+    (queries[index]?.data ?? []).map((rule) => ({ rule, source })),
   );
 
   const [search, setSearch] = useState("");
@@ -97,9 +91,8 @@ export function ContractRulesByFileTab({
     ...files.map((file) => ({ value: file.id, label: file.name })),
   ];
 
-  const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    return rows.filter(({ rule, source }) => {
+  const term = search.trim().toLowerCase();
+  const filtered = rows.filter(({ rule, source }) => {
       if (sourceId !== "all" && source.id !== sourceId) return false;
       if (kind !== "all" && contractRuleKindOf(rule) !== kind) return false;
       if (!term) return true;
@@ -107,8 +100,7 @@ export function ContractRulesByFileTab({
         .join(" ")
         .toLowerCase()
         .includes(term);
-    });
-  }, [rows, search, kind, sourceId]);
+  });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
