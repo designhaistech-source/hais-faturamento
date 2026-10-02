@@ -3,7 +3,6 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutGrid,
   FileText,
-  FlaskConical,
   FileCheck2,
   Database,
   BookMarked,
@@ -70,7 +69,6 @@ function BrandMark({ className }: { className?: string }) {
 export type ItemKey =
   | "inicio"
   | "contratos"
-  | "contratos-teste"
   | "base-precificacao"
   | "tuss"
   | "analise-faturamento"
@@ -238,19 +236,10 @@ function SidebarNav({
       <SidebarGroup label="Faturamento" collapsed={collapsed}>
         <SidebarItem
           icon={FileText}
-          label="Contratos com operadoras"
+          label="Operadoras e seus contratos"
           to="/contratos"
           active={activeKey === "contratos"}
           hint="Contratos das clínicas e hospitais atendidos, com arquivo original anexado."
-          collapsed={collapsed}
-          onNavigate={onNavigate}
-        />
-        <SidebarItem
-          icon={FlaskConical}
-          label="Contratos com operadoras teste"
-          to="/contratos-teste"
-          active={activeKey === "contratos-teste"}
-          hint="Versão temporária para comparar a nova organização dos contratos."
           collapsed={collapsed}
           onNavigate={onNavigate}
         />

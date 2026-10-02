@@ -57,7 +57,7 @@ export function OperatorDetailsPage({
 
   return (
     <div className="flex min-h-screen bg-background">
-      <AppSidebar activeKey={isTest ? "contratos-teste" : "contratos"} />
+      <AppSidebar activeKey={"contratos"} />
       <div className="flex min-h-screen min-w-0 flex-1 flex-col pt-14 md:pt-0">
         <main className="flex-1 space-y-6 p-6 pb-16">
           <AppBreadcrumb currentLabel={operator?.name} />
@@ -66,7 +66,7 @@ export function OperatorDetailsPage({
             description="Contrato com a operadora."
             actions={
               <Button asChild variant="outline" className="w-full sm:w-auto">
-                <Link to={isTest ? "/contratos-teste" : "/contratos"}>
+                <Link to={"/contratos"}>
                   <ArrowLeft className="size-4" aria-hidden="true" />
                   {isTest ? "Voltar para contratos" : "Voltar para operadoras"}
                 </Link>
@@ -92,7 +92,7 @@ export function OperatorDetailsPage({
             <SurfaceCard padding="md">
               <ErrorState
                 title="Operadora não encontrada"
-                description="Volte para Contratos com operadoras e escolha outra operadora."
+                description="Volte para Operadoras e seus contratos e escolha outra operadora."
               />
             </SurfaceCard>
           ) : (

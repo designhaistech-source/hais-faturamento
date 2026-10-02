@@ -2,6 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { OperatorsPage } from "@/features/operators";
 
+function OperatorsRoute() {
+  return <OperatorsPage variant="test" />;
+}
+
 interface ContractsSearch {
   dadosExtraidos?: string;
 }
@@ -9,13 +13,13 @@ interface ContractsSearch {
 export const Route = createFileRoute("/contratos")({
   head: () => ({
     meta: [
-      { title: "Contratos com operadoras | HaisFaturamento" },
+      { title: "Operadoras e seus contratos | HaisFaturamento" },
       {
         name: "description",
         content:
           "Consulte as operadoras de saúde e a situação dos contratos do hospital com cada uma no HaisFaturamento.",
       },
-      { property: "og:title", content: "Contratos com operadoras | HaisFaturamento" },
+      { property: "og:title", content: "Operadoras e seus contratos | HaisFaturamento" },
       {
         property: "og:description",
         content: "Operadoras de saúde e contratos do hospital no HaisFaturamento.",
@@ -26,5 +30,5 @@ export const Route = createFileRoute("/contratos")({
   }),
   validateSearch: (search: Record<string, unknown>): ContractsSearch =>
     typeof search.dadosExtraidos === "string" ? { dadosExtraidos: search.dadosExtraidos } : {},
-  component: OperatorsPage,
+  component: OperatorsRoute,
 });

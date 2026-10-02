@@ -13,13 +13,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AnaliseFaturamentoRouteImport } from './routes/analise-faturamento'
 import { Route as BasePrecificacaoRouteImport } from './routes/base-precificacao'
 import { Route as ContratosRouteImport } from './routes/contratos'
-import { Route as ContratosTesteRouteImport } from './routes/contratos-teste'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as DesignSystemIconesRouteImport } from './routes/design-system-icones'
 import { Route as TussRouteImport } from './routes/tuss'
 import { Route as AnaliseFaturamentoAnalysisIdRouteImport } from './routes/analise-faturamento_.$analysisId'
 import { Route as BasePrecificacaoVersionIdRouteImport } from './routes/base-precificacao_.$versionId'
-import { Route as ContratosTesteOperatorIdRouteImport } from './routes/contratos-teste_.$operatorId'
 import { Route as ContratosContractIdRouteImport } from './routes/contratos_.$contractId'
 import { Route as AnaliseFaturamentoAnalysisIdResultadoRouteImport } from './routes/analise-faturamento_.$analysisId_.resultado'
 import { Route as ContratosContractIdExtracaoFileIdRouteImport } from './routes/contratos_.$contractId_.extracao.$fileId'
@@ -42,11 +40,6 @@ const BasePrecificacaoRoute = BasePrecificacaoRouteImport.update({
 const ContratosRoute = ContratosRouteImport.update({
   id: '/contratos',
   path: '/contratos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContratosTesteRoute = ContratosTesteRouteImport.update({
-  id: '/contratos-teste',
-  path: '/contratos-teste',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DesignSystemRoute = DesignSystemRouteImport.update({
@@ -76,12 +69,6 @@ const BasePrecificacaoVersionIdRoute =
     path: '/base-precificacao/$versionId',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ContratosTesteOperatorIdRoute =
-  ContratosTesteOperatorIdRouteImport.update({
-    id: '/contratos-teste_/$operatorId',
-    path: '/contratos-teste/$operatorId',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ContratosContractIdRoute = ContratosContractIdRouteImport.update({
   id: '/contratos_/$contractId',
   path: '/contratos/$contractId',
@@ -105,13 +92,11 @@ export interface FileRoutesByFullPath {
   '/analise-faturamento': typeof AnaliseFaturamentoRoute
   '/base-precificacao': typeof BasePrecificacaoRoute
   '/contratos': typeof ContratosRoute
-  '/contratos-teste': typeof ContratosTesteRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
   '/tuss': typeof TussRoute
   '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
   '/base-precificacao/$versionId': typeof BasePrecificacaoVersionIdRoute
-  '/contratos-teste/$operatorId': typeof ContratosTesteOperatorIdRoute
   '/contratos/$contractId': typeof ContratosContractIdRoute
   '/analise-faturamento/$analysisId/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
   '/contratos/$contractId/extracao/$fileId': typeof ContratosContractIdExtracaoFileIdRoute
@@ -121,13 +106,11 @@ export interface FileRoutesByTo {
   '/analise-faturamento': typeof AnaliseFaturamentoRoute
   '/base-precificacao': typeof BasePrecificacaoRoute
   '/contratos': typeof ContratosRoute
-  '/contratos-teste': typeof ContratosTesteRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
   '/tuss': typeof TussRoute
   '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
   '/base-precificacao/$versionId': typeof BasePrecificacaoVersionIdRoute
-  '/contratos-teste/$operatorId': typeof ContratosTesteOperatorIdRoute
   '/contratos/$contractId': typeof ContratosContractIdRoute
   '/analise-faturamento/$analysisId/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
   '/contratos/$contractId/extracao/$fileId': typeof ContratosContractIdExtracaoFileIdRoute
@@ -138,13 +121,11 @@ export interface FileRoutesById {
   '/analise-faturamento': typeof AnaliseFaturamentoRoute
   '/base-precificacao': typeof BasePrecificacaoRoute
   '/contratos': typeof ContratosRoute
-  '/contratos-teste': typeof ContratosTesteRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
   '/tuss': typeof TussRoute
   '/analise-faturamento_/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
   '/base-precificacao_/$versionId': typeof BasePrecificacaoVersionIdRoute
-  '/contratos-teste_/$operatorId': typeof ContratosTesteOperatorIdRoute
   '/contratos_/$contractId': typeof ContratosContractIdRoute
   '/analise-faturamento_/$analysisId_/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
   '/contratos_/$contractId_/extracao/$fileId': typeof ContratosContractIdExtracaoFileIdRoute
@@ -156,13 +137,11 @@ export interface FileRouteTypes {
     | '/analise-faturamento'
     | '/base-precificacao'
     | '/contratos'
-    | '/contratos-teste'
     | '/design-system'
     | '/design-system-icones'
     | '/tuss'
     | '/analise-faturamento/$analysisId'
     | '/base-precificacao/$versionId'
-    | '/contratos-teste/$operatorId'
     | '/contratos/$contractId'
     | '/analise-faturamento/$analysisId/resultado'
     | '/contratos/$contractId/extracao/$fileId'
@@ -172,13 +151,11 @@ export interface FileRouteTypes {
     | '/analise-faturamento'
     | '/base-precificacao'
     | '/contratos'
-    | '/contratos-teste'
     | '/design-system'
     | '/design-system-icones'
     | '/tuss'
     | '/analise-faturamento/$analysisId'
     | '/base-precificacao/$versionId'
-    | '/contratos-teste/$operatorId'
     | '/contratos/$contractId'
     | '/analise-faturamento/$analysisId/resultado'
     | '/contratos/$contractId/extracao/$fileId'
@@ -188,13 +165,11 @@ export interface FileRouteTypes {
     | '/analise-faturamento'
     | '/base-precificacao'
     | '/contratos'
-    | '/contratos-teste'
     | '/design-system'
     | '/design-system-icones'
     | '/tuss'
     | '/analise-faturamento_/$analysisId'
     | '/base-precificacao_/$versionId'
-    | '/contratos-teste_/$operatorId'
     | '/contratos_/$contractId'
     | '/analise-faturamento_/$analysisId_/resultado'
     | '/contratos_/$contractId_/extracao/$fileId'
@@ -205,13 +180,11 @@ export interface RootRouteChildren {
   AnaliseFaturamentoRoute: typeof AnaliseFaturamentoRoute
   BasePrecificacaoRoute: typeof BasePrecificacaoRoute
   ContratosRoute: typeof ContratosRoute
-  ContratosTesteRoute: typeof ContratosTesteRoute
   DesignSystemRoute: typeof DesignSystemRoute
   DesignSystemIconesRoute: typeof DesignSystemIconesRoute
   TussRoute: typeof TussRoute
   AnaliseFaturamentoAnalysisIdRoute: typeof AnaliseFaturamentoAnalysisIdRoute
   BasePrecificacaoVersionIdRoute: typeof BasePrecificacaoVersionIdRoute
-  ContratosTesteOperatorIdRoute: typeof ContratosTesteOperatorIdRoute
   ContratosContractIdRoute: typeof ContratosContractIdRoute
   AnaliseFaturamentoAnalysisIdResultadoRoute: typeof AnaliseFaturamentoAnalysisIdResultadoRoute
   ContratosContractIdExtracaoFileIdRoute: typeof ContratosContractIdExtracaoFileIdRoute
@@ -245,13 +218,6 @@ declare module '@tanstack/react-router' {
       path: '/contratos'
       fullPath: '/contratos'
       preLoaderRoute: typeof ContratosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contratos-teste': {
-      id: '/contratos-teste'
-      path: '/contratos-teste'
-      fullPath: '/contratos-teste'
-      preLoaderRoute: typeof ContratosTesteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/design-system': {
@@ -289,13 +255,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BasePrecificacaoVersionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/contratos-teste_/$operatorId': {
-      id: '/contratos-teste_/$operatorId'
-      path: '/contratos-teste/$operatorId'
-      fullPath: '/contratos-teste/$operatorId'
-      preLoaderRoute: typeof ContratosTesteOperatorIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/contratos_/$contractId': {
       id: '/contratos_/$contractId'
       path: '/contratos/$contractId'
@@ -325,13 +284,11 @@ const rootRouteChildren: RootRouteChildren = {
   AnaliseFaturamentoRoute: AnaliseFaturamentoRoute,
   BasePrecificacaoRoute: BasePrecificacaoRoute,
   ContratosRoute: ContratosRoute,
-  ContratosTesteRoute: ContratosTesteRoute,
   DesignSystemRoute: DesignSystemRoute,
   DesignSystemIconesRoute: DesignSystemIconesRoute,
   TussRoute: TussRoute,
   AnaliseFaturamentoAnalysisIdRoute: AnaliseFaturamentoAnalysisIdRoute,
   BasePrecificacaoVersionIdRoute: BasePrecificacaoVersionIdRoute,
-  ContratosTesteOperatorIdRoute: ContratosTesteOperatorIdRoute,
   ContratosContractIdRoute: ContratosContractIdRoute,
   AnaliseFaturamentoAnalysisIdResultadoRoute:
     AnaliseFaturamentoAnalysisIdResultadoRoute,
