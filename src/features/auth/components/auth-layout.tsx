@@ -22,7 +22,7 @@ export function AuthLayout({ title, description, children }: AuthLayoutProps) {
         <div className="flex flex-1 items-center justify-center py-12">
           <div className="w-full max-w-[440px] rounded-xl border border-border bg-card p-6 shadow-xs sm:p-9 [&_form]:space-y-5 [&_input]:h-12 [&_input]:text-base [&_label]:text-sm [&_button[type=submit]]:h-12 [&_button[type=submit]]:text-base">
             <header className="mb-8">
-              <h1 className="font-display text-[2rem] leading-tight font-semibold tracking-tight text-foreground">{title}</h1>
+              <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">{title}</h1>
               {description && <p className="mt-2 text-base text-muted-foreground">{description}</p>}
             </header>
             {children}

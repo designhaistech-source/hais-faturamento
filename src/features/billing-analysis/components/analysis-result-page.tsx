@@ -289,15 +289,17 @@ function RuleSummary({
       {parts.length > 0 && <p className="text-xs text-muted-foreground">{parts.join(" · ")}</p>}
       {hasMemory && (
         <>
-          <button
+          <Button
             type="button"
-            className="rounded-sm text-xs font-medium text-primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            variant="link"
+            size="sm"
+            className="h-auto px-0"
             aria-expanded={expanded}
             aria-controls={panelId}
             onClick={onToggle}
           >
             {expanded ? "Ocultar cálculo" : "Ver cálculo"}
-          </button>
+          </Button>
           {expanded && (
             <dl id={panelId} className="space-y-1 rounded-md bg-muted px-3 py-2 text-xs">
               {item.referenceValue !== null && (
