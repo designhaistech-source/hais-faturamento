@@ -13,7 +13,7 @@ interface AuthLayoutProps {
 export function AuthLayout({ title, description, children }: AuthLayoutProps) {
   return (
     <main className="flex min-h-dvh w-full bg-background">
-      <section className="flex w-full flex-col px-6 py-8 sm:px-10 md:w-1/2 lg:w-[45%] lg:px-16">
+      <section className="flex w-full flex-col bg-card px-6 py-8 sm:px-10 md:w-1/2 lg:w-[45%] lg:px-16">
         <div>
           <img src={brandLogo.url} alt="HaisFaturamento" className="h-8 w-auto dark:hidden" />
           <img src={brandLogoDark.url} alt="HaisFaturamento" className="hidden h-8 w-auto dark:block" />
