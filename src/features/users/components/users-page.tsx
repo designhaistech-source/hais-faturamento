@@ -120,7 +120,7 @@ export function UsersPage() {
                   <DataTableHeader>
                     <tr>
                       {COLUMNS.map((column) => (
-                        <DataTableHead key={column} className={column === "Ações" ? "text-center" : undefined}>
+                        <DataTableHead key={column} className={column === "Ações" ? "text-right" : undefined}>
                           {column}
                         </DataTableHead>
                       ))}
@@ -133,7 +133,7 @@ export function UsersPage() {
                         <DataTableCell>{user.email}</DataTableCell>
                         <DataTableCell className="font-mono">{user.cpf || "—"}</DataTableCell>
                         <DataTableCell>{hospitalName(user.hospitalId)}</DataTableCell>
-                        <DataTableCell className="text-center">
+                        <DataTableCell className="text-right">
                           <UserActions user={user} {...actions} />
                         </DataTableCell>
                       </DataTableRow>
@@ -238,19 +238,18 @@ interface UserActionsProps {
 
 function UserActions({ user, onView, onEdit, onDelete }: UserActionsProps) {
   const items = [
-    { label: "Ver detalhes", icon: Eye, onClick: onView, className: "text-muted-foreground hover:text-foreground" },
-    { label: "Editar usuário", icon: Pencil, onClick: onEdit, className: "text-muted-foreground hover:text-foreground" },
+    { label: "Ver detalhes", icon: Eye, onClick: onView },
+    { label: "Editar usuário", icon: Pencil, onClick: onEdit },
     {
       label: "Excluir usuário",
       icon: Trash2,
       onClick: onDelete,
-      className: "text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
     },
   ];
   return (
     <TooltipProvider delayDuration={150}>
-      <div className="inline-flex items-center justify-center gap-1">
-        {items.map(({ label, icon: Icon, onClick, className }) => (
+      <div className="inline-flex items-center gap-1">
+        {items.map(({ label, icon: Icon, onClick }) => (
           <Tooltip key={label}>
             <TooltipTrigger asChild>
               <Button
@@ -258,10 +257,9 @@ function UserActions({ user, onView, onEdit, onDelete }: UserActionsProps) {
                 variant="ghost"
                 size="icon"
                 aria-label={`${label}: ${user.name}`}
-                className={className}
                 onClick={() => onClick(user)}
               >
-                <Icon aria-hidden="true" />
+                <Icon className="size-4" aria-hidden="true" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>{label}</TooltipContent>
