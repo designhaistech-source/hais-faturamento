@@ -93,13 +93,13 @@ export function ContractRulesByFileTab({
 
   const term = search.trim().toLowerCase();
   const filtered = rows.filter(({ rule, source }) => {
-      if (sourceId !== "all" && source.id !== sourceId) return false;
-      if (kind !== "all" && contractRuleKindOf(rule) !== kind) return false;
-      if (!term) return true;
-      return [contractRuleTitle(rule), contractRuleReference(rule), contractRuleEffect(rule)]
-        .join(" ")
-        .toLowerCase()
-        .includes(term);
+    if (sourceId !== "all" && source.id !== sourceId) return false;
+    if (kind !== "all" && contractRuleKindOf(rule) !== kind) return false;
+    if (!term) return true;
+    return [contractRuleTitle(rule), contractRuleReference(rule), contractRuleEffect(rule)]
+      .join(" ")
+      .toLowerCase()
+      .includes(term);
   });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));

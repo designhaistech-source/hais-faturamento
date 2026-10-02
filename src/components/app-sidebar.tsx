@@ -3,6 +3,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutGrid,
   FileText,
+  FlaskConical,
   FileCheck2,
   Database,
   BookMarked,
@@ -67,7 +68,14 @@ function BrandMark({ className }: { className?: string }) {
 }
 
 export type ItemKey =
-  "inicio" | "contratos" | "contratos-teste" | "base-precificacao" | "tuss" | "analise-faturamento" | "design-system" | "icones";
+  | "inicio"
+  | "contratos"
+  | "contratos-teste"
+  | "base-precificacao"
+  | "tuss"
+  | "analise-faturamento"
+  | "design-system"
+  | "icones";
 
 export function AppSidebar({ activeKey }: { activeKey: ItemKey }) {
   const [collapsed, setCollapsed] = useState(false);

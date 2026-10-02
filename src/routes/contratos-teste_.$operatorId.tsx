@@ -8,7 +8,8 @@ export const Route = createFileRoute("/contratos-teste_/$operatorId")({
       { title: "Contrato com a operadora (teste) | HaisFaturamento" },
       {
         name: "description",
-        content: "Versão de teste do contrato com a operadora, com arquivos e regras identificadas.",
+        content:
+          "Versão de teste do contrato com a operadora, com arquivos e regras identificadas.",
       },
       { property: "og:title", content: "Contrato com a operadora (teste) | HaisFaturamento" },
       {

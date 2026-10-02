@@ -60,12 +60,12 @@ export function AppBreadcrumb({
       : isTestContractDetail
         ? { label: "Detalhes do contrato" }
         : isContractDetail
-        ? {
-            label: normalized.includes("/extracao/")
-              ? "Detalhes da extração"
-              : "Detalhes do contrato",
-          }
-        : ROUTE_META[normalized];
+          ? {
+              label: normalized.includes("/extracao/")
+                ? "Detalhes da extração"
+                : "Detalhes do contrato",
+            }
+          : ROUTE_META[normalized];
   const meta = routeMeta && currentLabel ? { label: currentLabel } : routeMeta;
 
   if (!meta || normalized === "/") return null;
