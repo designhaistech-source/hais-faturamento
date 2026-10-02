@@ -155,7 +155,8 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
           type="search"
           value={value}
           onChange={onChange}
-          className={cn("pl-9", showRight && "pr-9", className)}
+          // O X nativo do navegador duplicaria o botão "Limpar busca" do Design System.
+          className={cn("pl-9 [&::-webkit-search-cancel-button]:appearance-none", showRight && "pr-9", className)}
           {...props}
         />
         {showRight && (
