@@ -2,10 +2,10 @@ import haisPattern from "@/assets/hais-pattern-fade.svg.asset.json";
 
 /**
  * Hais pattern; the file already carries its own top fade. The wrapper mask
- * cuts a clean horizontal gap behind the footer copyright so it never sits on shapes.
+ * opens a soft clear zone behind the footer copyright so it never sits on shapes.
  */
 const footerClearMask =
-  "linear-gradient(to top, #000 0 26px, transparent 26px 56px, #000 56px)";
+  "radial-gradient(ellipse 300px 56px at 190px calc(100% - 41px), transparent 55%, #000 100%)";
 
 export function BrandPattern({ className }: { className?: string }) {
   return (
