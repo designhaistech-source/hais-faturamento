@@ -2,11 +2,11 @@ import haisPattern from "@/assets/hais-pattern.svg";
 
 /**
  * Original Hais pattern kept as a single grouped composition. The radial mask
- * anchors visibility at the bottom-left corner and dissolves it toward the
+ * is centered on the viewport bottom-left corner and dissolves it toward the
  * top/right so it never ends on a straight edge or sits behind the headline.
  */
 const fadeMask =
-  "radial-gradient(ellipse 75% 58% at 0% 100%, #000 0%, rgb(0 0 0 / 0.7) 35%, rgb(0 0 0 / 0.25) 60%, transparent 78%)";
+  "radial-gradient(ellipse 72vh 50vh at 220px calc(100% - 32vh), #000 0%, #000 22%, rgb(0 0 0 / 0.5) 45%, rgb(0 0 0 / 0.12) 62%, transparent 74%)";
 
 export function BrandPattern({ className }: { className?: string }) {
   return (
@@ -15,7 +15,7 @@ export function BrandPattern({ className }: { className?: string }) {
         src={haisPattern}
         alt=""
         draggable={false}
-        className="absolute bottom-[-14vh] left-[-6vw] h-[105vh] w-auto max-w-none opacity-60"
+        className="absolute bottom-[-32vh] left-[-220px] h-[130vh] w-auto max-w-none opacity-60"
         style={{ maskImage: fadeMask, WebkitMaskImage: fadeMask }}
       />
     </div>
