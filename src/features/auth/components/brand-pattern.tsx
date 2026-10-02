@@ -9,7 +9,7 @@ export function BrandPattern({ className }: { className?: string }) {
         src={haisPattern.url}
         alt=""
         draggable={false}
-        className="absolute bottom-[-38vh] left-[-13vh] h-[80vh] w-auto max-w-none brightness-120 saturate-115 drop-shadow-[0_0_24px_var(--brand-highlight)]"
+        className="absolute bottom-[-38vh] left-[-13vh] h-[80vh] w-auto max-w-none brightness-120 saturate-115 drop-shadow-[0_0_24px_var(--color-brand-highlight)]"
       />
     </div>
   );
