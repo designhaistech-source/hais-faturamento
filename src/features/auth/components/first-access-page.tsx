@@ -57,7 +57,7 @@ export function FirstAccessPage() {
   }
 
   return (
-    <AuthLayout title="Primeiro acesso" description="Defina sua senha para continuar.">
+    <AuthLayout title="Primeiro acesso" description="Defina uma senha para acessar sua conta.">
       <form noValidate onSubmit={submit} className="space-y-4">
         <Field id="first-access-password" label="Nova senha">
           <PasswordInput
@@ -65,6 +65,19 @@ export function FirstAccessPage() {
             aria-describedby="password-rules"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
+          />
+        </Field>
+
+
+        <Field
+          id="first-access-confirmation"
+          label="Confirme sua senha"
+          error={mismatch ? "As senhas não coincidem." : undefined}
+        >
+          <PasswordInput
+            autoComplete="new-password"
+            value={confirmation}
+            onChange={(event) => setConfirmation(event.target.value)}
           />
         </Field>
 
@@ -83,18 +96,6 @@ export function FirstAccessPage() {
             );
           })}
         </ul>
-
-        <Field
-          id="first-access-confirmation"
-          label="Confirme sua senha"
-          error={mismatch ? "As senhas não coincidem." : undefined}
-        >
-          <PasswordInput
-            autoComplete="new-password"
-            value={confirmation}
-            onChange={(event) => setConfirmation(event.target.value)}
-          />
-        </Field>
 
         <Button type="submit" className="w-full" disabled={!canSubmit}>
           {pending && <Loader2 className="animate-spin" aria-hidden="true" />}

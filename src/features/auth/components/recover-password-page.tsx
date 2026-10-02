@@ -29,7 +29,7 @@ export function RecoverPasswordPage() {
   });
 
   const backLink = (
-    <Button asChild variant="outline" className="w-full">
+    <Button asChild variant="link" className="w-full">
       <Link to="/login">
         <ArrowLeft aria-hidden="true" />
         Voltar para o login
@@ -40,7 +40,7 @@ export function RecoverPasswordPage() {
   return (
     <AuthLayout
       title="Recuperar senha"
-      description="Informe seu e-mail cadastrado e enviaremos as instruções para recuperação da senha."
+      description="Informe seu e-mail cadastrado para receber as instruções de recuperação."
     >
       {sentTo ? (
         <div className="space-y-6 text-center" role="status">
