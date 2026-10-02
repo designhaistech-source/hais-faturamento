@@ -7,14 +7,17 @@ interface AuthLayoutProps {
   title: string;
   description?: string;
   children: ReactNode;
+  showPattern?: boolean;
 }
 
 /** Estrutura comum das telas de autenticação: fundo institucional único, mensagem à esquerda e cartão à direita. */
-export function AuthLayout({ title, description, children }: AuthLayoutProps) {
+export function AuthLayout({ title, description, children, showPattern = true }: AuthLayoutProps) {
   return (
     <div className="relative isolate flex min-h-dvh w-full flex-col overflow-hidden bg-gradient-to-br from-brand-surface-from to-brand-surface-to text-brand-surface-foreground">
       {/* Pattern institucional decorativo: sangra pela borda inferior esquerda, só em telas largas. */}
-      <BrandPattern className="pointer-events-none absolute inset-0 -z-10 hidden overflow-hidden select-none lg:block" />
+      {showPattern && (
+        <BrandPattern className="pointer-events-none absolute inset-0 -z-10 hidden overflow-hidden select-none lg:block" />
+      )}
 
       <header className="px-6 pt-8 sm:px-10 lg:px-16">
         <img src={brandLogoDark.url} alt="HaisFaturamento" className="h-8 w-auto" />
