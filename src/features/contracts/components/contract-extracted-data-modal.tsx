@@ -57,7 +57,7 @@ export function ContractExtractedDataModal({
           </Button>
           {showDetailsLink && contract && (
             <Button asChild>
-              <Link to="/contratos/$contractId" params={{ contractId: contract.id }}>
+              <Link to="/operadoras/$contractId" params={{ contractId: contract.id }}>
                 <ClipboardList className="size-4" aria-hidden="true" />
                 Ver detalhes do contrato
               </Link>

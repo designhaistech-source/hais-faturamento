@@ -100,7 +100,7 @@ export function ExtractionDetailsPage({
   return (
     <TooltipProvider delayDuration={150}>
       <div className="flex min-h-screen bg-background">
-        <AppSidebar activeKey="contratos" />
+        <AppSidebar activeKey="operadoras" />
         <div className="flex min-h-screen min-w-0 flex-1 flex-col pt-14 md:pt-0">
           <main className="flex-1 space-y-6 p-6 pb-16">
             <AppBreadcrumb parent={{ label: operator.name, contractId: operator.id }} />
@@ -109,7 +109,7 @@ export function ExtractionDetailsPage({
               description={fileName}
               actions={
                 <Button asChild variant="outline" className="w-full sm:w-auto">
-                  <Link to="/contratos/$contractId" params={{ contractId: operator.id }}>
+                  <Link to="/operadoras/$contractId" params={{ contractId: operator.id }}>
                     <ArrowLeft className="size-4" aria-hidden="true" />
                     Voltar para {operator.name}
                   </Link>
