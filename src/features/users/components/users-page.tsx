@@ -19,7 +19,6 @@ import {
   DataTable,
   DataTableBody,
   DataTableCard,
-  DataTableCardActions,
   DataTableCardFields,
   DataTableCardHeader,
   DataTableCardList,
@@ -133,7 +132,6 @@ export function UsersPage() {
                         { label: "Hospital", value: hospitalName(user.hospitalId) },
                       ]}
                     />
-                    <DataTableCardActions className="hidden" />
                   </DataTableCard>
                 ))}
               </DataTableCardList>
