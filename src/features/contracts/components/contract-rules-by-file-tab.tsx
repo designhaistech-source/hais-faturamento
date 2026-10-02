@@ -33,7 +33,7 @@ import {
 import { contractRuleTitle, type ContractRule } from "../data/contract-rules";
 import { contractRulesQueryKey, listContractRules } from "../data/contract-rules-service";
 
-const COLUMNS = ["Regra", "Referência", "Efeito", "Vigência", "Origem"];
+const COLUMNS = ["Regra", "Referência", "Efeito", "Vigência", "Arquivo de origem"];
 
 export interface RuleSourceFile {
   /** Id do contrato original ou do aditivo. */
@@ -244,7 +244,7 @@ export function ContractRulesByFileTab({
                     { label: "Efeito", value: contractRuleEffect(rule) },
                     { label: "Vigência", value: contractRuleValidity(rule) },
                     {
-                      label: "Origem",
+                      label: "Arquivo de origem",
                       value: <span className="break-all">{source.name}</span>,
                     },
                   ]}
