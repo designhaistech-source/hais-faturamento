@@ -202,7 +202,7 @@ export function ContractRulesByFileTab({
                   {COLUMNS.map((column) => (
                     <DataTableHead key={column}>{column}</DataTableHead>
                   ))}
-                  <DataTableHead className="w-px whitespace-nowrap">Arquivo de origem</DataTableHead>
+                  <DataTableHead className="w-px whitespace-nowrap text-right">Arquivo de origem</DataTableHead>
                 </tr>
               </DataTableHeader>
               <DataTableBody>
@@ -216,9 +216,8 @@ export function ContractRulesByFileTab({
                     <DataTableCell className="whitespace-nowrap">
                       {contractRuleValidity(rule)}
                     </DataTableCell>
-                    <DataTableCell className="w-px whitespace-nowrap">
-                      {/* Compensa o recuo interno do botão para o ícone alinhar com o título da coluna. */}
-                      <ViewSourceButton source={source} className="-ml-2.5" />
+                    <DataTableCell className="w-px whitespace-nowrap text-right">
+                      <ViewSourceButton source={source} />
                     </DataTableCell>
                   </DataTableRow>
                 ))}
