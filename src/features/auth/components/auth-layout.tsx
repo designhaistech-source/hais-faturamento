@@ -34,7 +34,7 @@ export function AuthLayout({ title, description, children, showPattern = false }
           </p>
         </section>
 
-        <div className="mx-auto w-full max-w-[440px] rounded-2xl bg-card p-6 text-card-foreground shadow-lg sm:p-9 lg:mx-0 [&_form]:space-y-5 [&_input]:h-12 [&_input]:text-base [&_label]:text-sm [&_button[type=submit]]:h-12 [&_button[type=submit]]:text-base">
+        <div className="mx-auto w-full max-w-110 rounded-2xl bg-card p-6 text-card-foreground shadow-lg sm:p-9 lg:mx-0 [&_form]:space-y-5 [&_input]:h-12 [&_input]:text-base [&_label]:text-sm [&_button[type=submit]]:h-12 [&_button[type=submit]]:text-base">
           <header className="mb-8">
             <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">{title}</h1>
             {description && <p className="mt-2 text-base text-muted-foreground">{description}</p>}
