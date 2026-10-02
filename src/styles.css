@@ -447,3 +447,9 @@ input[type="date"]::-webkit-calendar-picker-indicator:focus-visible {
     padding-top: 3.5rem;
   }
 }
+
+/* O X nativo do navegador duplicaria o botão "Limpar busca" do SearchInput. */
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
