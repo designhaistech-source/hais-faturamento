@@ -33,7 +33,7 @@ export const Route = createFileRoute("/")({
 const FEATURES = [
   {
     icon: FileText,
-    title: "Operadoras e seus contratos",
+    title: "Operadoras",
     description:
       "Cadastre e consulte os contratos de clínicas e hospitais utilizados no faturamento.",
     to: "/contratos",

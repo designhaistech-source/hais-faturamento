@@ -236,10 +236,10 @@ function SidebarNav({
       <SidebarGroup label="Faturamento" collapsed={collapsed}>
         <SidebarItem
           icon={FileText}
-          label="Operadoras e seus contratos"
+          label="Operadoras"
           to="/contratos"
           active={activeKey === "contratos"}
-          hint="Contratos das clínicas e hospitais atendidos, com arquivo original anexado."
+          hint="Consulte as operadoras e gerencie seus respectivos contratos."
           collapsed={collapsed}
           onNavigate={onNavigate}
         />

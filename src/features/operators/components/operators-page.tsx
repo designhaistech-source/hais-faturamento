@@ -145,7 +145,7 @@ export function OperatorsPage({ variant = "default" }: { variant?: "default" | "
         <main className="flex-1 space-y-6 p-6 pb-16">
           <AppBreadcrumb />
           <PageHeader
-            title="Operadoras e seus contratos"
+            title="Operadoras"
             description="Consulte as operadoras e gerencie seus respectivos contratos."
             actions={
               <Button
