@@ -10,6 +10,12 @@
   --color-brand-surface-to: #033d77;
   --color-brand-surface-foreground: oklch(0.99 0.003 247);
   --color-brand-surface-muted: oklch(0.85 0.03 250);
+  --color-hais-navy: #2e3e91;
+  --color-hais-ocean: #0f5894;
+  --color-hais-sky: #5ea9ff;
+  --color-hais-sage: #93c08f;
+  --color-hais-leaf: #7cca80;
+  --color-hais-mist: #d9d9d9;
   --color-brand-highlight: oklch(0.78 0.12 240);
   /* Breakpoint extra para telas ultra estreitas (< 360px) */
   --breakpoint-xs: 22.5rem;
