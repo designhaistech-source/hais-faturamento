@@ -6,7 +6,7 @@ import haisPattern from "@/assets/hais-pattern.svg";
  * top/right so it never ends on a straight edge or sits behind the headline.
  */
 const fadeMask =
-  "radial-gradient(ellipse 95vh 62vh at 260px calc(100% - 40vh), #000 0%, #000 30%, rgb(0 0 0 / 0.55) 50%, rgb(0 0 0 / 0.15) 64%, transparent 76%)";
+  "radial-gradient(ellipse 95vh 55vh at 260px calc(100% - 40vh), #000 0%, #000 30%, rgb(0 0 0 / 0.55) 50%, rgb(0 0 0 / 0.15) 64%, transparent 76%)";
 
 export function BrandPattern({ className }: { className?: string }) {
   return (
