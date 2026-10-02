@@ -6,7 +6,7 @@ import haisPattern from "@/assets/hais-pattern.svg";
  * background instead of starting abruptly; sides and bottom stay fully visible.
  */
 const fadeMask =
-  "linear-gradient(to bottom, transparent 0%, rgb(0 0 0 / 0.04) 10%, rgb(0 0 0 / 0.15) 22%, rgb(0 0 0 / 0.45) 32%, rgb(0 0 0 / 0.8) 40%, #000 46%, #000 100%)";
+  "linear-gradient(to bottom, transparent 0%, rgb(0 0 0 / 0.5) 6%, #000 13%, #000 100%)";
 
 export function BrandPattern({ className }: { className?: string }) {
   return (
@@ -15,7 +15,7 @@ export function BrandPattern({ className }: { className?: string }) {
         src={haisPattern}
         alt=""
         draggable={false}
-        className="absolute bottom-[calc(-40vh-260px)] left-[-260px] h-[110vh] w-auto max-w-none opacity-60"
+        className="absolute bottom-[calc(-40vh-260px)] left-[-260px] h-[110vh] w-auto max-w-none"
         style={{ maskImage: fadeMask, WebkitMaskImage: fadeMask }}
       />
     </div>
