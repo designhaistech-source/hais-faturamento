@@ -215,7 +215,7 @@ function ContractDetailsContent({
         onView: () => setPreview(amendmentAsContractFile(item, contract.company)),
       })),
     ],
-    [contract, amendments, rulesStatus, operator?.id],
+    [contract, amendments, rulesStatus],
   );
 
   const activeCount = [search.trim() !== "", statusFilter !== "all", from !== "", to !== ""].filter(
