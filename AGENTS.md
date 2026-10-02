@@ -8,3 +8,4 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+- Authentication screens (login, first access, password recovery) live in src/features/auth with a simulated in-memory service and do not gate internal routes yet — prototype only, no real backend auth chosen.
