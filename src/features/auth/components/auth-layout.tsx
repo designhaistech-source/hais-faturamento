@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import brandPattern from "@/assets/hais-pattern.svg.asset.json";
 import brandLogoDark from "@/assets/haisfaturamento-logo-dark.png.asset.json";
 
 interface AuthLayoutProps {
@@ -11,7 +12,15 @@ interface AuthLayoutProps {
 /** Estrutura comum das telas de autenticação: fundo institucional único, mensagem à esquerda e cartão à direita. */
 export function AuthLayout({ title, description, children }: AuthLayoutProps) {
   return (
-    <div className="flex min-h-dvh w-full flex-col bg-gradient-to-br from-brand-surface-from to-brand-surface-to text-brand-surface-foreground">
+    <div className="relative isolate flex min-h-dvh w-full flex-col overflow-hidden bg-gradient-to-br from-brand-surface-from to-brand-surface-to text-brand-surface-foreground">
+      {/* Pattern institucional decorativo: sangra pela borda inferior esquerda, só em telas largas. */}
+      <img
+        src={brandPattern.url}
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-40 -left-32 -z-10 hidden w-[520px] select-none opacity-20 lg:block"
+      />
+
       <header className="px-6 pt-8 sm:px-10 lg:px-16">
         <img src={brandLogoDark.url} alt="HaisFaturamento" className="h-8 w-auto" />
       </header>
