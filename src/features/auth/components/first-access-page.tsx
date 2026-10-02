@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Check, CheckCircle2, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 import { AuthLayout } from "./auth-layout";
 import { PasswordInput } from "./password-input";
-import { PASSWORD_RULES, definePassword, hasPendingFirstAccess, meetsPasswordRules } from "../data/auth-service";
+import { PASSWORD_RULES, definePassword, meetsPasswordRules } from "../data/auth-service";
 
 export function FirstAccessPage() {
   const navigate = useNavigate();
@@ -17,11 +17,6 @@ export function FirstAccessPage() {
   const [confirmation, setConfirmation] = useState("");
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(false);
-
-  // Sem um login de primeiro acesso em andamento, volta para o login.
-  useEffect(() => {
-    if (!hasPendingFirstAccess() && !done) void navigate({ to: "/login", replace: true });
-  }, [navigate, done]);
 
   const mismatch = confirmation.length > 0 && confirmation !== password;
   const canSubmit = meetsPasswordRules(password) && password === confirmation && !pending;

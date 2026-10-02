@@ -18,8 +18,22 @@ const accounts: MockAccount[] = [
   { cpf: "456.789.123-22", email: "eduarda.lima@exemplo.com", password: null },
 ];
 
-/** CPF aguardando a definição de senha do primeiro acesso (somente em memória). */
-let pendingFirstAccessCpf: string | null = null;
+/**
+ * CPF aguardando a definição de senha. Guardado na sessão da aba para que o
+ * fluxo sobreviva a recarregamentos da página de primeiro acesso.
+ */
+const PENDING_KEY = "hais:first-access-cpf";
+
+function readPending(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.sessionStorage.getItem(PENDING_KEY);
+}
+
+function writePending(cpf: string | null): void {
+  if (typeof window === "undefined") return;
+  if (cpf) window.sessionStorage.setItem(PENDING_KEY, cpf);
+  else window.sessionStorage.removeItem(PENDING_KEY);
+}
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -30,22 +44,22 @@ export async function login(cpf: string, password: string): Promise<LoginResult>
   const account = accounts.find((item) => item.cpf === cpf);
   if (!account) return "invalid";
   if (account.password === null) {
-    pendingFirstAccessCpf = account.cpf;
+    writePending(account.cpf);
     return "first-access";
   }
   return account.password === password ? "success" : "invalid";
 }
 
 export function hasPendingFirstAccess(): boolean {
-  return pendingFirstAccessCpf !== null;
+  return readPending() !== null;
 }
 
 export async function definePassword(password: string): Promise<void> {
   await wait(500);
-  const account = accounts.find((item) => item.cpf === pendingFirstAccessCpf);
+  const account = accounts.find((item) => item.cpf === readPending());
   if (!account) throw new Error("Sessão de primeiro acesso expirada.");
   account.password = password;
-  pendingFirstAccessCpf = null;
+  writePending(null);
 }
 
 export async function requestPasswordReset(email: string): Promise<boolean> {
