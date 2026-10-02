@@ -18,7 +18,7 @@ export function AuthLayout({ title, description, children }: AuthLayoutProps) {
         src={brandPattern.url}
         alt=""
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-40 -left-32 -z-10 hidden w-[520px] select-none opacity-20 lg:block"
+        className="pointer-events-none absolute -bottom-80 -left-36 -z-10 hidden w-[460px] select-none opacity-20 lg:block"
       />
 
       <header className="px-6 pt-8 sm:px-10 lg:px-16">
