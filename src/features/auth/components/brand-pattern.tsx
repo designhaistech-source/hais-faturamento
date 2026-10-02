@@ -5,7 +5,8 @@ import haisPattern from "@/assets/hais-pattern.svg";
  * vertical mask fades the image in from its upper edge so it emerges from the
  * background instead of starting abruptly; sides and bottom stay fully visible.
  */
-const fadeMask = "linear-gradient(to bottom, transparent 0%, #000 28%, #000 100%)";
+// Image spans ~-10vh..100vh; transparent band covers the headline area (~up to 55vh).
+const fadeMask = "linear-gradient(to bottom, transparent 0%, transparent 58%, #000 76%, #000 100%)";
 
 export function BrandPattern({ className }: { className?: string }) {
   return (
