@@ -40,7 +40,7 @@ export function LoginPage() {
   });
 
   return (
-    <AuthLayout title="Boas-vindas ao HaisFaturamento" description="Acesse sua conta para continuar.">
+    <AuthLayout title="Boas-vindas" description="Acesse o HaisFaturamento para continuar.">
       <form noValidate onSubmit={submit} className="space-y-4">
         <Controller
           control={control}
