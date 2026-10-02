@@ -120,7 +120,7 @@ export function ContractDetailsPage({
   return (
     <TooltipProvider delayDuration={150}>
       <div className="flex min-h-screen bg-background">
-        <AppSidebar activeKey={isTest ? "contratos-teste" : "contratos"} />
+        <AppSidebar activeKey={"contratos"} />
         <div className="flex min-h-screen min-w-0 flex-1 flex-col pt-14 md:pt-0">
           <main className="flex-1 space-y-6 p-6 pb-16">
             <AppBreadcrumb currentLabel={operator?.name} />
@@ -129,7 +129,7 @@ export function ContractDetailsPage({
               description={operator ? "Contrato com a operadora." : contract?.company}
               actions={
                 <Button asChild variant="outline" className="w-full sm:w-auto">
-                  <Link to={isTest ? "/contratos-teste" : "/contratos"}>
+                  <Link to={"/contratos"}>
                     <ArrowLeft className="size-4" aria-hidden="true" />
                     {operator && !isTest ? "Voltar para operadoras" : "Voltar para contratos"}
                   </Link>

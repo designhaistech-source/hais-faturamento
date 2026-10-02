@@ -18,8 +18,7 @@ interface RouteMeta {
 /** Mapa de rotas para rótulos de trilha, alinhado aos itens da sidebar. */
 const ROUTE_META: Record<string, RouteMeta> = {
   "/": { label: "Início" },
-  "/contratos": { label: "Contratos com operadoras" },
-  "/contratos-teste": { label: "Contratos com operadoras teste" },
+  "/contratos": { label: "Operadoras e seus contratos" },
   "/base-precificacao": { label: "Base de precificação" },
   "/tuss": { label: "TUSS" },
   "/analise-faturamento": { label: "Análise de faturamento" },
@@ -52,20 +51,17 @@ export function AppBreadcrumb({
   const isAnalysisDetail = normalized.startsWith("/analise-faturamento/");
   const isPricingDetail = normalized.startsWith("/base-precificacao/");
   const isContractDetail = normalized.startsWith("/contratos/");
-  const isTestContractDetail = normalized.startsWith("/contratos-teste/");
   const routeMeta = isAnalysisDetail
     ? { label: normalized.endsWith("/resultado") ? "Resultado da análise" : "Detalhes da análise" }
     : isPricingDetail
       ? { label: "Detalhes da base" }
-      : isTestContractDetail
-        ? { label: "Detalhes do contrato" }
-        : isContractDetail
-          ? {
-              label: normalized.includes("/extracao/")
-                ? "Detalhes da extração"
-                : "Detalhes do contrato",
-            }
-          : ROUTE_META[normalized];
+      : isContractDetail
+        ? {
+            label: normalized.includes("/extracao/")
+              ? "Detalhes da extração"
+              : "Detalhes do contrato",
+          }
+        : ROUTE_META[normalized];
   const meta = routeMeta && currentLabel ? { label: currentLabel } : routeMeta;
 
   if (!meta || normalized === "/") return null;
@@ -111,24 +107,12 @@ export function AppBreadcrumb({
             <BreadcrumbSeparator className="shrink-0" />
           </>
         )}
-        {isTestContractDetail && (
-          <>
-            <BreadcrumbItem className="shrink-0">
-              <BreadcrumbLink asChild>
-                <Link to="/contratos-teste" className="transition-colors hover:text-foreground">
-                  Contratos com operadoras teste
-                </Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator className="shrink-0" />
-          </>
-        )}
         {isContractDetail && (
           <>
             <BreadcrumbItem className="shrink-0">
               <BreadcrumbLink asChild>
                 <Link to="/contratos" className="transition-colors hover:text-foreground">
-                  Contratos com operadoras
+                  Operadoras e seus contratos
                 </Link>
               </BreadcrumbLink>
             </BreadcrumbItem>

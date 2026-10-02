@@ -135,18 +135,18 @@ export function OperatorsPage({ variant = "default" }: { variant?: "default" | "
   const navigate = useNavigate();
   const openOperator = (operator: Operator) =>
     void (isTest
-      ? navigate({ to: "/contratos-teste/$operatorId", params: { operatorId: operator.id } })
+      ? navigate({ to: "/contratos/$contractId", params: { contractId: operator.id } })
       : navigate({ to: "/contratos/$contractId", params: { contractId: operator.id } }));
 
   return (
     <div className="flex min-h-screen bg-background">
-      <AppSidebar activeKey={isTest ? "contratos-teste" : "contratos"} />
+      <AppSidebar activeKey={"contratos"} />
       <div className="flex min-h-screen min-w-0 flex-1 flex-col pt-14 md:pt-0">
         <main className="flex-1 space-y-6 p-6 pb-16">
           <AppBreadcrumb />
           <PageHeader
-            title={isTest ? "Contratos com operadoras teste" : "Contratos com operadoras"}
-            description="Gerencie os contratos do hospital com cada operadora."
+            title="Operadoras e seus contratos"
+            description="Consulte as operadoras e gerencie seus respectivos contratos."
             actions={
               <Button
                 type="button"

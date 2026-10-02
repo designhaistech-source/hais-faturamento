@@ -24,5 +24,5 @@ export const Route = createFileRoute("/contratos_/$contractId")({
 
 function ContractDetailsRoute() {
   const { contractId } = Route.useParams();
-  return <OperatorDetailsPage operatorId={contractId} />;
+  return <OperatorDetailsPage operatorId={contractId} variant="test" />;
 }
