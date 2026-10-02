@@ -1,5 +1,8 @@
 import { useMemo, useState } from "react";
-import { MoreHorizontal, Plus, Users } from "lucide-react";
+import { Eye, MoreHorizontal, Pencil, Plus, Trash2, UserRound, Users } from "lucide-react";
+
+import { AppModal } from "@/components/app-modal";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { toast } from "sonner";
 
 import { AppBreadcrumb } from "@/components/app-breadcrumb";
@@ -39,6 +42,18 @@ export function UsersPage() {
   const [users, setUsers] = useState<AppUser[]>(INITIAL_USERS);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<AppUser | null>(null);
+  const [viewing, setViewing] = useState<AppUser | null>(null);
+  const [deleting, setDeleting] = useState<AppUser | null>(null);
+
+  const actions = {
+    onView: setViewing,
+    onEdit: (user: AppUser) => {
+      setEditing(user);
+      setModalOpen(true);
+    },
+    onDelete: setDeleting,
+  };
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -50,14 +65,24 @@ export function UsersPage() {
     );
   }, [users, search]);
 
-  function handleCreate(input: NewUserInput) {
-    setUsers((previous) =>
-      [...previous, { id: crypto.randomUUID(), ...input }].sort((a, b) =>
-        a.name.localeCompare(b.name, "pt-BR"),
-      ),
-    );
+  function handleSave(input: NewUserInput) {
+    const target = editing;
+    setUsers((previous) => {
+      const next = target
+        ? previous.map((user) => (user.id === target.id ? { ...user, ...input } : user))
+        : [...previous, { id: crypto.randomUUID(), ...input }];
+      return next.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+    });
     setModalOpen(false);
-    toast.success("Usuário cadastrado com sucesso.");
+    setEditing(null);
+    toast.success(target ? "Alterações salvas com sucesso." : "Usuário cadastrado com sucesso.");
+  }
+
+  function handleDelete() {
+    if (!deleting) return;
+    setUsers((previous) => previous.filter((user) => user.id !== deleting.id));
+    toast.success(`Usuário ${deleting.name} excluído.`);
+    setDeleting(null);
   }
 
   return (
@@ -78,7 +103,10 @@ export function UsersPage() {
               clearable
               fieldClassName="w-full sm:max-w-sm"
             />
-            <Button type="button" onClick={() => setModalOpen(true)}>
+            <Button type="button" onClick={() => {
+              setEditing(null);
+              setModalOpen(true);
+            }}>
               <Plus aria-hidden="true" />
               Cadastrar usuário
             </Button>
@@ -111,7 +139,7 @@ export function UsersPage() {
                         <DataTableCell className="font-mono">{user.cpf || "—"}</DataTableCell>
                         <DataTableCell>{hospitalName(user.hospitalId)}</DataTableCell>
                         <DataTableCell className="text-right">
-                          <UserActions user={user} />
+                          <UserActions user={user} {...actions} />
                         </DataTableCell>
                       </DataTableRow>
                     ))}
@@ -124,7 +152,7 @@ export function UsersPage() {
                     <DataTableCardHeader
                       title={user.name}
                       subtitle={user.email}
-                      trailing={<UserActions user={user} />}
+                      trailing={<UserActions user={user} {...actions} />}
                     />
                     <DataTableCardFields
                       fields={[
@@ -143,15 +171,77 @@ export function UsersPage() {
 
       <NewUserModal
         open={modalOpen}
-        onOpenChange={setModalOpen}
-        existingEmails={users.map((user) => user.email.toLowerCase())}
-        onCreate={handleCreate}
+        onOpenChange={(open) => {
+          setModalOpen(open);
+          if (!open) setEditing(null);
+        }}
+        existingEmails={users
+          .filter((user) => user.id !== editing?.id)
+          .map((user) => user.email.toLowerCase())}
+        initialValues={
+          editing
+            ? { name: editing.name, email: editing.email, cpf: editing.cpf, hospitalId: editing.hospitalId }
+            : undefined
+        }
+        onCreate={handleSave}
+      />
+
+      <AppModal
+        open={viewing !== null}
+        onOpenChange={(open) => !open && setViewing(null)}
+        title="Detalhes do usuário"
+        icon={<UserRound className="size-5" aria-hidden="true" />}
+        size="md"
+        footer={
+          <Button type="button" variant="outline" onClick={() => setViewing(null)}>
+            Fechar
+          </Button>
+        }
+      >
+        {viewing && (
+          <dl className="grid gap-4 sm:grid-cols-2">
+            {[
+              { label: "Nome completo", value: viewing.name, wide: true },
+              { label: "E-mail", value: viewing.email, wide: true },
+              { label: "CPF", value: viewing.cpf || "Não informado", mono: true },
+              { label: "Hospital", value: hospitalName(viewing.hospitalId) },
+            ].map((item) => (
+              <div key={item.label} className={item.wide ? "sm:col-span-2" : undefined}>
+                <dt className="text-xs font-medium text-muted-foreground">{item.label}</dt>
+                <dd className={`mt-1 break-words text-sm text-foreground ${item.mono ? "font-mono" : ""}`}>
+                  {item.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </AppModal>
+
+      <ConfirmDialog
+        open={deleting !== null}
+        onOpenChange={(open) => !open && setDeleting(null)}
+        title="Excluir usuário?"
+        description={
+          <>
+            O usuário <strong className="text-foreground">{deleting?.name}</strong> será excluído do
+            sistema. Esta ação não poderá ser desfeita.
+          </>
+        }
+        confirmLabel="Excluir usuário"
+        onConfirm={handleDelete}
       />
     </div>
   );
 }
 
-function UserActions({ user }: { user: AppUser }) {
+interface UserActionsProps {
+  user: AppUser;
+  onView: (user: AppUser) => void;
+  onEdit: (user: AppUser) => void;
+  onDelete: (user: AppUser) => void;
+}
+
+function UserActions({ user, onView, onEdit, onDelete }: UserActionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -160,8 +250,20 @@ function UserActions({ user }: { user: AppUser }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onSelect={() => toast("Edição de usuário ainda não disponível.")}>
+        <DropdownMenuItem onSelect={() => onView(user)}>
+          <Eye aria-hidden="true" />
+          Detalhamento
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => onEdit(user)}>
+          <Pencil aria-hidden="true" />
           Editar
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="text-destructive focus:text-destructive"
+          onSelect={() => onDelete(user)}
+        >
+          <Trash2 aria-hidden="true" />
+          Excluir
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
