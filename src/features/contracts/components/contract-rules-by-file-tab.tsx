@@ -158,7 +158,7 @@ export function ContractRulesByFileTab({
           id="contract-rules-search"
           label="Buscar"
           fieldClassName="sm:col-span-2 lg:col-span-1"
-          placeholder="Buscar por regra, referência ou efeito"
+          placeholder="Buscar por regra, referência ou condição"
           value={search}
           clearable
           onChange={(event) => {
