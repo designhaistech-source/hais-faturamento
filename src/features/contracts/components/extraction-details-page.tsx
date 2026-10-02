@@ -191,15 +191,12 @@ function ExtractionContent({
   const [kind, setKind] = useState<ContractRuleKind | "all">("all");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-  const activeCount = [search.trim() !== "", kind !== "all"].filter(
-    Boolean,
-  ).length;
+  const activeCount = [search.trim() !== "", kind !== "all"].filter(Boolean).length;
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     return rules.filter((rule) => {
       if (kind !== "all" && contractRuleKindOf(rule) !== kind) return false;
-      if (situation === "pending" && rule.reviewed) return false;
       if (!term) return true;
       return [contractRuleTitle(rule), contractRuleReference(rule), contractRuleEffect(rule)]
         .join(" ")
@@ -352,19 +349,13 @@ function ExtractionContent({
                     <DataTableHeader>
                       <tr>
                         {COLUMNS.map((column) => (
-                          <DataTableHead
-                            key={column}
-                            >
-                            {column}
-                          </DataTableHead>
+                          <DataTableHead key={column}>{column}</DataTableHead>
                         ))}
                       </tr>
                     </DataTableHeader>
                     <DataTableBody>
                       {paginated.map((rule) => (
-                        <DataTableRow
-                          key={rule.id}
-                        >
+                        <DataTableRow key={rule.id}>
                           <DataTableCell className="font-medium">
                             {contractRuleTitle(rule)}
                           </DataTableCell>
@@ -381,11 +372,7 @@ function ExtractionContent({
 
                 <DataTableCardList divided>
                   {paginated.map((rule) => (
-                    <DataTableCard
-                      key={rule.id}
-                      flat
-                      className="space-y-1.5 py-2.5"
-                    >
+                    <DataTableCard key={rule.id} flat className="space-y-1.5 py-2.5">
                       <DataTableCardHeader title={contractRuleTitle(rule)} />
                       <DataTableCardFields
                         className="gap-x-4 gap-y-1"
