@@ -53,6 +53,9 @@ import { ContractRulesStatusBadge } from "./contract-rules-status-badge";
 import { AmendmentStatusBadge } from "./amendment-status-badge";
 import { ActionIcon } from "@/components/action-icons";
 import { NewAmendmentModal } from "./new-amendment-modal";
+import { ContractRulesByFileTab } from "./contract-rules-by-file-tab";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { appTabsLabelClass, appTabsListClass, appTabsTriggerClass } from "@/components/app-tabs";
 import { useCreateAmendment } from "../data/use-contract-registration";
 
 const COLUMNS = [
@@ -103,17 +106,21 @@ export interface ContractOperatorContext {
 export function ContractDetailsPage({
   contractId,
   operator,
+  variant = "default",
 }: {
   contractId: string;
   operator?: ContractOperatorContext;
+  /** Versão temporária para comparar a organização em abas. */
+  variant?: "default" | "test";
 }) {
+  const isTest = variant === "test";
   const contractsQuery = useQuery({ queryKey: contractsQueryKey, queryFn: listContracts });
   const contract = contractsQuery.data?.find((item) => item.id === contractId) ?? null;
 
   return (
     <TooltipProvider delayDuration={150}>
       <div className="flex min-h-screen bg-background">
-        <AppSidebar activeKey="contratos" />
+        <AppSidebar activeKey={isTest ? "contratos-teste" : "contratos"} />
         <div className="flex min-h-screen min-w-0 flex-1 flex-col pt-14 md:pt-0">
           <main className="flex-1 space-y-6 p-6 pb-16">
             <AppBreadcrumb currentLabel={operator?.name} />
@@ -122,9 +129,9 @@ export function ContractDetailsPage({
               description={operator ? "Contrato com a operadora." : contract?.company}
               actions={
                 <Button asChild variant="outline" className="w-full sm:w-auto">
-                  <Link to="/contratos">
+                  <Link to={isTest ? "/contratos-teste" : "/contratos"}>
                     <ArrowLeft className="size-4" aria-hidden="true" />
-                    {operator ? "Voltar para operadoras" : "Voltar para contratos"}
+                    {operator && !isTest ? "Voltar para operadoras" : "Voltar para contratos"}
                   </Link>
                 </Button>
               }
@@ -149,7 +156,7 @@ export function ContractDetailsPage({
                 />
               </SurfaceCard>
             ) : (
-              <ContractDetailsContent contract={contract} operator={operator} />
+              <ContractDetailsContent contract={contract} operator={operator} isTest={isTest} />
             )}
           </main>
           <SiteFooter />
@@ -162,9 +169,11 @@ export function ContractDetailsPage({
 function ContractDetailsContent({
   contract,
   operator,
+  isTest,
 }: {
   contract: Contract;
   operator?: ContractOperatorContext;
+  isTest: boolean;
 }) {
   const queryKey = contractAmendmentsQueryKey(contract.id);
   const amendmentsQuery = useQuery({
@@ -262,8 +271,7 @@ function ContractDetailsContent({
     </Button>
   );
 
-  return (
-    <div className="space-y-6">
+  const summaryCard = (
       <SurfaceCard padding="md">
         <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
           {(operator
@@ -298,15 +306,10 @@ function ContractDetailsContent({
           ))}
         </dl>
       </SurfaceCard>
+  );
 
-      <section aria-labelledby="contract-files-title" className="space-y-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 id="contract-files-title" className="text-lg font-semibold text-foreground">
-            Arquivos do contrato
-          </h2>
-          {addButton}
-        </div>
-
+  const filesBody = (
+    <>
         {amendmentsQuery.isPending ? (
           <SurfaceCard padding="none">
             <TableSkeleton rows={3} columns={6} />
@@ -431,7 +434,7 @@ function ContractDetailsContent({
                           </DataTableCell>
                           <DataTableCell>{item.status}</DataTableCell>
                           <DataTableCell className="text-right">
-                            <FileActions row={item} operatorId={operator?.id ?? contract.id} />
+                            <FileActions row={item} operatorId={operator?.id ?? contract.id} showExtraction={!isTest} />
                           </DataTableCell>
                         </DataTableRow>
                       ))}
@@ -458,7 +461,7 @@ function ContractDetailsContent({
                         ]}
                       />
                       <DataTableCardActions className="-mt-0.5 justify-end">
-                        <FileActions row={item} operatorId={operator?.id ?? contract.id} />
+                        <FileActions row={item} operatorId={operator?.id ?? contract.id} showExtraction={!isTest} />
                       </DataTableCardActions>
                     </DataTableCard>
                   ))}
@@ -480,7 +483,66 @@ function ContractDetailsContent({
             )}
           </>
         )}
-      </section>
+    </>
+  );
+
+  const ruleSources = files.map((item) => ({
+    id: item.id,
+    name: item.name,
+    amendmentId: item.kind === "Aditivo" ? item.id : null,
+  }));
+
+  return (
+    <div className="space-y-6">
+      {summaryCard}
+
+      {isTest ? (
+        <section aria-labelledby="contract-content-title" className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2
+              id="contract-content-title"
+              className="font-display text-base font-semibold tracking-tight text-foreground"
+            >
+              Conteúdo do contrato
+            </h2>
+            {addButton}
+          </div>
+          <Tabs defaultValue="files" className="space-y-4">
+            <TabsList className={appTabsListClass}>
+              <TabsTrigger value="files" className={appTabsTriggerClass}>
+                <span className={appTabsLabelClass}>
+                  Arquivos{amendmentsQuery.isSuccess && ` (${files.length})`}
+                </span>
+              </TabsTrigger>
+              <TabsTrigger value="rules" className={appTabsTriggerClass}>
+                <span className={appTabsLabelClass}>Regras identificadas</span>
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="files" forceMount className="space-y-4 data-[state=inactive]:hidden">
+              {filesBody}
+            </TabsContent>
+            <TabsContent value="rules" className="space-y-4">
+              {amendmentsQuery.isSuccess ? (
+                <ContractRulesByFileTab contractId={contract.id} files={ruleSources} />
+              ) : (
+                <SurfaceCard padding="none">
+                  <TableSkeleton rows={3} columns={5} />
+                </SurfaceCard>
+              )}
+            </TabsContent>
+          </Tabs>
+        </section>
+      ) : (
+        <section aria-labelledby="contract-files-title" className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 id="contract-files-title" className="text-lg font-semibold text-foreground">
+              Arquivos do contrato
+            </h2>
+            {addButton}
+          </div>
+          {filesBody}
+        </section>
+      )}
 
       <NewAmendmentModal
         open={modalOpen}
@@ -513,7 +575,15 @@ interface FileRow {
   onView: () => void;
 }
 
-function FileActions({ row, operatorId }: { row: FileRow; operatorId: string }) {
+function FileActions({
+  row,
+  operatorId,
+  showExtraction,
+}: {
+  row: FileRow;
+  operatorId: string;
+  showExtraction: boolean;
+}) {
   return (
     <div className="inline-flex items-center gap-1">
       <Tooltip>
@@ -530,6 +600,7 @@ function FileActions({ row, operatorId }: { row: FileRow; operatorId: string }) 
         </TooltipTrigger>
         <TooltipContent>Visualizar arquivo</TooltipContent>
       </Tooltip>
+      {showExtraction && (
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -548,6 +619,7 @@ function FileActions({ row, operatorId }: { row: FileRow; operatorId: string }) 
         </TooltipTrigger>
         <TooltipContent>Ver detalhes da extração</TooltipContent>
       </Tooltip>
+      )}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
