@@ -3,7 +3,6 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutGrid,
   FileText,
-  FlaskConical,
   FileCheck2,
   Database,
   BookMarked,
