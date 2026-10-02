@@ -53,7 +53,6 @@ const shapes: Shape[] = [
   { kind: "circle", x: 330, y: 300, r: 50, tone: "mist" },
   { kind: "quarter", x: 720, y: 560, r: 70, q: "tr", tone: "navy" },
   { kind: "circle", x: 900, y: 720, r: 36, tone: "sage" },
-  { kind: "quarter", x: 560, y: 380, r: 56, q: "bl", tone: "sky" },
   { kind: "circle", x: 120, y: 170, r: 34, tone: "navy" },
 ];
 
