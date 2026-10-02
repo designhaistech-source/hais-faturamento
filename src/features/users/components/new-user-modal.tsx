@@ -79,6 +79,7 @@ export function NewUserModal({ open, onOpenChange, existingEmails, onCreate, ini
               <Input
                 inputMode="numeric"
                 placeholder="000.000.000-00"
+                disabled={editing}
                 value={field.value}
                 onBlur={field.onBlur}
                 onChange={(event) => field.onChange(maskCpf(event.target.value))}
@@ -97,6 +98,7 @@ export function NewUserModal({ open, onOpenChange, existingEmails, onCreate, ini
               placeholder="Selecione um hospital"
               value={field.value}
               onValueChange={field.onChange}
+              disabled={editing}
               error={errors.hospitalId?.message}
               options={HOSPITALS.map((hospital) => ({ value: hospital.id, label: hospital.name }))}
             />
