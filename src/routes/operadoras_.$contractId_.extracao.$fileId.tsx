@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { OperatorExtractionPage } from "@/features/operators";
 
-export const Route = createFileRoute("/contratos_/$contractId_/extracao/$fileId")({
+export const Route = createFileRoute("/operadoras_/$contractId_/extracao/$fileId")({
   head: () => ({
     meta: [
       { title: "Detalhes da extração | HaisFaturamento" },

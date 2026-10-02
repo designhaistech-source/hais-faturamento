@@ -68,7 +68,7 @@ function BrandMark({ className }: { className?: string }) {
 
 export type ItemKey =
   | "inicio"
-  | "contratos"
+  | "operadoras"
   | "base-precificacao"
   | "tuss"
   | "analise-faturamento"
@@ -237,8 +237,8 @@ function SidebarNav({
         <SidebarItem
           icon={FileText}
           label="Operadoras"
-          to="/contratos"
-          active={activeKey === "contratos"}
+          to="/operadoras"
+          active={activeKey === "operadoras"}
           hint="Consulte as operadoras e gerencie seus respectivos contratos."
           collapsed={collapsed}
           onNavigate={onNavigate}

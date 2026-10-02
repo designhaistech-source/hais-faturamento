@@ -18,7 +18,7 @@ interface RouteMeta {
 /** Mapa de rotas para rótulos de trilha, alinhado aos itens da sidebar. */
 const ROUTE_META: Record<string, RouteMeta> = {
   "/": { label: "Início" },
-  "/contratos": { label: "Operadoras" },
+  "/operadoras": { label: "Operadoras" },
   "/base-precificacao": { label: "Base de precificação" },
   "/tuss": { label: "TUSS" },
   "/analise-faturamento": { label: "Análise de faturamento" },
@@ -50,7 +50,7 @@ export function AppBreadcrumb({
   // Página de detalhe: Início > Análise de faturamento > Detalhes da análise.
   const isAnalysisDetail = normalized.startsWith("/analise-faturamento/");
   const isPricingDetail = normalized.startsWith("/base-precificacao/");
-  const isContractDetail = normalized.startsWith("/contratos/");
+  const isContractDetail = normalized.startsWith("/operadoras/");
   const routeMeta = isAnalysisDetail
     ? { label: normalized.endsWith("/resultado") ? "Resultado da análise" : "Detalhes da análise" }
     : isPricingDetail
@@ -111,7 +111,7 @@ export function AppBreadcrumb({
           <>
             <BreadcrumbItem className="shrink-0">
               <BreadcrumbLink asChild>
-                <Link to="/contratos" className="transition-colors hover:text-foreground">
+                <Link to="/operadoras" className="transition-colors hover:text-foreground">
                   Operadoras
                 </Link>
               </BreadcrumbLink>
@@ -122,7 +122,7 @@ export function AppBreadcrumb({
                 <BreadcrumbItem className="min-w-0">
                   <BreadcrumbLink asChild>
                     <Link
-                      to="/contratos/$contractId"
+                      to="/operadoras/$contractId"
                       params={{ contractId: parent.contractId }}
                       className="truncate transition-colors hover:text-foreground"
                     >

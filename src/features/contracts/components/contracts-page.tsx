@@ -133,7 +133,7 @@ export function ContractsPage() {
     const target = id ? contractsQuery.data?.find((item) => item.id === id) : undefined;
     if (!target) return;
     setRulesContract(target);
-    void navigate({ to: "/contratos", search: {}, replace: true });
+    void navigate({ to: "/operadoras", search: {}, replace: true });
   }, [reviewRequest.dadosExtraidos, contractsQuery.data, navigate]);
 
   const [simulateEmpty, setSimulateEmpty] = useState(false);
@@ -226,7 +226,7 @@ export function ContractsPage() {
                 ? {
                     label: "Ver dados extraídos",
                     onSelect: () =>
-                      void navigate({ to: "/contratos", search: { dadosExtraidos: contract.id } }),
+                      void navigate({ to: "/operadoras", search: { dadosExtraidos: contract.id } }),
                   }
                 : undefined,
           };
@@ -268,7 +268,7 @@ export function ContractsPage() {
   return (
     <TooltipProvider delayDuration={150}>
       <div className="flex min-h-screen bg-background">
-        <AppSidebar activeKey="contratos" />
+        <AppSidebar activeKey="operadoras" />
         <div className="flex min-h-screen min-w-0 flex-1 flex-col pt-14 md:pt-0">
           <main className="flex-1 space-y-6 p-6 pb-16">
             <AppBreadcrumb />
@@ -649,7 +649,7 @@ function ContractActions({
             size="icon"
             aria-label={`Ver detalhes do contrato de ${contract.company}`}
           >
-            <Link to="/contratos/$contractId" params={{ contractId: contract.id }}>
+            <Link to="/operadoras/$contractId" params={{ contractId: contract.id }}>
               <ClipboardList className="size-4" aria-hidden="true" />
             </Link>
           </Button>

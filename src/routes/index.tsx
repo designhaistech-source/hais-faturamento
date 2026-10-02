@@ -36,7 +36,7 @@ const FEATURES = [
     title: "Operadoras",
     description:
       "Cadastre e consulte os contratos de clínicas e hospitais utilizados no faturamento.",
-    to: "/contratos",
+    to: "/operadoras",
     action: "Acessar",
   },
   {

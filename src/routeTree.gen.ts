@@ -12,15 +12,15 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AnaliseFaturamentoRouteImport } from './routes/analise-faturamento'
 import { Route as BasePrecificacaoRouteImport } from './routes/base-precificacao'
-import { Route as ContratosRouteImport } from './routes/contratos'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as DesignSystemIconesRouteImport } from './routes/design-system-icones'
+import { Route as OperadorasRouteImport } from './routes/operadoras'
 import { Route as TussRouteImport } from './routes/tuss'
 import { Route as AnaliseFaturamentoAnalysisIdRouteImport } from './routes/analise-faturamento_.$analysisId'
 import { Route as BasePrecificacaoVersionIdRouteImport } from './routes/base-precificacao_.$versionId'
-import { Route as ContratosContractIdRouteImport } from './routes/contratos_.$contractId'
+import { Route as OperadorasContractIdRouteImport } from './routes/operadoras_.$contractId'
 import { Route as AnaliseFaturamentoAnalysisIdResultadoRouteImport } from './routes/analise-faturamento_.$analysisId_.resultado'
-import { Route as ContratosContractIdExtracaoFileIdRouteImport } from './routes/contratos_.$contractId_.extracao.$fileId'
+import { Route as OperadorasContractIdExtracaoFileIdRouteImport } from './routes/operadoras_.$contractId_.extracao.$fileId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -37,11 +37,6 @@ const BasePrecificacaoRoute = BasePrecificacaoRouteImport.update({
   path: '/base-precificacao',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ContratosRoute = ContratosRouteImport.update({
-  id: '/contratos',
-  path: '/contratos',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DesignSystemRoute = DesignSystemRouteImport.update({
   id: '/design-system',
   path: '/design-system',
@@ -50,6 +45,11 @@ const DesignSystemRoute = DesignSystemRouteImport.update({
 const DesignSystemIconesRoute = DesignSystemIconesRouteImport.update({
   id: '/design-system-icones',
   path: '/design-system-icones',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperadorasRoute = OperadorasRouteImport.update({
+  id: '/operadoras',
+  path: '/operadoras',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TussRoute = TussRouteImport.update({
@@ -69,9 +69,9 @@ const BasePrecificacaoVersionIdRoute =
     path: '/base-precificacao/$versionId',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ContratosContractIdRoute = ContratosContractIdRouteImport.update({
-  id: '/contratos_/$contractId',
-  path: '/contratos/$contractId',
+const OperadorasContractIdRoute = OperadorasContractIdRouteImport.update({
+  id: '/operadoras_/$contractId',
+  path: '/operadoras/$contractId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnaliseFaturamentoAnalysisIdResultadoRoute =
@@ -80,10 +80,10 @@ const AnaliseFaturamentoAnalysisIdResultadoRoute =
     path: '/analise-faturamento/$analysisId/resultado',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ContratosContractIdExtracaoFileIdRoute =
-  ContratosContractIdExtracaoFileIdRouteImport.update({
-    id: '/contratos_/$contractId_/extracao/$fileId',
-    path: '/contratos/$contractId/extracao/$fileId',
+const OperadorasContractIdExtracaoFileIdRoute =
+  OperadorasContractIdExtracaoFileIdRouteImport.update({
+    id: '/operadoras_/$contractId_/extracao/$fileId',
+    path: '/operadoras/$contractId/extracao/$fileId',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -91,44 +91,44 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analise-faturamento': typeof AnaliseFaturamentoRoute
   '/base-precificacao': typeof BasePrecificacaoRoute
-  '/contratos': typeof ContratosRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
+  '/operadoras': typeof OperadorasRoute
   '/tuss': typeof TussRoute
   '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
   '/base-precificacao/$versionId': typeof BasePrecificacaoVersionIdRoute
-  '/contratos/$contractId': typeof ContratosContractIdRoute
+  '/operadoras/$contractId': typeof OperadorasContractIdRoute
   '/analise-faturamento/$analysisId/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
-  '/contratos/$contractId/extracao/$fileId': typeof ContratosContractIdExtracaoFileIdRoute
+  '/operadoras/$contractId/extracao/$fileId': typeof OperadorasContractIdExtracaoFileIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analise-faturamento': typeof AnaliseFaturamentoRoute
   '/base-precificacao': typeof BasePrecificacaoRoute
-  '/contratos': typeof ContratosRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
+  '/operadoras': typeof OperadorasRoute
   '/tuss': typeof TussRoute
   '/analise-faturamento/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
   '/base-precificacao/$versionId': typeof BasePrecificacaoVersionIdRoute
-  '/contratos/$contractId': typeof ContratosContractIdRoute
+  '/operadoras/$contractId': typeof OperadorasContractIdRoute
   '/analise-faturamento/$analysisId/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
-  '/contratos/$contractId/extracao/$fileId': typeof ContratosContractIdExtracaoFileIdRoute
+  '/operadoras/$contractId/extracao/$fileId': typeof OperadorasContractIdExtracaoFileIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/analise-faturamento': typeof AnaliseFaturamentoRoute
   '/base-precificacao': typeof BasePrecificacaoRoute
-  '/contratos': typeof ContratosRoute
   '/design-system': typeof DesignSystemRoute
   '/design-system-icones': typeof DesignSystemIconesRoute
+  '/operadoras': typeof OperadorasRoute
   '/tuss': typeof TussRoute
   '/analise-faturamento_/$analysisId': typeof AnaliseFaturamentoAnalysisIdRoute
   '/base-precificacao_/$versionId': typeof BasePrecificacaoVersionIdRoute
-  '/contratos_/$contractId': typeof ContratosContractIdRoute
+  '/operadoras_/$contractId': typeof OperadorasContractIdRoute
   '/analise-faturamento_/$analysisId_/resultado': typeof AnaliseFaturamentoAnalysisIdResultadoRoute
-  '/contratos_/$contractId_/extracao/$fileId': typeof ContratosContractIdExtracaoFileIdRoute
+  '/operadoras_/$contractId_/extracao/$fileId': typeof OperadorasContractIdExtracaoFileIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -136,58 +136,58 @@ export interface FileRouteTypes {
     | '/'
     | '/analise-faturamento'
     | '/base-precificacao'
-    | '/contratos'
     | '/design-system'
     | '/design-system-icones'
+    | '/operadoras'
     | '/tuss'
     | '/analise-faturamento/$analysisId'
     | '/base-precificacao/$versionId'
-    | '/contratos/$contractId'
+    | '/operadoras/$contractId'
     | '/analise-faturamento/$analysisId/resultado'
-    | '/contratos/$contractId/extracao/$fileId'
+    | '/operadoras/$contractId/extracao/$fileId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/analise-faturamento'
     | '/base-precificacao'
-    | '/contratos'
     | '/design-system'
     | '/design-system-icones'
+    | '/operadoras'
     | '/tuss'
     | '/analise-faturamento/$analysisId'
     | '/base-precificacao/$versionId'
-    | '/contratos/$contractId'
+    | '/operadoras/$contractId'
     | '/analise-faturamento/$analysisId/resultado'
-    | '/contratos/$contractId/extracao/$fileId'
+    | '/operadoras/$contractId/extracao/$fileId'
   id:
     | '__root__'
     | '/'
     | '/analise-faturamento'
     | '/base-precificacao'
-    | '/contratos'
     | '/design-system'
     | '/design-system-icones'
+    | '/operadoras'
     | '/tuss'
     | '/analise-faturamento_/$analysisId'
     | '/base-precificacao_/$versionId'
-    | '/contratos_/$contractId'
+    | '/operadoras_/$contractId'
     | '/analise-faturamento_/$analysisId_/resultado'
-    | '/contratos_/$contractId_/extracao/$fileId'
+    | '/operadoras_/$contractId_/extracao/$fileId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnaliseFaturamentoRoute: typeof AnaliseFaturamentoRoute
   BasePrecificacaoRoute: typeof BasePrecificacaoRoute
-  ContratosRoute: typeof ContratosRoute
   DesignSystemRoute: typeof DesignSystemRoute
   DesignSystemIconesRoute: typeof DesignSystemIconesRoute
+  OperadorasRoute: typeof OperadorasRoute
   TussRoute: typeof TussRoute
   AnaliseFaturamentoAnalysisIdRoute: typeof AnaliseFaturamentoAnalysisIdRoute
   BasePrecificacaoVersionIdRoute: typeof BasePrecificacaoVersionIdRoute
-  ContratosContractIdRoute: typeof ContratosContractIdRoute
+  OperadorasContractIdRoute: typeof OperadorasContractIdRoute
   AnaliseFaturamentoAnalysisIdResultadoRoute: typeof AnaliseFaturamentoAnalysisIdResultadoRoute
-  ContratosContractIdExtracaoFileIdRoute: typeof ContratosContractIdExtracaoFileIdRoute
+  OperadorasContractIdExtracaoFileIdRoute: typeof OperadorasContractIdExtracaoFileIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -213,13 +213,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BasePrecificacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/contratos': {
-      id: '/contratos'
-      path: '/contratos'
-      fullPath: '/contratos'
-      preLoaderRoute: typeof ContratosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/design-system': {
       id: '/design-system'
       path: '/design-system'
@@ -232,6 +225,13 @@ declare module '@tanstack/react-router' {
       path: '/design-system-icones'
       fullPath: '/design-system-icones'
       preLoaderRoute: typeof DesignSystemIconesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operadoras': {
+      id: '/operadoras'
+      path: '/operadoras'
+      fullPath: '/operadoras'
+      preLoaderRoute: typeof OperadorasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tuss': {
@@ -255,11 +255,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BasePrecificacaoVersionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/contratos_/$contractId': {
-      id: '/contratos_/$contractId'
-      path: '/contratos/$contractId'
-      fullPath: '/contratos/$contractId'
-      preLoaderRoute: typeof ContratosContractIdRouteImport
+    '/operadoras_/$contractId': {
+      id: '/operadoras_/$contractId'
+      path: '/operadoras/$contractId'
+      fullPath: '/operadoras/$contractId'
+      preLoaderRoute: typeof OperadorasContractIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/analise-faturamento_/$analysisId_/resultado': {
@@ -269,11 +269,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnaliseFaturamentoAnalysisIdResultadoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/contratos_/$contractId_/extracao/$fileId': {
-      id: '/contratos_/$contractId_/extracao/$fileId'
-      path: '/contratos/$contractId/extracao/$fileId'
-      fullPath: '/contratos/$contractId/extracao/$fileId'
-      preLoaderRoute: typeof ContratosContractIdExtracaoFileIdRouteImport
+    '/operadoras_/$contractId_/extracao/$fileId': {
+      id: '/operadoras_/$contractId_/extracao/$fileId'
+      path: '/operadoras/$contractId/extracao/$fileId'
+      fullPath: '/operadoras/$contractId/extracao/$fileId'
+      preLoaderRoute: typeof OperadorasContractIdExtracaoFileIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -283,17 +283,17 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnaliseFaturamentoRoute: AnaliseFaturamentoRoute,
   BasePrecificacaoRoute: BasePrecificacaoRoute,
-  ContratosRoute: ContratosRoute,
   DesignSystemRoute: DesignSystemRoute,
   DesignSystemIconesRoute: DesignSystemIconesRoute,
+  OperadorasRoute: OperadorasRoute,
   TussRoute: TussRoute,
   AnaliseFaturamentoAnalysisIdRoute: AnaliseFaturamentoAnalysisIdRoute,
   BasePrecificacaoVersionIdRoute: BasePrecificacaoVersionIdRoute,
-  ContratosContractIdRoute: ContratosContractIdRoute,
+  OperadorasContractIdRoute: OperadorasContractIdRoute,
   AnaliseFaturamentoAnalysisIdResultadoRoute:
     AnaliseFaturamentoAnalysisIdResultadoRoute,
-  ContratosContractIdExtracaoFileIdRoute:
-    ContratosContractIdExtracaoFileIdRoute,
+  OperadorasContractIdExtracaoFileIdRoute:
+    OperadorasContractIdExtracaoFileIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

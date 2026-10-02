@@ -10,7 +10,7 @@ interface ContractsSearch {
   dadosExtraidos?: string;
 }
 
-export const Route = createFileRoute("/contratos")({
+export const Route = createFileRoute("/operadoras")({
   head: () => ({
     meta: [
       { title: "Operadoras | HaisFaturamento" },
